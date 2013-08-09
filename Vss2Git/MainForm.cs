@@ -136,11 +136,9 @@ namespace Hpdi.Vss2Git
             catch (Exception ex)
             {
                 ShowException(ex);
-            }
-            finally
-            {
+
                 CloseLog();
-            }
+            }            
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
