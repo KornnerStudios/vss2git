@@ -139,7 +139,7 @@ namespace Hpdi.Vss2Git
             }
             finally
             {
-                
+                CloseLog();
             }
         }
 
