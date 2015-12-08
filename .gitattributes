@@ -1,0 +1,34 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+*.cs text
+*.gitattributes text
+*.gitignore text
+*.htm text
+*.html text
+*.log text
+*.md text
+*.nsi text
+*.sh text
+*.txt text
+*.xml text
+
+# Declare files that will always have CRLF line endings on checkout.
+*.config text eol=crlf
+*.csproj text eol=crlf
+*.manifest text eol=crlf
+*.resx text eol=crlf
+*.settings text eol=crlf
+*.sln text eol=crlf
+
+# Denote all files that are truly binary and should not be modified.
+*.dll binary
+*.exe binary
+*.ico binary
+*.jpg binary
+*.pdb binary
+*.png binary
+*.resources binary
+*.xcf binary
