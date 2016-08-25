@@ -307,9 +307,23 @@ namespace Hpdi.Vss2Git
                         break;
 
                     case VssActionType.Add:
-                    case VssActionType.Share:
                         logger.WriteLine("{0}: {1} {2}", projectDesc, actionType, target.LogicalName);
                         itemInfo = pathMapper.AddItem(project, target);
+                        isAddAction = true;
+                        break;
+                    case VssActionType.Share:
+
+                        var shareAction = (VssShareAction)revision.Action;
+                        if (shareAction.Pinned)
+                        {
+                            logger.WriteLine("{0}: {1} {2}, Pin {3}", projectDesc, actionType, target.LogicalName, shareAction.Revision);
+                            itemInfo = pathMapper.AddItem(project, target, shareAction.Revision);
+                        }
+                        else
+                        {
+                            logger.WriteLine("{0}: {1} {2}", projectDesc, actionType, target.LogicalName);
+                            itemInfo = pathMapper.AddItem(project, target);
+                        }
                         isAddAction = true;
                         break;
 
@@ -454,7 +468,7 @@ namespace Hpdi.Vss2Git
                             if (pinAction.Pinned)
                             {
                                 logger.WriteLine("{0}: Pin {1}", projectDesc, target.LogicalName);
-                                itemInfo = pathMapper.PinItem(project, target);
+                                itemInfo = pathMapper.PinItem(project, target, pinAction.Revision);
                             }
                             else
                             {
@@ -540,7 +554,7 @@ namespace Hpdi.Vss2Git
                     else if (writeFile)
                     {
                         // write current rev to working path
-                        int version = pathMapper.GetFileVersion(target.PhysicalName);
+                        int version = pathMapper.GetFileVersion(project, target.PhysicalName);
                         if (WriteRevisionTo(target.PhysicalName, version, targetPath))
                         {
                             // add file explicitly, so it is visible to subsequent git operations
@@ -563,9 +577,7 @@ namespace Hpdi.Vss2Git
                 pathMapper.SetFileVersion(target, revision.Version);
 
                 // write current rev to all sharing projects
-                WriteRevision(pathMapper, actionType, target.PhysicalName,
-                    revision.Version, null, git);
-                needCommit = true;
+                needCommit = WriteRevision(pathMapper, actionType, target.PhysicalName, revision.Version, null, git);
             }
             return needCommit;
         }
@@ -661,7 +673,7 @@ namespace Hpdi.Vss2Git
             string physicalName, int version, string underProject, GitWrapper git)
         {
             var needCommit = false;
-            var paths = pathMapper.GetFilePaths(physicalName, underProject);
+            var paths = pathMapper.GetFilePaths(physicalName, underProject, version);
             foreach (string path in paths)
             {
                 logger.WriteLine("{0}: {1} revision {2}", path, actionType, version);

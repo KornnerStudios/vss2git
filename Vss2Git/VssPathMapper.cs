@@ -23,6 +23,43 @@ using Hpdi.VssLogicalLib;
 namespace Hpdi.Vss2Git
 {
     /// <summary>
+    /// Class for representing VSS pin
+    /// </summary>
+    /// <author>Trevor Robinson</author>
+    class VssPin
+    {
+        private readonly bool pinned;
+        public bool Pinned
+        {
+            get { return pinned; }
+        }
+
+        private readonly int revision;
+        public int Revision
+        {
+            get { return revision; }
+        }
+
+        public VssPin(bool pinned, int revision)
+        {
+            this.pinned = pinned;
+            this.revision = revision;
+        }
+
+        public override string ToString()
+        {
+            if (pinned)
+            {
+                return string.Format("{0} at {1}", "Pinned", revision);
+            }
+            else
+            {
+                return "Unpinned";
+            }
+        }
+    }
+
+    /// <summary>
     /// Base class for representing VSS items.
     /// </summary>
     /// <author>Trevor Robinson</author>
@@ -268,8 +305,8 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     class VssFileInfo : VssItemInfo
     {
-        private readonly List<VssProjectInfo> projects = new List<VssProjectInfo>();
-        public IEnumerable<VssProjectInfo> Projects
+        private readonly Dictionary<VssProjectInfo, VssPin> projects = new Dictionary<VssProjectInfo, VssPin>();
+        public IEnumerable<KeyValuePair<VssProjectInfo, VssPin>> Projects
         {
             get { return projects; }
         }
@@ -288,12 +325,22 @@ namespace Hpdi.Vss2Git
 
         public void AddProject(VssProjectInfo project)
         {
-            projects.Add(project);
+            projects[project] = new VssPin(false, -1);
+        }
+
+        public void AddProject(VssProjectInfo project, int revision)
+        {
+            projects[project] = new VssPin(true, revision);
         }
 
         public void RemoveProject(VssProjectInfo project)
         {
             projects.Remove(project);
+        }
+
+        public VssPin GetProjectPin(VssProjectInfo project)
+        {
+            return projects[project];
         }
     }
 
@@ -357,7 +404,7 @@ namespace Hpdi.Vss2Git
             return null;
         }
 
-        public IEnumerable<string> GetFilePaths(string file, string underProject)
+        public IEnumerable<string> GetFilePaths(string file, string underProject, int version)
         {
             var result = new LinkedList<string>();
             VssFileInfo fileInfo;
@@ -373,14 +420,17 @@ namespace Hpdi.Vss2Git
                 }
                 foreach (var project in fileInfo.Projects)
                 {
-                    if (underProjectInfo == null || project.IsSameOrSubproject(underProjectInfo))
+                    if (underProjectInfo == null || project.Key.IsSameOrSubproject(underProjectInfo))
                     {
                         // ignore projects that are not rooted
-                        var projectPath = project.GetPath();
+                        var projectPath = project.Key.GetPath();
                         if (projectPath != null)
                         {
-                            var path = Path.Combine(projectPath, fileInfo.LogicalName);
-                            result.AddLast(path);
+                            if ( !project.Value.Pinned || version <= project.Value.Revision)
+                            {
+                                var path = Path.Combine(projectPath, fileInfo.LogicalName);
+                                result.AddLast(path);
+                            }
                         }
                     }
                 }
@@ -388,10 +438,30 @@ namespace Hpdi.Vss2Git
             return result;
         }
 
-        public int GetFileVersion(string file)
+        public int GetFileVersion(VssItemName project, string file)
         {
+            int version = 1;
+
             VssFileInfo fileInfo;
-            return fileInfos.TryGetValue(file, out fileInfo) ? fileInfo.Version : 1;
+            if ( fileInfos.TryGetValue(file, out fileInfo) )
+            {
+                version = fileInfo.Version;
+
+                var projectInfo = GetOrCreateProject(project);
+
+                if ( null != projectInfo )
+                {
+                    VssPin pin = fileInfo.GetProjectPin(projectInfo);
+
+                    if (null != pin && pin.Pinned && version > pin.Revision)
+                    {
+                        version = pin.Revision;
+                    }
+                }
+
+            }
+
+            return version;
         }
 
         public void SetFileVersion(VssItemName name, int version)
@@ -414,6 +484,31 @@ namespace Hpdi.Vss2Git
             {
                 var fileInfo = GetOrCreateFile(name);
                 fileInfo.AddProject(parentInfo);
+                parentInfo.AddItem(fileInfo);
+                itemInfo = fileInfo;
+            }
+
+            // update name of item in case it was created on demand by
+            // an earlier unmapped item that was subsequently renamed
+            itemInfo.LogicalName = name.LogicalName;
+
+            return itemInfo;
+        }
+
+        public VssItemInfo AddItem(VssItemName project, VssItemName name, int pinnedRevision)
+        {
+            var parentInfo = GetOrCreateProject(project);
+            VssItemInfo itemInfo;
+            if (name.IsProject)
+            {
+                var projectInfo = GetOrCreateProject(name);
+                projectInfo.Parent = parentInfo;
+                itemInfo = projectInfo;
+            }
+            else
+            {
+                var fileInfo = GetOrCreateFile(name);
+                fileInfo.AddProject(parentInfo, pinnedRevision);
                 parentInfo.AddItem(fileInfo);
                 itemInfo = fileInfo;
             }
@@ -480,18 +575,59 @@ namespace Hpdi.Vss2Git
             return itemInfo;
         }
 
-        public VssItemInfo PinItem(VssItemName project, VssItemName name)
+        public VssItemInfo PinItem(VssItemName project, VssItemName name, int revision)
         {
             // pinning removes the project from the list of
             // sharing projects, so it no longer receives edits
-            return DeleteItem(project, name);
+            //return DeleteItem(project, name);
+
+            var parentInfo = GetOrCreateProject(project);
+            VssItemInfo itemInfo;
+            if (name.IsProject)
+            {
+                var projectInfo = GetOrCreateProject(name);
+                projectInfo.Parent = null;
+                itemInfo = projectInfo;
+            }
+            else
+            {
+                var fileInfo = GetOrCreateFile(name);
+            
+                fileInfo.RemoveProject(parentInfo);
+                parentInfo.RemoveItem(fileInfo);
+
+                fileInfo.AddProject(parentInfo, revision);
+                parentInfo.AddItem(fileInfo);
+
+                itemInfo = fileInfo;
+            }
+            return itemInfo;
         }
 
         public VssItemInfo UnpinItem(VssItemName project, VssItemName name)
         {
             // unpinning restores the project to the list of
             // sharing projects, so it receives edits
-            return RecoverItem(project, name);
+            var parentInfo = GetOrCreateProject(project);
+            VssItemInfo itemInfo;
+            if (name.IsProject)
+            {
+                var projectInfo = GetOrCreateProject(name);
+                projectInfo.Parent = parentInfo;
+                itemInfo = projectInfo;
+            }
+            else
+            {
+                var fileInfo = GetOrCreateFile(name);
+                fileInfo.RemoveProject(parentInfo);
+                parentInfo.RemoveItem(fileInfo);
+
+                fileInfo.AddProject(parentInfo);
+                parentInfo.AddItem(fileInfo);
+
+                itemInfo = fileInfo;
+            }
+            return itemInfo;
         }
 
         public VssItemInfo BranchFile(VssItemName project, VssItemName newName, VssItemName oldName)
