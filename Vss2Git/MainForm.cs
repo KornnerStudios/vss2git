@@ -44,6 +44,12 @@ namespace Hpdi.Vss2Git
             logger = string.IsNullOrEmpty(filename) ? Logger.Null : new Logger(filename);
         }
 
+        private void CloseLog()
+        {
+            if (logger!=null)
+                logger.Dispose();            
+        }
+
         private void goButton_Click(object sender, EventArgs e)
         {
             try
@@ -111,8 +117,8 @@ namespace Hpdi.Vss2Git
                 revisionAnalyzer.AddItem(project);
 
                 changesetBuilder = new ChangesetBuilder(workQueue, logger, revisionAnalyzer);
-                changesetBuilder.AnyCommentThreshold = TimeSpan.FromSeconds((double)anyCommentUpDown.Value);
-                changesetBuilder.SameCommentThreshold = TimeSpan.FromSeconds((double)sameCommentUpDown.Value);
+                changesetBuilder.AnyCommentThreshold = TimeSpan.FromSeconds((double) anyCommentUpDown.Value);
+                changesetBuilder.SameCommentThreshold = TimeSpan.FromSeconds((double) sameCommentUpDown.Value);
                 changesetBuilder.BuildChangesets();
 
                 if (!string.IsNullOrEmpty(outDirTextBox.Text))
@@ -143,12 +149,16 @@ namespace Hpdi.Vss2Git
             catch (Exception ex)
             {
                 ShowException(ex);
-            }
+
+                CloseLog();
+            }            
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
             workQueue.Abort();
+
+            this.Close();
         }
 
         private void statusTimer_Tick(object sender, EventArgs e)

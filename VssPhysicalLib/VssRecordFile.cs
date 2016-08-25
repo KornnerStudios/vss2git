@@ -164,8 +164,7 @@ namespace Hpdi.VssPhysicalLib
         private static byte[] ReadFile(string filename)
         {
             byte[] data;
-            using (var stream = new FileStream(filename,
-                FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 data = new byte[stream.Length];
                 stream.Read(data, 0, data.Length);
