@@ -109,8 +109,13 @@ namespace Hpdi.VssLogicalLib
                 case Hpdi.VssPhysicalLib.Action.ShareFile:
                     {
                         var share = (ShareRevisionRecord)revision;
-                        return new VssShareAction(db.GetItemName(share.Name, share.Physical),
-                            share.ProjectPath);
+
+                        short pinnedRevision = share.PinnedRevision; // >0: pinned version, ==0 unpinned
+                        short unpinnedRevision = share.UnpinnedRevision; // -1: shared, 0: pinned; >0 unpinned version
+
+                        bool pinned = ((unpinnedRevision == -1 || unpinnedRevision == 0) && pinnedRevision > 0);
+
+                        return new VssShareAction(db.GetItemName(share.Name, share.Physical), share.ProjectPath, pinned, pinned ? pinnedRevision : 0);
                     }
                 case Hpdi.VssPhysicalLib.Action.BranchFile:
                 case Hpdi.VssPhysicalLib.Action.CreateBranch:
