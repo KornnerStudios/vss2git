@@ -182,11 +182,7 @@ namespace Hpdi.Vss2Git
         private void AddComment(string comment, ref string args, out TempFile tempFile)
         {
             tempFile = null;
-            if (string.IsNullOrEmpty(comment))
-            {
-                args += " --allow-empty-message --no-edit -m \"\"";
-            }
-            else
+            if (!string.IsNullOrEmpty(comment))
             {
                 // need to use a temporary file to specify the comment when not
                 // using the system default code page or it contains newlines
