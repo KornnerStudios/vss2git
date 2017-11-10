@@ -8,7 +8,7 @@ The Vss2Git project contains several components:
   * **VssPhysicalLib** is a set of low-level classes for reading the various data files that make up a VSS database.
   * **HashLib** is a generic stateless hashing API that currently provides 16- and 32-bit [CRC](http://en.wikipedia.org/wiki/Cyclic_redundancy_check) generation.
 
-All components are written in C# using the Microsoft [.NET Framework 3.5](http://msdn.microsoft.com/en-us/netframework/default.aspx).
+All components are written in C# using the Microsoft [.NET Framework](https://www.microsoft.com/net).
 
 ## How is it licensed? ##
 
@@ -57,7 +57,7 @@ Admittedly, some potentially interesting features are currently outside the scop
 
 ## Screenshot ##
 
-![http://vss2git.googlecode.com/files/Vss2Git.png](http://vss2git.googlecode.com/files/Vss2Git.png)
+![http://vss2git.googlecode.com/files/Vss2Git.png](https://raw.githubusercontent.com/trevorr/vss2git/master/Vss2Git.png)
 
 ## Resources ##
 
@@ -72,6 +72,14 @@ The following links may be useful to anyone migrating from VSS and/or to Git. If
   * Alexander Gavrilov's [git-vss](http://github.com/angavrilov/git-vss/) ("incremental exchange of simple changes between Git and VSS")
 
 ## Release Notes ##
+
+**1.0.11 (11 Sep 2016)**
+
+  * Option to ignore Git errors (thanks to David E. Smith)
+  * Allow and preserve empty commit messages (thanks to Maxim Degtyarev)
+  * Fix installer to also detect .NET 4.0 and later
+  * Upgrade project files to Visual Studio 2015
+  * Fix some URLs that still referred to old home on Google Code
 
 **1.0.10 (6 Sep 2010)**
 

@@ -5,6 +5,8 @@
 *.suo
 *.user
 *.sln.docstates
+*.csproj.user
+.vs/
 
 # Build results
 
@@ -154,3 +156,5 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+
+Vss2GitSetup*.exe
