@@ -83,6 +83,8 @@ namespace Hpdi.Vss2Git
                     transcodeCheckBox.Checked ? "enabled" : "disabled");
                 logger.WriteLine("Ignore errors: {0}",
                     ignoreErrorsCheckBox.Checked ? "enabled" : "disabled");
+                logger.WriteLine("Dry run: {0}",
+                    dryRunCheckBox.Checked ? "enabled" : "disabled");
 
                 var df = new VssDatabaseFactory(vssDirTextBox.Text);
                 df.Encoding = encoding;
@@ -134,6 +136,7 @@ namespace Hpdi.Vss2Git
                         gitExporter.CommitEncoding = encoding;
                     }
                     gitExporter.IgnoreErrors = ignoreErrorsCheckBox.Checked;
+                    gitExporter.DryRun = dryRunCheckBox.Checked;
                     gitExporter.ExportToGit(outDirTextBox.Text);
                 }
 
@@ -269,6 +272,11 @@ namespace Hpdi.Vss2Git
             settings.AnyCommentSeconds = (int)anyCommentUpDown.Value;
             settings.SameCommentSeconds = (int)sameCommentUpDown.Value;
             settings.Save();
+        }
+
+        private void dryRunCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
