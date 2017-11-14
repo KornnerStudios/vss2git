@@ -517,8 +517,6 @@ namespace Hpdi.Vss2Git
                             var branchAction = (VssBranchAction)revision.Action;
                             logger.WriteLine("{0}: {1} {2}", projectDesc, actionType, target.LogicalName);
                             itemInfo = pathMapper.BranchFile(project, target, branchAction.Source);
-                            // branching within the project might happen after branching of the file
-                            writeFile = true;
                         }
                         break;
 

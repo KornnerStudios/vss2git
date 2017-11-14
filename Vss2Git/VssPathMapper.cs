@@ -340,7 +340,9 @@ namespace Hpdi.Vss2Git
 
         public VssPin GetProjectPin(VssProjectInfo project)
         {
-            return projects[project];
+            VssPin pin = null;
+            projects.TryGetValue(project, out pin);
+            return pin;
         }
     }
 
@@ -641,16 +643,26 @@ namespace Hpdi.Vss2Git
 
             // remove filename from old project
             var oldFile = GetOrCreateFile(oldName);
+            // retain version number from old file
+            var oldPin = oldFile.GetProjectPin(parentInfo);
+
             oldFile.RemoveProject(parentInfo);
             parentInfo.RemoveItem(oldFile);
 
             // add filename to new project
             var newFile = GetOrCreateFile(newName);
             newFile.AddProject(parentInfo);
-            parentInfo.AddItem(newFile);
 
-            // retain version number from old file
-            newFile.Version = oldFile.Version;
+            if (null != oldPin && oldPin.Pinned)
+            {
+                newFile.Version = oldPin.Revision;
+            }
+            else
+            {
+                newFile.Version = 1;
+            }
+
+            parentInfo.AddItem(newFile);
 
             return newFile;
         }
