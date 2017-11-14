@@ -202,8 +202,13 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        public bool Commit(string authorName, string authorEmail, string comment, DateTime localTime)
+        public bool Commit(string authorName, string authorEmail, string comment, DateTime utcTime)
         {
+            if (utcTime.Kind != DateTimeKind.Utc)
+            {
+                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+            }
+
             TempFile commentFile;
 
             var args = "commit";
@@ -214,12 +219,12 @@ namespace Hpdi.Vss2Git
                 var startInfo = GetStartInfo(args);
                 startInfo.EnvironmentVariables["GIT_AUTHOR_NAME"] = authorName;
                 startInfo.EnvironmentVariables["GIT_AUTHOR_EMAIL"] = authorEmail;
-                startInfo.EnvironmentVariables["GIT_AUTHOR_DATE"] = GetUtcTimeString(localTime);
+                startInfo.EnvironmentVariables["GIT_AUTHOR_DATE"] = GetUtcTimeString(utcTime);
 
                 // also setting the committer is supposedly useful for converting to Mercurial
                 startInfo.EnvironmentVariables["GIT_COMMITTER_NAME"] = authorName;
                 startInfo.EnvironmentVariables["GIT_COMMITTER_EMAIL"] = authorEmail;
-                startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(localTime);
+                startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(utcTime);
 
                 // ignore empty commits, since they are non-trivial to detect
                 // (e.g. when renaming a directory)
@@ -227,8 +232,13 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        public void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime localTime)
+        public void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime utcTime)
         {
+            if (utcTime.Kind != DateTimeKind.Utc)
+            {
+                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+            }
+
             TempFile commentFile;
 
             var args = "tag";
@@ -242,16 +252,18 @@ namespace Hpdi.Vss2Git
                 var startInfo = GetStartInfo(args);
                 startInfo.EnvironmentVariables["GIT_COMMITTER_NAME"] = taggerName;
                 startInfo.EnvironmentVariables["GIT_COMMITTER_EMAIL"] = taggerEmail;
-                startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(localTime);
+                startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(utcTime);
 
                 ExecuteUnless(startInfo, null);
             }
         }
 
-        private static string GetUtcTimeString(DateTime localTime)
+        private static string GetUtcTimeString(DateTime utcTime)
         {
-            // convert local time to UTC based on whether DST was in effect at the time
-            var utcTime = TimeZoneInfo.ConvertTimeToUtc(localTime);
+            if (utcTime.Kind != DateTimeKind.Utc)
+            {
+                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+            }
 
             // format time according to ISO 8601 (avoiding locale-dependent month/day names)
             return utcTime.ToString("yyyy'-'MM'-'dd HH':'mm':'ss +0000");

@@ -231,7 +231,7 @@ namespace Hpdi.Vss2Git
                                         delegate
                                         {
                                             git.Tag(tagName, label.User, GetEmail(label.User),
-                                                tagComment, label.DateTime);
+                                                tagComment, label.DateTime.ConvertAmbiguousTimeToUtc(logger) );
                                         }))
                                     {
                                         ++tagCount;
@@ -629,7 +629,7 @@ namespace Hpdi.Vss2Git
             {
                 result = git.AddAll() &&
                     git.Commit(changeset.User, GetEmail(changeset.User),
-                    changeset.Comment ?? DefaultComment, changeset.DateTime);
+                    changeset.Comment ?? DefaultComment, changeset.DateTime.ConvertAmbiguousTimeToUtc(logger) );
             });
             return result;
         }
@@ -773,14 +773,25 @@ namespace Hpdi.Vss2Git
                 }
             }
 
-            DateTime createDateTimeUtc = TimeZoneInfo.ConvertTimeToUtc(createDateTime);
-            DateTime revisionDateTimeUtc = TimeZoneInfo.ConvertTimeToUtc(revision.DateTime);
-
-            if (!dryRun)
+            try
             {
-                // set file creation and update timestamps
-                File.SetCreationTimeUtc(destPath, createDateTimeUtc);
-                File.SetLastWriteTimeUtc(destPath, revisionDateTimeUtc);
+                DateTime createDateTimeUtc = createDateTime.ConvertAmbiguousTimeToUtc(logger);
+                DateTime revisionDateTimeUtc = revision.DateTime.ConvertAmbiguousTimeToUtc(logger);
+
+                if (!dryRun)
+                {
+                    // set file creation and update timestamps
+                    File.SetCreationTimeUtc(destPath, createDateTimeUtc);
+                    File.SetLastWriteTimeUtc(destPath, revisionDateTimeUtc);
+                }
+            }
+            catch (Exception e)
+            {
+                // log an error for missing data files or versions, but keep processing
+                var message = ExceptionFormatter.Format(e);
+                logger.WriteLine("ERROR: {0}", message);
+                logger.WriteLine(e);
+                return false;
             }
 
             return true;

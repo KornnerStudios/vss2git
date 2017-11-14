@@ -78,6 +78,7 @@
     <Compile Include="StreamCopier.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="GitWrapper.cs" />
+    <Compile Include="TimeZoneInfoExtension.cs" />
     <Compile Include="VssPathMapper.cs" />
     <Compile Include="GitExporter.cs" />
     <Compile Include="ProcessExitException.cs" />
