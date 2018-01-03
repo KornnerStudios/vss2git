@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Linq;
 using System.Windows.Forms;
 using Hpdi.VssLogicalLib;
 
@@ -222,8 +223,8 @@ namespace Hpdi.Vss2Git
             var encodings = Encoding.GetEncodings();
             foreach (var encoding in encodings)
             {
+                description = FormatCodePageDescription(encoding);
                 var codePage = encoding.CodePage;
-                description = string.Format("CP{0} - {1}", codePage, encoding.DisplayName);
                 var index = encodingComboBox.Items.Add(description);
                 codePages[index] = encoding;
                 if (codePage == defaultCodePage)
@@ -256,6 +257,11 @@ namespace Hpdi.Vss2Git
             forceAnnotatedCheckBox.Checked = settings.ForceAnnotatedTags;
             anyCommentUpDown.Value = settings.AnyCommentSeconds;
             sameCommentUpDown.Value = settings.SameCommentSeconds;
+
+            if (!String.IsNullOrEmpty(settings.Encoding))
+            {
+                encodingComboBox.SelectedIndex = codePages.FirstOrDefault(x => x.Value.Name == settings.Encoding).Key;
+            }
         }
 
         private void WriteSettings()
@@ -271,7 +277,28 @@ namespace Hpdi.Vss2Git
             settings.ForceAnnotatedTags = forceAnnotatedCheckBox.Checked;
             settings.AnyCommentSeconds = (int)anyCommentUpDown.Value;
             settings.SameCommentSeconds = (int)sameCommentUpDown.Value;
+
+            string encodingName = "";
+
+            var encodings = Encoding.GetEncodings();
+            foreach (var encoding in encodings)
+            {
+                var description = FormatCodePageDescription(encoding);
+
+                if (encodingComboBox.SelectedItem.ToString() == description)
+                {
+                    encodingName = encoding.Name;
+                    break;
+                }
+            }
+            settings.Encoding = encodingName;
+
             settings.Save();
+        }
+
+        static private string FormatCodePageDescription(EncodingInfo info)
+        {
+            return string.Format("CP{0} - {1}", info.CodePage, info.DisplayName);
         }
 
         private void dryRunCheckBox_CheckedChanged(object sender, EventArgs e)
