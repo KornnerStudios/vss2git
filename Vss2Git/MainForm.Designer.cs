@@ -48,6 +48,9 @@
             this.changeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.outputGroupBox = new System.Windows.Forms.GroupBox();
+            this.emailDictFileTextBox = new System.Windows.Forms.TextBox();
+            this.emailDictFileLabel = new System.Windows.Forms.Label();
+            this.dryRunCheckBox = new System.Windows.Forms.CheckBox();
             this.ignoreErrorsCheckBox = new System.Windows.Forms.CheckBox();
             this.forceAnnotatedCheckBox = new System.Windows.Forms.CheckBox();
             this.transcodeCheckBox = new System.Windows.Forms.CheckBox();
@@ -65,7 +68,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.anyCommentUpDown = new System.Windows.Forms.NumericUpDown();
-            this.dryRunCheckBox = new System.Windows.Forms.CheckBox();
             this.vssGroupBox.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.outputGroupBox.SuspendLayout();
@@ -170,7 +172,7 @@
             // goButton
             // 
             this.goButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goButton.Location = new System.Drawing.Point(416, 375);
+            this.goButton.Location = new System.Drawing.Point(416, 407);
             this.goButton.Name = "goButton";
             this.goButton.Size = new System.Drawing.Size(75, 23);
             this.goButton.TabIndex = 3;
@@ -190,7 +192,7 @@
             this.revisionLabel,
             this.changeLabel,
             this.timeLabel});
-            this.statusStrip.Location = new System.Drawing.Point(0, 407);
+            this.statusStrip.Location = new System.Drawing.Point(0, 441);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(584, 22);
             this.statusStrip.TabIndex = 5;
@@ -232,6 +234,8 @@
             // 
             this.outputGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.outputGroupBox.Controls.Add(this.emailDictFileTextBox);
+            this.outputGroupBox.Controls.Add(this.emailDictFileLabel);
             this.outputGroupBox.Controls.Add(this.dryRunCheckBox);
             this.outputGroupBox.Controls.Add(this.ignoreErrorsCheckBox);
             this.outputGroupBox.Controls.Add(this.forceAnnotatedCheckBox);
@@ -244,15 +248,44 @@
             this.outputGroupBox.Controls.Add(this.logLabel);
             this.outputGroupBox.Location = new System.Drawing.Point(12, 144);
             this.outputGroupBox.Name = "outputGroupBox";
-            this.outputGroupBox.Size = new System.Drawing.Size(560, 144);
+            this.outputGroupBox.Size = new System.Drawing.Size(560, 175);
             this.outputGroupBox.TabIndex = 1;
             this.outputGroupBox.TabStop = false;
             this.outputGroupBox.Text = "Output Settings";
             // 
+            // emailDictFileTextBox
+            // 
+            this.emailDictFileTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.emailDictFileTextBox.Location = new System.Drawing.Point(81, 71);
+            this.emailDictFileTextBox.Name = "emailDictFileTextBox";
+            this.emailDictFileTextBox.Size = new System.Drawing.Size(473, 20);
+            this.emailDictFileTextBox.TabIndex = 12;
+            // 
+            // emailDictFileLabel
+            // 
+            this.emailDictFileLabel.AutoSize = true;
+            this.emailDictFileLabel.Location = new System.Drawing.Point(6, 74);
+            this.emailDictFileLabel.Name = "emailDictFileLabel";
+            this.emailDictFileLabel.Size = new System.Drawing.Size(71, 13);
+            this.emailDictFileLabel.TabIndex = 11;
+            this.emailDictFileLabel.Text = "Email dict. file";
+            // 
+            // dryRunCheckBox
+            // 
+            this.dryRunCheckBox.AutoSize = true;
+            this.dryRunCheckBox.Location = new System.Drawing.Point(224, 149);
+            this.dryRunCheckBox.Name = "dryRunCheckBox";
+            this.dryRunCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.dryRunCheckBox.Size = new System.Drawing.Size(143, 17);
+            this.dryRunCheckBox.TabIndex = 8;
+            this.dryRunCheckBox.Text = "Dry Run (no Git commits)";
+            this.dryRunCheckBox.UseVisualStyleBackColor = true;
+            // 
             // ignoreErrorsCheckBox
             // 
             this.ignoreErrorsCheckBox.AutoSize = true;
-            this.ignoreErrorsCheckBox.Location = new System.Drawing.Point(422, 97);
+            this.ignoreErrorsCheckBox.Location = new System.Drawing.Point(422, 126);
             this.ignoreErrorsCheckBox.Name = "ignoreErrorsCheckBox";
             this.ignoreErrorsCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.ignoreErrorsCheckBox.Size = new System.Drawing.Size(101, 17);
@@ -265,7 +298,7 @@
             this.forceAnnotatedCheckBox.AutoSize = true;
             this.forceAnnotatedCheckBox.Checked = true;
             this.forceAnnotatedCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.forceAnnotatedCheckBox.Location = new System.Drawing.Point(224, 97);
+            this.forceAnnotatedCheckBox.Location = new System.Drawing.Point(224, 126);
             this.forceAnnotatedCheckBox.Name = "forceAnnotatedCheckBox";
             this.forceAnnotatedCheckBox.Size = new System.Drawing.Size(191, 17);
             this.forceAnnotatedCheckBox.TabIndex = 7;
@@ -277,7 +310,7 @@
             this.transcodeCheckBox.AutoSize = true;
             this.transcodeCheckBox.Checked = true;
             this.transcodeCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.transcodeCheckBox.Location = new System.Drawing.Point(9, 97);
+            this.transcodeCheckBox.Location = new System.Drawing.Point(9, 126);
             this.transcodeCheckBox.Name = "transcodeCheckBox";
             this.transcodeCheckBox.Size = new System.Drawing.Size(209, 17);
             this.transcodeCheckBox.TabIndex = 6;
@@ -324,7 +357,7 @@
             // 
             this.logTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.logTextBox.Location = new System.Drawing.Point(81, 71);
+            this.logTextBox.Location = new System.Drawing.Point(81, 99);
             this.logTextBox.Name = "logTextBox";
             this.logTextBox.Size = new System.Drawing.Size(473, 20);
             this.logTextBox.TabIndex = 5;
@@ -332,7 +365,7 @@
             // logLabel
             // 
             this.logLabel.AutoSize = true;
-            this.logLabel.Location = new System.Drawing.Point(6, 74);
+            this.logLabel.Location = new System.Drawing.Point(6, 102);
             this.logLabel.Name = "logLabel";
             this.logLabel.Size = new System.Drawing.Size(41, 13);
             this.logLabel.TabIndex = 4;
@@ -342,7 +375,7 @@
             // 
             this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(497, 375);
+            this.cancelButton.Location = new System.Drawing.Point(497, 407);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 4;
@@ -358,7 +391,7 @@
             this.changesetGroupBox.Controls.Add(this.label2);
             this.changesetGroupBox.Controls.Add(this.label1);
             this.changesetGroupBox.Controls.Add(this.anyCommentUpDown);
-            this.changesetGroupBox.Location = new System.Drawing.Point(12, 294);
+            this.changesetGroupBox.Location = new System.Drawing.Point(12, 326);
             this.changesetGroupBox.Name = "changesetGroupBox";
             this.changesetGroupBox.Size = new System.Drawing.Size(560, 75);
             this.changesetGroupBox.TabIndex = 2;
@@ -425,25 +458,13 @@
             this.anyCommentUpDown.Size = new System.Drawing.Size(54, 20);
             this.anyCommentUpDown.TabIndex = 1;
             // 
-            // dryRunCheckBox
-            // 
-            this.dryRunCheckBox.AutoSize = true;
-            this.dryRunCheckBox.Location = new System.Drawing.Point(9, 120);
-            this.dryRunCheckBox.Name = "dryRunCheckBox";
-            this.dryRunCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.dryRunCheckBox.Size = new System.Drawing.Size(143, 17);
-            this.dryRunCheckBox.TabIndex = 8;
-            this.dryRunCheckBox.Text = "Dry Run (no Git commits)";
-            this.dryRunCheckBox.UseVisualStyleBackColor = true;
-            this.dryRunCheckBox.CheckedChanged += new System.EventHandler(this.dryRunCheckBox_CheckedChanged);
-            // 
             // MainForm
             // 
             this.AcceptButton = this.goButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(584, 429);
+            this.ClientSize = new System.Drawing.Size(584, 463);
             this.Controls.Add(this.changesetGroupBox);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.outputGroupBox);
@@ -510,6 +531,8 @@
         private System.Windows.Forms.CheckBox forceAnnotatedCheckBox;
         private System.Windows.Forms.CheckBox ignoreErrorsCheckBox;
         private System.Windows.Forms.CheckBox dryRunCheckBox;
+        private System.Windows.Forms.TextBox emailDictFileTextBox;
+        private System.Windows.Forms.Label emailDictFileLabel;
     }
 }
 

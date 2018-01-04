@@ -23,6 +23,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using Hpdi.VssLogicalLib;
+using System.Linq;
 
 namespace Hpdi.Vss2Git
 {
@@ -41,6 +42,7 @@ namespace Hpdi.Vss2Git
         private readonly HashSet<string> tagsUsed = new HashSet<string>();
         private bool ignoreErrors = false;
         private bool dryRun = false;
+        private EmailDictionaryFileReader userToEmailDictionary = null;
 
         private string emailDomain = "localhost";
         public string EmailDomain
@@ -73,6 +75,14 @@ namespace Hpdi.Vss2Git
         {
             get { return dryRun; }
             set { dryRun = value; }
+        }
+
+        public string UserToEmailDictionaryFile
+        {
+            set
+            {
+                userToEmailDictionary = new EmailDictionaryFileReader( value );
+            }
         }
 
         public GitExporter(WorkQueue workQueue, Logger logger,
@@ -230,7 +240,7 @@ namespace Hpdi.Vss2Git
                                     if (AbortRetryIgnore(
                                         delegate
                                         {
-                                            git.Tag(tagName, label.User, GetEmail(label.User),
+                                            git.Tag(tagName, GetUser(label.User), GetEmail(label.User),
                                                 tagComment, label.DateTime.ConvertAmbiguousTimeToUtc(logger) );
                                         }))
                                     {
@@ -628,7 +638,7 @@ namespace Hpdi.Vss2Git
             AbortRetryIgnore(delegate
             {
                 result = git.AddAll() &&
-                    git.Commit(changeset.User, GetEmail(changeset.User),
+                    git.Commit(GetUser(changeset.User), GetEmail(changeset.User),
                     changeset.Comment ?? DefaultComment, changeset.DateTime.ConvertAmbiguousTimeToUtc(logger) );
             });
             return result;
@@ -685,10 +695,45 @@ namespace Hpdi.Vss2Git
             return false;
         }
 
+        private static string FirstCharToUpper(string input)
+        {
+            if (String.IsNullOrEmpty(input))
+                throw new ArgumentException($"{nameof(input)} cannot be empty", nameof(input));
+            return input.First().ToString().ToUpper() + input.Substring(1);
+        }
+
+        private string GetUser(string user)
+        {
+            if (null != userToEmailDictionary)
+            {
+                string email = userToEmailDictionary.GetValue(user, null);
+
+                if (null != email)
+                {
+                    var emailParts = email.Split(new char[] { '@' }, 2, 0);
+
+                    if (2 <= emailParts.Length)
+                    {
+                        var userNameParts = emailParts[0].Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        user = string.Join(" ", userNameParts.Select(s => FirstCharToUpper(s)).ToArray());
+                    }
+                }
+            }
+
+            return user;
+        }
+
         private string GetEmail(string user)
         {
-            // TODO: user-defined mapping of user names to email addresses
-            return user.ToLower().Replace(' ', '.') + "@" + emailDomain;
+            string email = user.ToLower().Replace(' ', '.') + "@" + emailDomain;
+
+            if (null != userToEmailDictionary)
+            {
+                email = userToEmailDictionary.GetValue(user, email);
+            }
+
+            return email;
         }
 
         private string GetTagFromLabel(string label)

@@ -138,6 +138,7 @@ namespace Hpdi.Vss2Git
                     }
                     gitExporter.IgnoreErrors = ignoreErrorsCheckBox.Checked;
                     gitExporter.DryRun = dryRunCheckBox.Checked;
+                    gitExporter.UserToEmailDictionaryFile = emailDictFileTextBox.Text;
                     gitExporter.ExportToGit(outDirTextBox.Text);
                 }
 
@@ -252,6 +253,7 @@ namespace Hpdi.Vss2Git
             excludeTextBox.Text = settings.VssExcludePaths;
             outDirTextBox.Text = settings.GitDirectory;
             domainTextBox.Text = settings.DefaultEmailDomain;
+            emailDictFileTextBox.Text = settings.EmailDictionaryFile;
             logTextBox.Text = settings.LogFile;
             transcodeCheckBox.Checked = settings.TranscodeComments;
             forceAnnotatedCheckBox.Checked = settings.ForceAnnotatedTags;
@@ -272,6 +274,7 @@ namespace Hpdi.Vss2Git
             settings.VssExcludePaths = excludeTextBox.Text;
             settings.GitDirectory = outDirTextBox.Text;
             settings.DefaultEmailDomain = domainTextBox.Text;
+            settings.EmailDictionaryFile = emailDictFileTextBox.Text;
             settings.LogFile = logTextBox.Text;
             settings.TranscodeComments = transcodeCheckBox.Checked;
             settings.ForceAnnotatedTags = forceAnnotatedCheckBox.Checked;
@@ -299,11 +302,6 @@ namespace Hpdi.Vss2Git
         static private string FormatCodePageDescription(EncodingInfo info)
         {
             return string.Format("CP{0} - {1}", info.CodePage, info.DisplayName);
-        }
-
-        private void dryRunCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }
