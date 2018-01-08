@@ -40,7 +40,8 @@ namespace Hpdi.Vss2Git
         void RemoveDir(string path, bool recursive);
         void RemoveEmptyDir(string path);
         
-		void Move(string sourcePath, string destPath);
+		void MoveFile(string sourcePath, string destPath);
+        void MoveDir(string sourcePath, string destPath);
         void MoveEmptyDir(string sourcePath, string destPath);
         
 		bool Commit(string authorName, string authorEmail, string comment, DateTime utcTime);

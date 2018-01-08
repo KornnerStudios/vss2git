@@ -55,7 +55,7 @@ namespace Hpdi.Vss2Git
         {
             try
             {
-                var git = new GitWrapper(string.Empty, null);
+                AbstractGitWrapper git = new GitExeWrapper(string.Empty, null);
                 while (!git.FindExecutable())
                 {
                     var button = MessageBox.Show("Git not found in PATH. " +
@@ -136,7 +136,8 @@ namespace Hpdi.Vss2Git
                     gitExporter.DryRun = dryRunCheckBox.Checked;
                     gitExporter.UserToEmailDictionaryFile = emailDictFileTextBox.Text;
 
-                    git = new GitWrapper(outDirTextBox.Text, logger);
+                    //git = new GitExeWrapper(outDirTextBox.Text, logger);
+                    git = new LibGit2SharpWrapper(outDirTextBox.Text, logger);
                     if (!transcodeCheckBox.Checked)
                     {
                         git.CommitEncoding = encoding;

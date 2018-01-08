@@ -69,7 +69,6 @@ namespace Hpdi.Vss2Git
                 var hasDelete = false;
                 foreach (var dateEntry in revisionAnalyzer.SortedRevisions)
                 {
-                    var dateTime = dateEntry.Key;
                     foreach (Revision revision in dateEntry.Value)
                     {
                         // determine target of project revisions
@@ -229,8 +228,7 @@ namespace Hpdi.Vss2Git
         private void AddChangeset(Changeset change)
         {
             changesets.AddLast(change);
-            int changesetId = changesets.Count;
-            DumpChangeset(change, changesetId);
+            DumpChangeset(change, changesets.Count);
         }
 
         private void DumpChangeset(Changeset changeset, int changesetId)

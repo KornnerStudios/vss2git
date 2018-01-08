@@ -176,7 +176,8 @@ namespace Hpdi.Vss2Git
         public abstract void RemoveFile(string path);
         public abstract void RemoveDir(string path, bool recursive);
         public abstract void RemoveEmptyDir(string path);
-        public abstract void Move(string sourcePath, string destPath);
+        public abstract void MoveFile(string sourcePath, string destPath);
+        public abstract void MoveDir(string sourcePath, string destPath);
         public abstract void MoveEmptyDir(string sourcePath, string destPath);
         public bool Commit(string authorName, string authorEmail, string comment, DateTime utcTime)
         {
@@ -192,7 +193,7 @@ namespace Hpdi.Vss2Git
 
             needsCommit = false;
 
-            return DoCommit(authorEmail, authorEmail, comment, utcTime);
+            return DoCommit(authorName, authorEmail, comment, utcTime);
         }
         public abstract void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime utcTime);
         

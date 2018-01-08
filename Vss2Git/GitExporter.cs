@@ -422,8 +422,18 @@ namespace Hpdi.Vss2Git
                                     {
                                         if (!dryRun)
                                         {
-                                          CaseSensitiveRename(sourcePath, targetPath, git.Move);
-                                          needCommit = true;
+                                            RenameDelegate renameDelegate = null;
+                                            if (target.IsProject)
+                                            {
+                                                renameDelegate = git.MoveDir;
+                                            }
+                                            else
+                                            {
+                                                renameDelegate = git.MoveFile;
+                                            }
+
+                                            CaseSensitiveRename(sourcePath, targetPath, renameDelegate);
+                                            needCommit = true;
                                         }
                                     }
                                     else
@@ -459,7 +469,7 @@ namespace Hpdi.Vss2Git
                                     {
                                         if (!dryRun)
                                         {
-                                          git.Move(sourcePath, targetPath);
+                                          git.MoveDir(sourcePath, targetPath);
                                           needCommit = true;
                                         }
                                     }
@@ -642,9 +652,16 @@ namespace Hpdi.Vss2Git
             var result = false;
             AbortRetryIgnore(delegate
             {
-                result = git.AddAll() &&
-                    git.Commit(GetUser(changeset.User), GetEmail(changeset.User),
-                    changeset.Comment ?? DefaultComment, changeset.DateTime.ConvertAmbiguousTimeToUtc(logger) );
+                try
+                {
+                    result = git.AddAll() &&
+                             git.Commit(GetUser(changeset.User), GetEmail(changeset.User), changeset.Comment ?? DefaultComment, changeset.DateTime.ConvertAmbiguousTimeToUtc(logger));
+                }
+                catch (LibGit2Sharp.EmptyCommitException e)
+                {
+                    result = true;
+                    logger.WriteLine("NOTE: Ignoring empty commit: {0}", e.Message);
+                }
             });
             return result;
         }

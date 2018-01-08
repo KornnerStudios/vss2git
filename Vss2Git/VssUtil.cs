@@ -32,8 +32,7 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     static class VssUtil
     {
-        public static RecursionStatus RecurseItems(
-            VssProject project, VssProjectCallback projectCallback, VssFileCallback fileCallback)
+        public static RecursionStatus RecurseItems(VssProject project, VssProjectCallback projectCallback, VssFileCallback fileCallback)
         {
             if (projectCallback != null)
             {
@@ -45,8 +44,7 @@ namespace Hpdi.Vss2Git
             }
             foreach (VssProject subproject in project.Projects)
             {
-                RecursionStatus status = RecurseItems(
-                    subproject, projectCallback, fileCallback);
+                RecursionStatus status = RecurseItems(subproject, projectCallback, fileCallback);
                 if (status == RecursionStatus.Abort)
                 {
                     return status;

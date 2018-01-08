@@ -74,6 +74,7 @@
     <Compile Include="CollectionUtil.cs" />
     <Compile Include="ChangesetBuilder.cs" />
     <Compile Include="EmailDictionaryFileReader.cs" />
+    <Compile Include="LibGit2SharpWrapper.cs" />
     <Compile Include="IGitWrapper.cs" />
     <Compile Include="ProcessException.cs" />
     <Compile Include="ExceptionFormatter.cs">
@@ -86,7 +87,7 @@
     </Compile>
     <Compile Include="StreamCopier.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="GitWrapper.cs" />
+    <Compile Include="GitExeWrapper.cs" />
     <Compile Include="TimeZoneInfoExtension.cs" />
     <Compile Include="VssPathMapper.cs" />
     <Compile Include="GitExporter.cs" />

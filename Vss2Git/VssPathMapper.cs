@@ -319,6 +319,12 @@ namespace Hpdi.Vss2Git
             get { return projects; }
         }
 
+        private readonly Dictionary<VssProjectInfo, bool> destroyedInProjects = new Dictionary<VssProjectInfo, bool>();
+        public IEnumerable<KeyValuePair<VssProjectInfo, bool>> DestroyedInProjects
+        {
+            get { return destroyedInProjects; }
+        }
+
         private int version = 1;
         public int Version
         {

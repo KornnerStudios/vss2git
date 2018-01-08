@@ -27,7 +27,7 @@ namespace Hpdi.Vss2Git
     /// Wraps execution of Git and implements the common Git commands.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    class GitWrapper : AbstractGitWrapper
+    class GitExeWrapper : AbstractGitWrapper
     {
         private string gitExecutable = "git.exe";
         private string gitInitialArguments = null;
@@ -44,7 +44,7 @@ namespace Hpdi.Vss2Git
             set { gitInitialArguments = value; }
         }
 
-        public GitWrapper(string repoPath, Logger logger)
+        public GitExeWrapper(string repoPath, Logger logger)
             : base(repoPath, logger)
         {
         }
@@ -442,7 +442,13 @@ namespace Hpdi.Vss2Git
             // do nothing - remove only on file system - git doesn't care about directories with no files
         }
 
-        public override void Move(string sourcePath, string destPath)
+        public override void MoveFile(string sourcePath, string destPath)
+        {
+            GitExec("mv -- " + QuoteRelativePath(sourcePath) + " " + QuoteRelativePath(destPath));
+            SetNeedsCommit();
+        }
+
+        public override void MoveDir(string sourcePath, string destPath)
         {
             GitExec("mv -- " + QuoteRelativePath(sourcePath) + " " + QuoteRelativePath(destPath));
             SetNeedsCommit();
