@@ -156,7 +156,7 @@ namespace Hpdi.Vss2Git
                 foreach (var changeset in changesets)
                 {
                     var changesetDesc = string.Format(CultureInfo.InvariantCulture,
-                        "changeset {0} from {1}", changesetId, changeset.DateTime);
+                        "changeset {0} from {1}", changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime));
 
                     // replay each revision in changeset
                     LogStatus(work, "Replaying " + changesetDesc);
@@ -571,6 +571,10 @@ namespace Hpdi.Vss2Git
                                     Directory.CreateDirectory(targetPath);
                                 }
                                 writeProject = true;
+                            }
+                            else
+                            {
+                                logger.WriteLine("NOTE: Skipping destroyed project: {0}", targetPath);
                             }
                         }
                         else

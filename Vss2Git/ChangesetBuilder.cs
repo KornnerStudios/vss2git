@@ -67,6 +67,8 @@ namespace Hpdi.Vss2Git
                 var stopwatch = Stopwatch.StartNew();
                 var pendingChangesByUser = new Dictionary<string, Changeset>();
                 var hasDelete = false;
+                var changesetReason = "";
+
                 foreach (var dateEntry in revisionAnalyzer.SortedRevisions)
                 {
                     foreach (Revision revision in dateEntry.Value)
@@ -123,11 +125,15 @@ namespace Hpdi.Vss2Git
                                 {
                                     flush = true;
                                 }
+
+                                if (flush)
+                                {
+                                    changesetReason = String.Format("Time difference {0} - {1} ({2} sec)", revision.DateTime, change.DateTime, timeDiff);
+                                }
                             }
                             else if (!nonconflicting && change.TargetFiles.Contains(targetFile))
                             {
-                                logger.WriteLine("NOTE: Splitting changeset due to file conflict on {0}:",
-                                    targetFile);
+                                changesetReason = String.Format("File conflict on ({0})", targetFile);
                                 flush = true;
                             }
                             else if (hasDelete && actionType == VssActionType.Rename)
@@ -137,15 +143,14 @@ namespace Hpdi.Vss2Git
                                 {
                                     // split the change set if a rename of a directory follows a delete
                                     // otherwise a git error occurs
-                                    logger.WriteLine("NOTE: Splitting changeset due to rename after delete in {0}:",
-                                        targetFile);
+                                    changesetReason = String.Format("Splitting changeset due to rename after delete in ({0})", targetFile);
                                     flush = true;
                                 }
                             }
 
                             if (flush)
                             {
-                                AddChangeset(change);
+                                AddChangeset(change, changesetReason);
                                 if (flushedUsers == null)
                                 {
                                     flushedUsers = new LinkedList<string>();
@@ -210,7 +215,7 @@ namespace Hpdi.Vss2Git
                 // flush all remaining changes
                 foreach (var change in pendingChangesByUser.Values)
                 {
-                    AddChangeset(change);
+                    AddChangeset(change, "Remaining revisions");
                 }
                 stopwatch.Stop();
 
@@ -225,30 +230,35 @@ namespace Hpdi.Vss2Git
             return !string.IsNullOrEmpty(rev1.Comment) && rev1.Comment == rev2.Comment;
         }
 
-        private void AddChangeset(Changeset change)
+        private void AddChangeset(Changeset change, string reason)
         {
             changesets.AddLast(change);
-            DumpChangeset(change, changesets.Count);
+            DumpChangeset(change, changesets.Count, 0, reason);
         }
 
-        private void DumpChangeset(Changeset changeset, int changesetId)
+        private void DumpChangeset(Changeset changeset, int changesetId, int indent, string reason)
         {
+            var indentStr = new string(' ', indent);
+
             var firstRevTime = changeset.Revisions.First.Value.DateTime;
             var changeDuration = changeset.DateTime - firstRevTime;
-            logger.WriteSectionSeparator();
-            logger.WriteLine("Changeset {0} - {1} ({2} secs) {3} {4} files",
-                changesetId, changeset.DateTime, changeDuration.TotalSeconds, changeset.User,
-                changeset.Revisions.Count);
+
+            logger.WriteLine("{0}Changeset {1} - {2} ({3} secs) {3} {4} file(s)",
+                indentStr, changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime), changeDuration.TotalSeconds,
+                changeset.User,changeset.Revisions.Count);
+
             if (!string.IsNullOrEmpty(changeset.Comment))
             {
-                logger.WriteLine(changeset.Comment);
+                logger.WriteLine("{0}{1}", indentStr, changeset.Comment);
             }
+
             logger.WriteLine();
             foreach (var revision in changeset.Revisions)
             {
-                logger.WriteLine("  {0} {1}@{2} {3}",
-                    revision.DateTime, revision.Item, revision.Version, revision.Action);
+                logger.WriteLine("{0}  {1} {2}@{3} {4}", indentStr, VssDatabase.FormatISOTimestamp(revision.DateTime), revision.Item, revision.Version, revision.Action);
             }
+
+            logger.WriteLine("{0}//------------------------- {1} {2}//", indentStr, reason, 53 > reason.Length ? new string('-', 53 - reason.Length) : "");
         }
     }
 }
