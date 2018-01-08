@@ -132,14 +132,17 @@ namespace Hpdi.Vss2Git
                     {
                         gitExporter.EmailDomain = domainTextBox.Text;
                     }
-                    if (!transcodeCheckBox.Checked)
-                    {
-                        gitExporter.CommitEncoding = encoding;
-                    }
                     gitExporter.IgnoreErrors = ignoreErrorsCheckBox.Checked;
                     gitExporter.DryRun = dryRunCheckBox.Checked;
                     gitExporter.UserToEmailDictionaryFile = emailDictFileTextBox.Text;
-                    gitExporter.ExportToGit(outDirTextBox.Text);
+
+                    git = new GitWrapper(outDirTextBox.Text, logger);
+                    if (!transcodeCheckBox.Checked)
+                    {
+                        git.CommitEncoding = encoding;
+                    }
+
+                    gitExporter.ExportToGit(git);
                 }
 
                 workQueue.Idle += delegate

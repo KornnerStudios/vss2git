@@ -28,7 +28,7 @@ using System.Linq;
 namespace Hpdi.Vss2Git
 {
     /// <summary>
-    /// Replays and commits changesets into a new Git repository.
+    /// Replays and commits changesets into a new repository.
     /// </summary>
     /// <author>Trevor Robinson</author>
     class GitExporter : Worker
@@ -51,11 +51,11 @@ namespace Hpdi.Vss2Git
             set { emailDomain = value; }
         }
 
-        private Encoding commitEncoding = Encoding.UTF8;
-        public Encoding CommitEncoding
+        private bool resetRepo = true;
+        public bool ResetRepo
         {
-            get { return commitEncoding; }
-            set { commitEncoding = value; }
+            get { return resetRepo; }
+            set { resetRepo = value; }
         }
 
         private bool forceAnnotatedTags = true;
@@ -94,29 +94,23 @@ namespace Hpdi.Vss2Git
             this.changesetBuilder = changesetBuilder;
         }
 
-        public void ExportToGit(string repoPath)
+        public void ExportToGit(IGitWrapper git)
         {
             workQueue.AddLast(delegate(object work)
             {
                 var stopwatch = Stopwatch.StartNew();
 
                 logger.WriteSectionSeparator();
-                LogStatus(work, "Initializing Git repository");
+                LogStatus(work, "Initializing repository");
 
                 // create repository directory if it does not exist
-                if (!dryRun && !Directory.Exists(repoPath))
+                if (!dryRun && !Directory.Exists(git.GetRepoPath()))
                 {
-                    Directory.CreateDirectory(repoPath);
+                    Directory.CreateDirectory(git.GetRepoPath());
                 }
-
-                GitWrapper git = null;
 
                 if (!dryRun)
                 {
-                    git = new GitWrapper(repoPath, logger);
-
-                    git.CommitEncoding = commitEncoding;
-
                     while (!git.FindExecutable())
                     {
                         var button = MessageBox.Show("Git not found in PATH. " +
@@ -130,18 +124,15 @@ namespace Hpdi.Vss2Git
                         }
                     }
 
-                    if (!RetryCancel(delegate { git.Init(); }))
+                    if (!RetryCancel(delegate { git.Init(resetRepo); }))
                     {
                         return;
                     }
 
-                    if (commitEncoding.WebName != "utf-8")
+                    AbortRetryIgnore(delegate
                     {
-                        AbortRetryIgnore(delegate
-                        {
-                            git.SetConfig("i18n.commitencoding", commitEncoding.WebName);
-                        });
-                    }
+                        git.Configure();
+                    });
                 }
 
                 var pathMapper = new VssPathMapper();
@@ -150,7 +141,7 @@ namespace Hpdi.Vss2Git
                 foreach (var rootProject in revisionAnalyzer.RootProjects)
                 {
                     // root must be repo path here - the path mapper uses paths relative to this one
-                    var rootPath = repoPath;
+                    var rootPath = git.GetRepoPath();
                     pathMapper.SetProjectPath(rootProject.PhysicalName, rootPath, rootProject.Path);
                 }
 
@@ -171,10 +162,9 @@ namespace Hpdi.Vss2Git
                     LogStatus(work, "Replaying " + changesetDesc);
                     labels.Clear();
                     replayStopwatch.Start();
-                    bool needCommit;
                     try
                     {
-                        needCommit = ReplayChangeset(pathMapper, changeset, git, labels);
+                        ReplayChangeset(pathMapper, changeset, git, labels);
                     }
                     finally
                     {
@@ -187,7 +177,7 @@ namespace Hpdi.Vss2Git
                     }
 
                     // commit changes
-                    if (!dryRun && needCommit)
+                    if (!dryRun && git.NeedsCommit())
                     {
                         LogStatus(work, "Committing " + changesetDesc);
                         if (CommitChangeset(git, changeset))
@@ -261,7 +251,7 @@ namespace Hpdi.Vss2Git
                 logger.WriteLine("Replay time: {0:HH:mm:ss}", new DateTime(replayStopwatch.ElapsedTicks));
                 if (!dryRun)
                 {
-                    logger.WriteLine("Git time: {0:HH:mm:ss}", new DateTime(git.ElapsedTime.Ticks));
+                    logger.WriteLine("Git time: {0:HH:mm:ss}", new DateTime(git.ElapsedTime().Ticks));
                 }
                 logger.WriteLine("Git commits: {0}", commitCount);
                 logger.WriteLine("Git tags: {0}", tagCount);
@@ -269,7 +259,7 @@ namespace Hpdi.Vss2Git
         }
 
         private bool ReplayChangeset(VssPathMapper pathMapper, Changeset changeset,
-            GitWrapper git, LinkedList<Revision> labels)
+            IGitWrapper git, LinkedList<Revision> labels)
         {
             var needCommit = false;
             foreach (Revision revision in changeset.Revisions)
@@ -288,7 +278,7 @@ namespace Hpdi.Vss2Git
         }
 
         private bool ReplayRevision(VssPathMapper pathMapper, Revision revision,
-            GitWrapper git, LinkedList<Revision> labels)
+            IGitWrapper git, LinkedList<Revision> labels)
         {
             var needCommit = false;
             var actionType = revision.Action.Type;
@@ -376,7 +366,7 @@ namespace Hpdi.Vss2Git
                                         {
                                             if (!dryRun)
                                             {
-                                                git.Remove(targetPath, true);
+                                                git.RemoveDir(targetPath, true);
                                                 needCommit = true;
                                             }
                                         }
@@ -647,7 +637,7 @@ namespace Hpdi.Vss2Git
             return needCommit;
         }
 
-        private bool CommitChangeset(GitWrapper git, Changeset changeset)
+        private bool CommitChangeset(IGitWrapper git, Changeset changeset)
         {
             var result = false;
             AbortRetryIgnore(delegate
@@ -770,7 +760,7 @@ namespace Hpdi.Vss2Git
         }
 
         private bool WriteRevision(VssPathMapper pathMapper, VssActionType actionType,
-            string physicalName, int version, string underProject, GitWrapper git)
+            string physicalName, int version, string underProject, IGitWrapper git)
         {
             var needCommit = false;
 

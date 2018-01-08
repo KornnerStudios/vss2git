@@ -27,20 +27,10 @@ namespace Hpdi.Vss2Git
     /// Wraps execution of Git and implements the common Git commands.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    class GitWrapper
+    class GitWrapper : AbstractGitWrapper
     {
-        private readonly string repoPath;
-        private readonly Logger logger;
-        private readonly Stopwatch stopwatch = new Stopwatch();
         private string gitExecutable = "git.exe";
         private string gitInitialArguments = null;
-        private bool shellQuoting = false;
-        private Encoding commitEncoding = Encoding.UTF8;
-
-        public TimeSpan ElapsedTime
-        {
-            get { return stopwatch.Elapsed; }
-        }
 
         public string GitExecutable
         {
@@ -54,93 +44,15 @@ namespace Hpdi.Vss2Git
             set { gitInitialArguments = value; }
         }
 
-        public bool ShellQuoting
-        {
-            get { return shellQuoting; }
-            set { shellQuoting = value; }
-        }
-
-        public Encoding CommitEncoding
-        {
-            get { return commitEncoding; }
-            set { commitEncoding = value; }
-        }
-
         public GitWrapper(string repoPath, Logger logger)
+            : base(repoPath, logger)
         {
-            this.repoPath = repoPath;
-            this.logger = logger;
         }
 
-        public bool FindExecutable()
-        {
-            string foundPath;
-            if (FindInPathVar("git.exe", out foundPath))
-            {
-                gitExecutable = foundPath;
-                gitInitialArguments = null;
-                shellQuoting = false;
-                return true;
-            }
-            if (FindInPathVar("git.cmd", out foundPath))
-            {
-                gitExecutable = "cmd.exe";
-                gitInitialArguments = "/c git";
-                shellQuoting = true;
-                return true;
-            }
-            return false;
-        }
 
-        public void Init()
-        {
-            GitExec("init");
-        }
-
-        public void SetConfig(string name, string value)
+        private void SetConfig(string name, string value)
         {
             GitExec("config " + name + " " + Quote(value));
-        }
-
-        public bool Add(string path)
-        {
-            var startInfo = GetStartInfo("add -- " + QuoteRelativePath(path));
-
-            // add fails if there are no files (directories don't count)
-            return ExecuteUnless(startInfo, "did not match any files");
-        }
-
-        public bool Add(IEnumerable<string> paths)
-        {
-            if (CollectionUtil.IsEmpty(paths))
-            {
-                return false;
-            }
-
-            var args = new StringBuilder("add -- ");
-            CollectionUtil.Join(args, " ", CollectionUtil.Transform<string, string>(paths, QuoteRelativePath));
-            var startInfo = GetStartInfo(args.ToString());
-
-            // add fails if there are no files (directories don't count)
-            return ExecuteUnless(startInfo, "did not match any files");
-        }
-
-        public bool AddAll()
-        {
-            var startInfo = GetStartInfo("add -A");
-
-            // add fails if there are no files (directories don't count)
-            return ExecuteUnless(startInfo, "did not match any files");
-        }
-
-        public void Remove(string path, bool recursive)
-        {
-            GitExec("rm " + (recursive ? "-r -f " : "") + "-- " + QuoteRelativePath(path));
-        }
-
-        public void Move(string sourcePath, string destPath)
-        {
-            GitExec("mv -- " + QuoteRelativePath(sourcePath) + " " + QuoteRelativePath(destPath));
         }
 
         class TempFile : IDisposable
@@ -186,11 +98,11 @@ namespace Hpdi.Vss2Git
             {
                 // need to use a temporary file to specify the comment when not
                 // using the system default code page or it contains newlines
-                if (commitEncoding.CodePage != Encoding.Default.CodePage || comment.IndexOf('\n') >= 0)
+                if (this.CommitEncoding.CodePage != Encoding.Default.CodePage || comment.IndexOf('\n') >= 0)
                 {
-                    logger.WriteLine("Generating temp file for comment: {0}", comment);
+                    this.Logger.WriteLine("Generating temp file for comment: {0}", comment);
                     tempFile = new TempFile();
-                    tempFile.Write(comment, commitEncoding);
+                    tempFile.Write(comment, this.CommitEncoding);
 
                     // temporary path might contain spaces (e.g. "Documents and Settings")
                     args += " -F " + Quote(tempFile.Name);
@@ -200,73 +112,6 @@ namespace Hpdi.Vss2Git
                     args += " -m " + Quote(comment);
                 }
             }
-        }
-
-        public bool Commit(string authorName, string authorEmail, string comment, DateTime utcTime)
-        {
-            if (utcTime.Kind != DateTimeKind.Utc)
-            {
-                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
-            }
-
-            TempFile commentFile;
-
-            var args = "commit";
-            AddComment(comment, ref args, out commentFile);
-
-            using (commentFile)
-            {
-                var startInfo = GetStartInfo(args);
-                startInfo.EnvironmentVariables["GIT_AUTHOR_NAME"] = authorName;
-                startInfo.EnvironmentVariables["GIT_AUTHOR_EMAIL"] = authorEmail;
-                startInfo.EnvironmentVariables["GIT_AUTHOR_DATE"] = GetUtcTimeString(utcTime);
-
-                // also setting the committer is supposedly useful for converting to Mercurial
-                startInfo.EnvironmentVariables["GIT_COMMITTER_NAME"] = authorName;
-                startInfo.EnvironmentVariables["GIT_COMMITTER_EMAIL"] = authorEmail;
-                startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(utcTime);
-
-                // ignore empty commits, since they are non-trivial to detect
-                // (e.g. when renaming a directory)
-                return ExecuteUnless(startInfo, "nothing to commit");
-            }
-        }
-
-        public void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime utcTime)
-        {
-            if (utcTime.Kind != DateTimeKind.Utc)
-            {
-                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
-            }
-
-            TempFile commentFile;
-
-            var args = "tag";
-            AddComment(comment, ref args, out commentFile);
-
-            // tag names are not quoted because they cannot contain whitespace or quotes
-            args += " -- " + name;
-
-            using (commentFile)
-            {
-                var startInfo = GetStartInfo(args);
-                startInfo.EnvironmentVariables["GIT_COMMITTER_NAME"] = taggerName;
-                startInfo.EnvironmentVariables["GIT_COMMITTER_EMAIL"] = taggerEmail;
-                startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(utcTime);
-
-                ExecuteUnless(startInfo, null);
-            }
-        }
-
-        private static string GetUtcTimeString(DateTime utcTime)
-        {
-            if (utcTime.Kind != DateTimeKind.Utc)
-            {
-                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
-            }
-
-            // format time according to ISO 8601 (avoiding locale-dependent month/day names)
-            return utcTime.ToString("yyyy'-'MM'-'dd HH':'mm':'ss +0000");
         }
 
         private void GitExec(string args)
@@ -287,7 +132,7 @@ namespace Hpdi.Vss2Git
             startInfo.RedirectStandardInput = true;
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
-            startInfo.WorkingDirectory = repoPath;
+            startInfo.WorkingDirectory = GetRepoPath();
             startInfo.CreateNoWindow = true;
             return startInfo;
         }
@@ -317,8 +162,8 @@ namespace Hpdi.Vss2Git
 
         private int Execute(ProcessStartInfo startInfo, out string stdout, out string stderr)
         {
-            logger.WriteLine("Executing: {0} {1}", startInfo.FileName, startInfo.Arguments);
-            stopwatch.Start();
+            this.Logger.WriteLine("Executing: {0} {1}", startInfo.FileName, startInfo.Arguments);
+            this.Stopwatch.Start();
             try
             {
                 using (var process = Process.Start(startInfo))
@@ -350,7 +195,7 @@ namespace Hpdi.Vss2Git
                                     stdoutBuffer.AppendLine();
                                 }
                                 stdoutBuffer.Append(line);
-                                logger.Write('>');
+                                this.Logger.Write('>');
                             }
                             else
                             {
@@ -363,14 +208,14 @@ namespace Hpdi.Vss2Git
                                         stderrBuffer.AppendLine();
                                     }
                                     stderrBuffer.Append(line);
-                                    logger.Write('!');
+                                    this.Logger.Write('!');
                                 }
                                 else
                                 {
                                     break;
                                 }
                             }
-                            logger.WriteLine(line);
+                            this.Logger.WriteLine(line);
                         }
 
                         if (process.HasExited)
@@ -398,7 +243,7 @@ namespace Hpdi.Vss2Git
             }
             finally
             {
-                stopwatch.Stop();
+                this.Stopwatch.Stop();
             }
         }
 
@@ -428,77 +273,241 @@ namespace Hpdi.Vss2Git
             return false;
         }
 
-        private const char QuoteChar = '"';
-        private const char EscapeChar = '\\';
-
-        private string QuoteRelativePath(string path)
+        protected virtual void ValidateRepoPath()
         {
-            if (path.StartsWith(repoPath))
+            const string metaDir = ".git";
+            string[] files = Directory.GetFiles(GetRepoPath());
+            string[] dirs = Directory.GetDirectories(GetRepoPath());
+            if (files.Length > 0)
             {
-                path = path.Substring(repoPath.Length);
-                if (path.StartsWith("\\") || path.StartsWith("/"))
+                throw new ApplicationException("The output directory is not empty");
+            }
+            string metaDirSuffix = "\\" + metaDir;
+            foreach (string dir in dirs)
+            {
+                if (!dir.EndsWith(metaDirSuffix))
                 {
-                    path = path.Substring(1);
+                    throw new ApplicationException("The output directory is not empty");
                 }
             }
-            return Quote(path);
-        }
-        /// <summary>
-        /// Puts quotes around a command-line argument if it includes whitespace
-        /// or quotes.
-        /// </summary>
-        /// <remarks>
-        /// There are two things going on in this method: quoting and escaping.
-        /// Quoting puts the entire string in quotes, whereas escaping is per-
-        /// character. Quoting happens only if necessary, when whitespace or a
-        /// quote is encountered somewhere in the string, and escaping happens
-        /// only within quoting. Spaces don't need escaping, since that's what
-        /// the quotes are for. Slashes don't need escaping because apparently a
-        /// backslash is only interpreted as an escape when it precedes a quote.
-        /// Otherwise both slash and backslash are just interpreted as directory
-        /// separators.
-        /// </remarks>
-        /// <param name="arg">A command-line argument to quote.</param>
-        /// <returns>The given argument, possibly in quotes, with internal
-        /// quotes escaped with backslashes.</returns>
-        private string Quote(string arg)
-        {
-            if (string.IsNullOrEmpty(arg))
+            if (!Directory.Exists(Path.Combine(GetRepoPath(), metaDir)))
             {
-                return "\"\"";
+                throw new ApplicationException("The output directory does not contain the meta directory " + metaDir);
             }
-
-            StringBuilder buf = null;
-            for (int i = 0; i < arg.Length; ++i)
-            {
-                char c = arg[i];
-                if (buf == null && NeedsQuoting(c))
-                {
-                    buf = new StringBuilder(arg.Length + 2);
-                    buf.Append(QuoteChar);
-                    buf.Append(arg, 0, i);
-                }
-                if (buf != null)
-                {
-                    if (c == QuoteChar)
-                    {
-                        buf.Append(EscapeChar);
-                    }
-                    buf.Append(c);
-                }
-            }
-            if (buf != null)
-            {
-                buf.Append(QuoteChar);
-                return buf.ToString();
-            }
-            return arg;
         }
 
-        private bool NeedsQuoting(char c)
+        protected static void DeleteDirectory(string path)
         {
-            return char.IsWhiteSpace(c) || c == QuoteChar ||
-                (shellQuoting && (c == '&' || c == '|' || c == '<' || c == '>' || c == '^' || c == '%'));
+            // this method should be used with caution - therefore it is protected
+            if (!Directory.Exists(path))
+            {
+                return;
+            }
+            string[] files = Directory.GetFiles(path);
+            string[] dirs = Directory.GetDirectories(path);
+
+            foreach (string file in files)
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
+            }
+
+            foreach (string dir in dirs)
+            {
+                DeleteDirectory(dir);
+            }
+
+            try
+            {
+                Directory.Delete(path, false);
+            }
+            catch (IOException)
+            {
+                Thread.Sleep(0);
+                Directory.Delete(path, false);
+            }
+        }
+
+        public override bool FindExecutable()
+        {
+            string foundPath;
+            if (FindInPathVar("git.exe", out foundPath))
+            {
+                gitExecutable = foundPath;
+                gitInitialArguments = null;
+                this.ShellQuoting = false;
+                return true;
+            }
+            if (FindInPathVar("git.cmd", out foundPath))
+            {
+                gitExecutable = "cmd.exe";
+                gitInitialArguments = "/c git";
+                this.ShellQuoting = true;
+                return true;
+            }
+            return false;
+        }
+
+        public override void Init(bool resetRepo)
+        {
+            if (resetRepo)
+            {
+                DeleteDirectory(GetRepoPath());
+                Thread.Sleep(0);
+                Directory.CreateDirectory(GetRepoPath());
+            }
+            GitExec("init");
+        }
+
+        public override void Exit()
+        {
+        }
+
+        public override void Configure()
+        {
+            if (CommitEncoding.WebName != "utf-8")
+            {
+                SetConfig("i18n.commitencoding", CommitEncoding.WebName);
+            }
+            ValidateRepoPath();
+        }
+
+        public override bool Add(string path)
+        {
+            var startInfo = GetStartInfo("add -- " + QuoteRelativePath(path));
+
+            // add fails if there are no files (directories don't count)
+            bool result = ExecuteUnless(startInfo, "did not match any files");
+
+            if (result)
+            {
+                SetNeedsCommit();
+            }
+
+            return result;
+        }
+
+        public override bool Add(IEnumerable<string> paths)
+        {
+            if (CollectionUtil.IsEmpty(paths))
+            {
+                return false;
+            }
+
+            var args = new StringBuilder("add -- ");
+            CollectionUtil.Join(args, " ", CollectionUtil.Transform<string, string>(paths, QuoteRelativePath));
+            var startInfo = GetStartInfo(args.ToString());
+
+            // add fails if there are no files (directories don't count)
+            bool result = ExecuteUnless(startInfo, "did not match any files");
+
+            if (result)
+            {
+                SetNeedsCommit();
+            }
+
+            return result;
+        }
+
+        public override bool AddDir(string path)
+        {
+            // do nothing - git does not care about directories
+            return true;
+        }
+
+        public override bool AddAll()
+        {
+            var startInfo = GetStartInfo("add -A");
+
+            // add fails if there are no files (directories don't count)
+            bool result = ExecuteUnless(startInfo, "did not match any files");
+            if (result) SetNeedsCommit();
+            return result;
+        }
+
+        public override void RemoveFile(string path)
+        {
+            GitExec("rm -- " + QuoteRelativePath(path));
+            SetNeedsCommit();
+        }
+
+        public override void RemoveDir(string path, bool recursive)
+        {
+            GitExec("rm " + (recursive ? "-r -f " : "") + "-- " + QuoteRelativePath(path));
+            SetNeedsCommit();
+        }
+
+        public override void RemoveEmptyDir(string path)
+        {
+            // do nothing - remove only on file system - git doesn't care about directories with no files
+        }
+
+        public override void Move(string sourcePath, string destPath)
+        {
+            GitExec("mv -- " + QuoteRelativePath(sourcePath) + " " + QuoteRelativePath(destPath));
+            SetNeedsCommit();
+        }
+
+        public override void MoveEmptyDir(string sourcePath, string destPath)
+        {
+            // move only on file system - git doesn't care about directories with no files
+            Directory.Move(sourcePath, destPath);
+        }
+
+        public override bool DoCommit(string authorName, string authorEmail, string comment, DateTime utcTime)
+        {
+            if (utcTime.Kind != DateTimeKind.Utc)
+            {
+                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+            }
+
+            TempFile commentFile;
+
+            var args = "commit";
+            AddComment(comment, ref args, out commentFile);
+
+            using (commentFile)
+            {
+                var startInfo = GetStartInfo(args);
+                startInfo.EnvironmentVariables["GIT_AUTHOR_NAME"] = authorName;
+                startInfo.EnvironmentVariables["GIT_AUTHOR_EMAIL"] = authorEmail;
+                startInfo.EnvironmentVariables["GIT_AUTHOR_DATE"] = GetUtcTimeString(utcTime);
+
+                // also setting the committer is supposedly useful for converting to Mercurial
+                startInfo.EnvironmentVariables["GIT_COMMITTER_NAME"] = authorName;
+                startInfo.EnvironmentVariables["GIT_COMMITTER_EMAIL"] = authorEmail;
+                startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(utcTime);
+
+                // ignore empty commits, since they are non-trivial to detect
+                // (e.g. when renaming a directory)
+                return ExecuteUnless(startInfo, "nothing to commit");
+            }
+        }
+
+        public override void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime utcTime)
+        {
+            if (utcTime.Kind != DateTimeKind.Utc)
+            {
+                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+            }
+
+            TempFile commentFile;
+
+            var args = "tag";
+            AddComment(comment, ref args, out commentFile);
+
+            // tag names are not quoted because they cannot contain whitespace or quotes
+            args += " -- " + name;
+
+            using (commentFile)
+            {
+                var startInfo = GetStartInfo(args);
+                startInfo.EnvironmentVariables["GIT_COMMITTER_NAME"] = taggerName;
+                startInfo.EnvironmentVariables["GIT_COMMITTER_EMAIL"] = taggerEmail;
+                startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(utcTime);
+
+                ExecuteUnless(startInfo, null);
+            }
         }
     }
 }
