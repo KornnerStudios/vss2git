@@ -241,7 +241,7 @@ namespace Hpdi.Vss2Git
                                         delegate
                                         {
                                             git.Tag(tagName, GetUser(label.User), GetEmail(label.User),
-                                                tagComment, label.DateTime.ConvertAmbiguousTimeToUtc(logger) );
+                                                    tagComment, label.DateTime.ConvertAmbiguousTimeToUtc(logger) );
                                         }))
                                     {
                                         ++tagCount;
@@ -336,28 +336,28 @@ namespace Hpdi.Vss2Git
 
                     case VssActionType.Add:
                         logger.WriteLine("{0}: {1} {2}", projectDesc, actionType, target.LogicalName);
-                        itemInfo = pathMapper.AddItem(project, target);
+                        itemInfo = pathMapper.AddItem(project, target, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
                         isAddAction = true;
                         break;
                     case VssActionType.Share:
-
                         var shareAction = (VssShareAction)revision.Action;
                         if (shareAction.Pinned)
                         {
                             logger.WriteLine("{0}: {1} {2}, Pin {3}", projectDesc, actionType, target.LogicalName, shareAction.Revision);
-                            itemInfo = pathMapper.AddItem(project, target, shareAction.Revision);
+                            itemInfo = pathMapper.AddItem(project, target, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName), shareAction.Revision);
                         }
                         else
                         {
                             logger.WriteLine("{0}: {1} {2}", projectDesc, actionType, target.LogicalName);
-                            itemInfo = pathMapper.AddItem(project, target);
+                            itemInfo = pathMapper.AddItem(project, target, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
                         }
                         isAddAction = true;
                         break;
 
                     case VssActionType.Recover:
                         logger.WriteLine("{0}: {1} {2}", projectDesc, actionType, target.LogicalName);
-                        itemInfo = pathMapper.RecoverItem(project, target);
+
+                        itemInfo = pathMapper.RecoverItem(project, target, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
                         isAddAction = true;
                         break;
 
@@ -406,6 +406,11 @@ namespace Hpdi.Vss2Git
                                         }
                                     }
                                 }
+                            }
+
+                            if (VssActionType.Destroy == actionType)
+                            {
+                                itemInfo.Destroyed = true;
                             }
                         }
                         break;
@@ -507,17 +512,19 @@ namespace Hpdi.Vss2Git
 
                     case VssActionType.Pin:
                         {
+                            bool destroyed = revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName);
                             var pinAction = (VssPinAction)revision.Action;
                             if (pinAction.Pinned)
                             {
                                 logger.WriteLine("{0}: Pin {1}", projectDesc, target.LogicalName);
-                                itemInfo = pathMapper.PinItem(project, target, pinAction.Revision);
+                                itemInfo = pathMapper.PinItem(project, target, pinAction.Revision, destroyed);
+                                writeFile = !destroyed;
                             }
                             else
                             {
                                 logger.WriteLine("{0}: Unpin {1}", projectDesc, target.LogicalName);
-                                itemInfo = pathMapper.UnpinItem(project, target);
-                                writeFile = !itemInfo.Destroyed;
+                                itemInfo = pathMapper.UnpinItem(project, target, destroyed);
+                                writeFile = !destroyed;
                             }
                         }
                         break;
@@ -526,7 +533,7 @@ namespace Hpdi.Vss2Git
                         {
                             var branchAction = (VssBranchAction)revision.Action;
                             logger.WriteLine("{0}: {1} {2}", projectDesc, actionType, target.LogicalName);
-                            itemInfo = pathMapper.BranchFile(project, target, branchAction.Source);
+                            itemInfo = pathMapper.BranchFile(project, target, branchAction.Source, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
                         }
                         break;
 
@@ -544,7 +551,8 @@ namespace Hpdi.Vss2Git
                             var restoreAction = (VssRestoreAction)revision.Action;
                             logger.WriteLine("{0}: Restore {1} from archive {2}",
                                 projectDesc, target.LogicalName, restoreAction.ArchivePath);
-                            itemInfo = pathMapper.AddItem(project, target);
+
+                            itemInfo = pathMapper.AddItem(project, target, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
                             isAddAction = true;
                         }
                         break;
@@ -554,19 +562,16 @@ namespace Hpdi.Vss2Git
                 {
                     if (isAddAction)
                     {
-                        if (revisionAnalyzer.IsDestroyed(target.PhysicalName) &&
-                            !database.ItemExists(target.PhysicalName))
+                        if (target.IsProject)
                         {
-                            logger.WriteLine("NOTE: Skipping destroyed file: {0}", targetPath);
-                            itemInfo.Destroyed = true;
-                        }
-                        else if (target.IsProject)
-                        {
-                            if (!dryRun)
+                            if (!itemInfo.Destroyed)
                             {
-                                Directory.CreateDirectory(targetPath);
+                                if (!dryRun)
+                                {
+                                    Directory.CreateDirectory(targetPath);
+                                }
+                                writeProject = true;
                             }
-                            writeProject = true;
                         }
                         else
                         {
@@ -600,16 +605,26 @@ namespace Hpdi.Vss2Git
                     }
                     else if (writeFile)
                     {
-                        // write current rev to working path
-                        int version = pathMapper.GetFileVersion(project, target.PhysicalName);
-                        if (WriteRevisionTo(target.PhysicalName, version, targetPath))
+                        bool destroyed = pathMapper.GetFileDestroyed(project, target.PhysicalName);
+
+                        if (!destroyed)
                         {
-                            // add file explicitly, so it is visible to subsequent git operations
-                            if (!dryRun)
+                            // write current rev to working path
+                            int version = pathMapper.GetFileVersion(project, target.PhysicalName);
+
+                            if (WriteRevisionTo(target.PhysicalName, version, targetPath))
                             {
-                              git.Add(targetPath);
-                              needCommit = true;
+                                // add file explicitly, so it is visible to subsequent git operations
+                                if (!dryRun)
+                                {
+                                    git.Add(targetPath);
+                                    needCommit = true;
+                                }
                             }
+                        }
+                        else
+                        {
+                            logger.WriteLine("NOTE: Skipping destroyed file: {0}", targetPath);
                         }
                     }
                 }
@@ -758,7 +773,8 @@ namespace Hpdi.Vss2Git
             string physicalName, int version, string underProject, GitWrapper git)
         {
             var needCommit = false;
-            var paths = pathMapper.GetFilePaths(physicalName, underProject, version);
+
+            var paths = pathMapper.GetFilePaths(physicalName, underProject, version, logger);
             foreach (string path in paths)
             {
                 logger.WriteLine("{0}: {1} revision {2}", path, actionType, version);
@@ -772,6 +788,7 @@ namespace Hpdi.Vss2Git
                     }
                 }
             }
+
             return needCommit;
         }
 

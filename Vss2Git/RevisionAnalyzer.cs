@@ -60,8 +60,8 @@ namespace Hpdi.Vss2Git
             get { return processedFiles; }
         }
 
-        private readonly HashSet<string> destroyedFiles = new HashSet<string>();
-        public HashSet<string> DestroyedFiles
+        private readonly HashSet<Tuple<string, string>> destroyedFiles = new HashSet<Tuple<string, string>>();
+        public HashSet<Tuple<string,string>> DestroyedFiles
         {
             get { return destroyedFiles; }
         }
@@ -90,9 +90,9 @@ namespace Hpdi.Vss2Git
             this.database = database;
         }
 
-        public bool IsDestroyed(string physicalName)
+        public bool IsDestroyed(string parentPhysicalName, string itemPhysicalName)
         {
-            return destroyedFiles.Contains(physicalName);
+            return destroyedFiles.Contains(new Tuple<string, string>(parentPhysicalName, itemPhysicalName));
         }
 
         public void AddItem(VssProject project)
@@ -193,10 +193,18 @@ namespace Hpdi.Vss2Git
                     {
                         if (actionType == VssActionType.Destroy)
                         {
+                            // https://msdn.microsoft.com/en-us/library/b3d0xbb5(v=vs.80).aspx
+
+                            // This command is available through the Destroy Permanently check box
+                            // available in the Delete dialog box. When you select this check box,
+                            // you remove the selected file or project from the database permanently,
+                            // and destroy any related history. You cannot recover an item that you
+                            // have destroyed. You must have the Destroy project right to use this command.
+
                             // track destroyed files so missing history can be anticipated
                             // (note that Destroy actions on shared files simply delete
                             // that copy, so destroyed files can't be completely ignored)
-                            destroyedFiles.Add(namedAction.Name.PhysicalName);
+                            destroyedFiles.Add(new Tuple<string, string>(item.PhysicalName, namedAction.Name.PhysicalName));
                         }
 
                         var targetPath = path + VssDatabase.ProjectSeparator + namedAction.Name.LogicalName;

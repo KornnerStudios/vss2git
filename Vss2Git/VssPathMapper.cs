@@ -40,10 +40,18 @@ namespace Hpdi.Vss2Git
             get { return revision; }
         }
 
-        public VssPin(bool pinned, int revision)
+        private bool destroyed;
+        public bool Destroyed
+        {
+            get { return destroyed; }
+            set { destroyed = value; }
+        }
+
+        public VssPin(bool pinned, int revision, bool destroyed)
         {
             this.pinned = pinned;
             this.revision = revision;
+            this.destroyed = destroyed;
         }
 
         public override string ToString()
@@ -323,14 +331,14 @@ namespace Hpdi.Vss2Git
         {
         }
 
-        public void AddProject(VssProjectInfo project)
+        public void AddProject(VssProjectInfo project, bool destroyed)
         {
-            projects[project] = new VssPin(false, -1);
+            projects[project] = new VssPin(false, -1, destroyed);
         }
 
-        public void AddProject(VssProjectInfo project, int revision)
+        public void AddProject(VssProjectInfo project, int revision, bool destroyed)
         {
-            projects[project] = new VssPin(true, revision);
+            projects[project] = new VssPin(true, revision, destroyed);
         }
 
         public void RemoveProject(VssProjectInfo project)
@@ -406,7 +414,7 @@ namespace Hpdi.Vss2Git
             return null;
         }
 
-        public IEnumerable<string> GetFilePaths(string file, string underProject, int version)
+        public IEnumerable<string> GetFilePaths(string file, string underProject, int version, Logger logger)
         {
             var result = new LinkedList<string>();
             VssFileInfo fileInfo;
@@ -428,10 +436,17 @@ namespace Hpdi.Vss2Git
                         var projectPath = project.Key.GetPath();
                         if (projectPath != null)
                         {
-                            if ( !project.Value.Pinned || version <= project.Value.Revision)
+                            if (!project.Value.Destroyed)
                             {
-                                var path = Path.Combine(projectPath, fileInfo.LogicalName);
-                                result.AddLast(path);
+                                if (!project.Value.Pinned || version <= project.Value.Revision)
+                                {
+                                    var path = Path.Combine(projectPath, fileInfo.LogicalName);
+                                    result.AddLast(path);
+                                }
+                            }
+                            else
+                            {
+                                logger.WriteLine("NOTE: Skipping destroyed file: {0}", Path.Combine(projectPath, fileInfo.LogicalName));
                             }
                         }
                     }
@@ -466,26 +481,51 @@ namespace Hpdi.Vss2Git
             return version;
         }
 
+        public bool GetFileDestroyed(VssItemName project, string file)
+        {
+            bool destroyed = false;
+
+            VssFileInfo fileInfo;
+            if (fileInfos.TryGetValue(file, out fileInfo))
+            {
+                var projectInfo = GetOrCreateProject(project);
+
+                if (null != projectInfo)
+                {
+                    VssPin pin = fileInfo.GetProjectPin(projectInfo);
+
+                    if (null != pin)
+                    {
+                        destroyed = pin.Destroyed;
+                    }
+                }
+
+            }
+
+            return destroyed;
+        }
+
         public void SetFileVersion(VssItemName name, int version)
         {
             VssFileInfo fileInfo = GetOrCreateFile(name);
             fileInfo.Version = version;
         }
 
-        public VssItemInfo AddItem(VssItemName project, VssItemName name)
+        public VssItemInfo AddItem(VssItemName project, VssItemName name, bool destroyed)
         {
             var parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
                 var projectInfo = GetOrCreateProject(name);
+                projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = parentInfo;
                 itemInfo = projectInfo;
             }
             else
             {
                 var fileInfo = GetOrCreateFile(name);
-                fileInfo.AddProject(parentInfo);
+                fileInfo.AddProject(parentInfo, destroyed);
                 parentInfo.AddItem(fileInfo);
                 itemInfo = fileInfo;
             }
@@ -497,20 +537,21 @@ namespace Hpdi.Vss2Git
             return itemInfo;
         }
 
-        public VssItemInfo AddItem(VssItemName project, VssItemName name, int pinnedRevision)
+        public VssItemInfo AddItem(VssItemName project, VssItemName name, bool destroyed, int pinnedRevision)
         {
             var parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
                 var projectInfo = GetOrCreateProject(name);
+                projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = parentInfo;
                 itemInfo = projectInfo;
             }
             else
             {
                 var fileInfo = GetOrCreateFile(name);
-                fileInfo.AddProject(parentInfo, pinnedRevision);
+                fileInfo.AddProject(parentInfo, pinnedRevision, destroyed);
                 parentInfo.AddItem(fileInfo);
                 itemInfo = fileInfo;
             }
@@ -557,27 +598,28 @@ namespace Hpdi.Vss2Git
             return itemInfo;
         }
 
-        public VssItemInfo RecoverItem(VssItemName project, VssItemName name)
+        public VssItemInfo RecoverItem(VssItemName project, VssItemName name, bool destroyed)
         {
             var parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
                 var projectInfo = GetOrCreateProject(name);
+                projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = parentInfo;
                 itemInfo = projectInfo;
             }
             else
             {
                 var fileInfo = GetOrCreateFile(name);
-                fileInfo.AddProject(parentInfo);
+                fileInfo.AddProject(parentInfo, destroyed);
                 parentInfo.AddItem(fileInfo);
                 itemInfo = fileInfo;
             }
             return itemInfo;
         }
 
-        public VssItemInfo PinItem(VssItemName project, VssItemName name, int revision)
+        public VssItemInfo PinItem(VssItemName project, VssItemName name, int revision, bool destroyed)
         {
             // pinning removes the project from the list of
             // sharing projects, so it no longer receives edits
@@ -588,6 +630,7 @@ namespace Hpdi.Vss2Git
             if (name.IsProject)
             {
                 var projectInfo = GetOrCreateProject(name);
+                projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = null;
                 itemInfo = projectInfo;
             }
@@ -597,8 +640,7 @@ namespace Hpdi.Vss2Git
             
                 fileInfo.RemoveProject(parentInfo);
                 parentInfo.RemoveItem(fileInfo);
-
-                fileInfo.AddProject(parentInfo, revision);
+                fileInfo.AddProject(parentInfo, revision, destroyed);
                 parentInfo.AddItem(fileInfo);
 
                 itemInfo = fileInfo;
@@ -606,7 +648,7 @@ namespace Hpdi.Vss2Git
             return itemInfo;
         }
 
-        public VssItemInfo UnpinItem(VssItemName project, VssItemName name)
+        public VssItemInfo UnpinItem(VssItemName project, VssItemName name, bool destroyed)
         {
             // unpinning restores the project to the list of
             // sharing projects, so it receives edits
@@ -615,6 +657,7 @@ namespace Hpdi.Vss2Git
             if (name.IsProject)
             {
                 var projectInfo = GetOrCreateProject(name);
+                projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = parentInfo;
                 itemInfo = projectInfo;
             }
@@ -624,7 +667,7 @@ namespace Hpdi.Vss2Git
                 fileInfo.RemoveProject(parentInfo);
                 parentInfo.RemoveItem(fileInfo);
 
-                fileInfo.AddProject(parentInfo);
+                fileInfo.AddProject(parentInfo, destroyed);
                 parentInfo.AddItem(fileInfo);
 
                 itemInfo = fileInfo;
@@ -632,7 +675,7 @@ namespace Hpdi.Vss2Git
             return itemInfo;
         }
 
-        public VssItemInfo BranchFile(VssItemName project, VssItemName newName, VssItemName oldName)
+        public VssItemInfo BranchFile(VssItemName project, VssItemName newName, VssItemName oldName, bool newDestroyed)
         {
             Debug.Assert(!newName.IsProject);
             Debug.Assert(!oldName.IsProject);
@@ -651,7 +694,7 @@ namespace Hpdi.Vss2Git
 
             // add filename to new project
             var newFile = GetOrCreateFile(newName);
-            newFile.AddProject(parentInfo);
+            newFile.AddProject(parentInfo, newDestroyed);
 
             if (null != oldPin && oldPin.Pinned)
             {
