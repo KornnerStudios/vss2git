@@ -208,7 +208,8 @@ namespace Hpdi.Vss2Git
 
                         if (files.Length == 0)
                         {
-                            Directory.Delete(subdirectory);
+                            // git doesn't care about directories with no files
+                            Directory.Delete(subdirectory, true);
                         }
                     }
 
@@ -216,7 +217,8 @@ namespace Hpdi.Vss2Git
 
                     if (files.Length == 0)
                     {
-                        Directory.Delete(sourcePath);
+                        // git doesn't care about directories with no files
+                        Directory.Delete(sourcePath, true);
                     }
                 }
             }
