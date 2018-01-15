@@ -67,6 +67,7 @@ namespace Hpdi.Vss2Git
                 var stopwatch = Stopwatch.StartNew();
                 var pendingChangesByUser = new Dictionary<string, Changeset>();
                 var hasDelete = false;
+                var hasRename = false;
                 var changesetReason = "";
 
                 foreach (var dateEntry in revisionAnalyzer.SortedRevisions)
@@ -147,6 +148,16 @@ namespace Hpdi.Vss2Git
                                     flush = true;
                                 }
                             }
+                            else if (hasRename && (actionType == VssActionType.Delete || actionType == VssActionType.Destroy))
+                            {
+                                if (namedAction != null)
+                                {
+                                    // split the change set if a rename of a directory follows a delete
+                                    // otherwise a git error occurs
+                                    changesetReason = String.Format("Splitting changeset due to delete after rename in ({0})", targetFile);
+                                    flush = true;
+                                }
+                            }
 
                             if (flush)
                             {
@@ -157,6 +168,7 @@ namespace Hpdi.Vss2Git
                                 }
                                 flushedUsers.AddLast(user);
                                 hasDelete = false;
+                                hasRename = false;
                             }
                             else if (user == pendingUser)
                             {
@@ -185,6 +197,7 @@ namespace Hpdi.Vss2Git
                         // add the revision to the change
                         pendingChange.Revisions.AddLast(revision);
                         hasDelete |= actionType == VssActionType.Delete || actionType == VssActionType.Destroy;
+                        hasRename |= actionType == VssActionType.Rename;
 
                         // track target files in changeset to detect conflicting actions
                         if (!nonconflicting)
