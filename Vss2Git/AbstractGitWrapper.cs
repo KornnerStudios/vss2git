@@ -1,4 +1,6 @@
-﻿/* Copyright 2009 HPDI, LLC
+﻿/* Copyright 2017, Trapeze Poland sp. z o.o.
+ * 
+ * Author: Dariusz Bywalec
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +32,7 @@ namespace Hpdi.Vss2Git
         private readonly Logger logger = null;
         private readonly Stopwatch stopwatch = new Stopwatch();
         private bool needsCommit = false;
+        protected const string checkoutBranch = "master"; // default Git repo branch
 
         public Logger Logger
         {
@@ -169,6 +172,12 @@ namespace Hpdi.Vss2Git
         public abstract void Init(bool resetRepo);
         public abstract void Exit();
         public abstract void Configure();
+
+        public string GetCheckoutBranch()
+        {
+            return checkoutBranch;
+        }
+
         public abstract bool Add(string path);
         public abstract bool Add(IEnumerable<string> paths);
         public abstract bool AddDir(string path);

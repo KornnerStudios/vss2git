@@ -16,9 +16,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Threading;
 using Hpdi.VssLogicalLib;
+using System.Linq;
 
 namespace Hpdi.Vss2Git
 {
@@ -107,7 +106,7 @@ namespace Hpdi.Vss2Git
                             var timeDiff = revision.DateTime - change.DateTime;
                             if (timeDiff > anyCommentThreshold)
                             {
-                                if (HasSameComment(revision, change.Revisions.Last.Value))
+                                if (HasSameComment(revision, change.Revisions.Last()))
                                 {
                                     string message;
                                     if (timeDiff < sameCommentThreshold)
@@ -195,7 +194,7 @@ namespace Hpdi.Vss2Git
                         pendingChange.DateTime = revision.DateTime;
 
                         // add the revision to the change
-                        pendingChange.Revisions.AddLast(revision);
+                        pendingChange.Revisions.Add(revision);
                         hasDelete |= actionType == VssActionType.Delete || actionType == VssActionType.Destroy;
                         hasRename |= actionType == VssActionType.Rename;
 
@@ -210,16 +209,10 @@ namespace Hpdi.Vss2Git
                         if (revComment != null)
                         {
                             revComment = revComment.Trim();
-                            if (revComment.Length > 0)
+
+                            if (revComment.Length > 0 && (0 == pendingChange.Comment.Count || !pendingChange.Comment.Contains(revComment)))
                             {
-                                if (string.IsNullOrEmpty(pendingChange.Comment))
-                                {
-                                    pendingChange.Comment = revComment;
-                                }
-                                else if (!pendingChange.Comment.Contains(revComment))
-                                {
-                                    pendingChange.Comment += "\n" + revComment;
-                                }
+                                pendingChange.Comment.Add(revComment);
                             }
                         }
                     }
@@ -240,29 +233,30 @@ namespace Hpdi.Vss2Git
 
         private bool HasSameComment(Revision rev1, Revision rev2)
         {
-            return !string.IsNullOrEmpty(rev1.Comment) && rev1.Comment == rev2.Comment;
+            return (!string.IsNullOrEmpty(rev1.Comment) && !string.IsNullOrEmpty(rev1.Comment) && rev1.Comment == rev2.Comment);
         }
 
         private void AddChangeset(Changeset change, string reason)
         {
+            change.Id = changesets.Count + 1;
             changesets.AddLast(change);
-            DumpChangeset(change, changesets.Count, 0, reason);
+            DumpChangeset(change, change.Id, 0, reason);
         }
 
         private void DumpChangeset(Changeset changeset, int changesetId, int indent, string reason)
         {
             var indentStr = new string(' ', indent);
 
-            var firstRevTime = changeset.Revisions.First.Value.DateTime;
+            var firstRevTime = changeset.Revisions.First().DateTime;
             var changeDuration = changeset.DateTime - firstRevTime;
 
-            logger.WriteLine("{0}Changeset {1} - {2} ({3} secs) {3} {4} file(s)",
+            logger.WriteLine("{0}Changeset {1} - {2} ({3} secs) {4} {5} file(s)",
                 indentStr, changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime), changeDuration.TotalSeconds,
-                changeset.User,changeset.Revisions.Count);
+                changeset.User, changeset.Revisions.Count);
 
-            if (!string.IsNullOrEmpty(changeset.Comment))
+            foreach (var line in changeset.Comment)
             {
-                logger.WriteLine("{0}{1}", indentStr, changeset.Comment);
+                logger.WriteLine("{0}{1}", indentStr, line);
             }
 
             logger.WriteLine();

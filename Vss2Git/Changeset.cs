@@ -25,6 +25,9 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     class Changeset
     {
+        private int id = 0;
+        public int Id { get => id; set => id = value; }
+
         private DateTime dateTime;
         public DateTime DateTime
         {
@@ -39,15 +42,15 @@ namespace Hpdi.Vss2Git
             set { user = value; }
         }
 
-        private string comment;
-        public string Comment
+        private List<string> comment = new List<string>();
+        public List<string> Comment
         {
             get { return comment; }
             set { comment = value; }
         }
 
-        private readonly LinkedList<Revision> revisions = new LinkedList<Revision>();
-        public LinkedList<Revision> Revisions
+        private readonly List<Revision> revisions = new List<Revision>();
+        public List<Revision> Revisions
         {
             get { return revisions; }
         }

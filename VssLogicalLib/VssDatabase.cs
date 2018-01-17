@@ -65,8 +65,7 @@ namespace Hpdi.VssLogicalLib
 
         public VssItem GetItem(string logicalPath)
         {
-            var segments = logicalPath.Split(new char[] { ProjectSeparatorChar },
-                StringSplitOptions.RemoveEmptyEntries);
+            var segments = logicalPath.Split(new char[] { ProjectSeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
             var index = segments[0] == RootProjectName ? 1 : 0;
             VssProject project = rootProject;
             while (index < segments.Length)

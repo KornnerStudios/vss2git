@@ -1,4 +1,6 @@
-﻿/* Copyright 2009 HPDI, LLC
+﻿/* Copyright 2017, Trapeze Poland sp. z o.o.
+ * 
+ * Author: Dariusz Bywalec
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Threading;
 
@@ -24,7 +25,7 @@ namespace Hpdi.Vss2Git
     /// <summary>
     /// Wraps execution of LibGit2Sharp and implements the common LibGit2Sharp commands.
     /// </summary>
-    /// <author>Trevor Robinson</author>
+    /// <author>Dariusz Bywalec</author>
     class LibGit2SharpWrapper : AbstractGitWrapper
     {
         LibGit2Sharp.Repository repo = null;

@@ -142,6 +142,13 @@ namespace Hpdi.Vss2Git
             set { originalVssPath = value; }
         }
 
+        private string originalWorkDirPath;
+        public string OriginalWorkDirPath
+        {
+            get { return originalWorkDirPath; }
+            set { originalWorkDirPath = value; }
+        }
+
         public bool IsRooted
         {
             get
@@ -166,20 +173,46 @@ namespace Hpdi.Vss2Git
         {
         }
 
-        public string GetPath()
+        public List<string> GetWorkDirPath()
         {
+            List<string> path = null;
+
             if (IsRooted)
             {
                 if (parentInfo != null)
                 {
-                    return Path.Combine(parentInfo.GetPath(), LogicalName);
+                    path = parentInfo.GetWorkDirPath();
+                    path.Add(LogicalName);
                 }
                 else
                 {
-                    return LogicalName;
+                    path = new List<string>();
+                    path.Add(OriginalWorkDirPath);
                 }
             }
-            return null;
+
+            return path;
+        }
+
+        public List<string> GetLogicalPath()
+        {
+            List<string> path = null;
+
+            if (IsRooted)
+            {
+                if (parentInfo != null)
+                {
+                    path = parentInfo.GetLogicalPath();
+                    path.Add(LogicalName);
+                }
+                else
+                {
+                    path = new List<string>();
+                    path.Add(OriginalVssPath);
+                }
+            }
+
+            return path;
         }
 
         public bool IsSameOrSubproject(VssProjectInfo parentInfo)
@@ -371,6 +404,16 @@ namespace Hpdi.Vss2Git
         private readonly Dictionary<string, VssProjectInfo> rootInfos = new Dictionary<string, VssProjectInfo>();
         private readonly Dictionary<string, VssFileInfo> fileInfos = new Dictionary<string, VssFileInfo>();
 
+        public bool IsProjectRoot(string project)
+        {
+            VssProjectInfo projectInfo;
+            if (projectInfos.TryGetValue(project, out projectInfo))
+            {
+                return projectInfo.IsRoot;
+            }
+            return false;
+        }
+
         public bool IsProjectRooted(string project)
         {
             VssProjectInfo projectInfo;
@@ -381,21 +424,32 @@ namespace Hpdi.Vss2Git
             return false;
         }
 
-        public string GetProjectPath(string project)
+        public List<string> GetProjectWorkDirPath(string project)
         {
             VssProjectInfo projectInfo;
             if (projectInfos.TryGetValue(project, out projectInfo))
             {
-                return projectInfo.GetPath();
+                return projectInfo.GetWorkDirPath();
             }
             return null;
         }
 
-        public void SetProjectPath(string project, string path, string originalVssPath)
+        public List<string> GetProjectLogicalPath(string project)
         {
-            var projectInfo = new VssProjectInfo(project, path);
+            VssProjectInfo projectInfo;
+            if (projectInfos.TryGetValue(project, out projectInfo))
+            {
+                return projectInfo.GetLogicalPath();
+            }
+            return null;
+        }
+
+        public void SetProjectPath(string project, string workDirPath, string originalVssPath)
+        {
+            var projectInfo = new VssProjectInfo(project, originalVssPath);
             projectInfo.IsRoot = true;
             projectInfo.OriginalVssPath = originalVssPath;
+            projectInfo.OriginalWorkDirPath = workDirPath;
             projectInfos[project] = projectInfo;
             rootInfos[project] = projectInfo;
         }
@@ -420,9 +474,9 @@ namespace Hpdi.Vss2Git
             return null;
         }
 
-        public IEnumerable<string> GetFilePaths(string file, string underProject, int version, Logger logger)
+        public IEnumerable<Tuple<List<string>, List<string>>> GetFilePaths(string file, string underProject, int version, Logger logger)
         {
-            var result = new LinkedList<string>();
+            var result = new LinkedList<Tuple<List<string>, List<string>>>();
             VssFileInfo fileInfo;
             if (fileInfos.TryGetValue(file, out fileInfo))
             {
@@ -439,20 +493,26 @@ namespace Hpdi.Vss2Git
                     if (underProjectInfo == null || project.Key.IsSameOrSubproject(underProjectInfo))
                     {
                         // ignore projects that are not rooted
-                        var projectPath = project.Key.GetPath();
-                        if (projectPath != null)
+                        var projectLogicalPath = project.Key.GetLogicalPath();
+                        var projectWorkDirPath = project.Key.GetWorkDirPath();
+                        if (projectLogicalPath != null && projectWorkDirPath != null)
                         {
+                            var logicalPath = new List<string>(projectLogicalPath);
+                            logicalPath.Add(fileInfo.LogicalName);
+
                             if (!project.Value.Destroyed)
                             {
                                 if (!project.Value.Pinned || version <= project.Value.Revision)
                                 {
-                                    var path = Path.Combine(projectPath, fileInfo.LogicalName);
-                                    result.AddLast(path);
+                                    var workDirPath = new List<string>(projectWorkDirPath);
+                                    workDirPath.Add(fileInfo.LogicalName);
+
+                                    result.AddLast(new Tuple<List<string>, List<string>>(logicalPath, workDirPath));
                                 }
                             }
                             else
                             {
-                                logger.WriteLine("NOTE: Skipping destroyed file: {0}", Path.Combine(projectPath, fileInfo.LogicalName));
+                                logger.WriteLine("NOTE: Skipping destroyed file: {0}", LogicalPathToString(logicalPath));
                             }
                         }
                     }
@@ -515,6 +575,11 @@ namespace Hpdi.Vss2Git
         {
             VssFileInfo fileInfo = GetOrCreateFile(name);
             fileInfo.Version = version;
+        }
+
+        public VssItemInfo CreateItem(VssItemName project)
+        {
+            return GetOrCreateProject(project);
         }
 
         public VssItemInfo AddItem(VssItemName project, VssItemName name, bool destroyed)
@@ -843,6 +908,23 @@ namespace Hpdi.Vss2Git
 
             var relPath = vssPath.Replace(VssDatabase.ProjectSeparatorChar, Path.DirectorySeparatorChar);
             return Path.Combine(workingRoot, relPath);
+        }
+
+        public string LogicalPathToString(IEnumerable<string> path)
+        {
+            return String.Join("/", path);
+        }
+
+        public string WorkDirPathToString(IEnumerable<string> path)
+        {
+            var result = "";
+
+            foreach (var p in path)
+            {
+                result = Path.Combine(result, p);
+            }
+
+            return result;
         }
     }
 }

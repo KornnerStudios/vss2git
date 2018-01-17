@@ -135,6 +135,7 @@ namespace Hpdi.Vss2Git
                     gitExporter.IgnoreErrors = ignoreErrorsCheckBox.Checked;
                     gitExporter.DryRun = dryRunCheckBox.Checked;
                     gitExporter.UserToEmailDictionaryFile = emailDictFileTextBox.Text;
+                    gitExporter.IncludeVssMetaDataInComments = includeVssMetaDataInCommentsCheckBox.Checked;
 
                     //git = new GitExeWrapper(outDirTextBox.Text, logger);
                     git = new LibGit2SharpWrapper(outDirTextBox.Text, logger);
@@ -263,6 +264,7 @@ namespace Hpdi.Vss2Git
             forceAnnotatedCheckBox.Checked = settings.ForceAnnotatedTags;
             anyCommentUpDown.Value = settings.AnyCommentSeconds;
             sameCommentUpDown.Value = settings.SameCommentSeconds;
+            includeVssMetaDataInCommentsCheckBox.Checked = settings.IncludeVssMetaDataInComments;
 
             if (!String.IsNullOrEmpty(settings.Encoding))
             {
@@ -284,6 +286,7 @@ namespace Hpdi.Vss2Git
             settings.ForceAnnotatedTags = forceAnnotatedCheckBox.Checked;
             settings.AnyCommentSeconds = (int)anyCommentUpDown.Value;
             settings.SameCommentSeconds = (int)sameCommentUpDown.Value;
+            settings.IncludeVssMetaDataInComments = includeVssMetaDataInCommentsCheckBox.Checked;
 
             string encodingName = "";
 

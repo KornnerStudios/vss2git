@@ -25,26 +25,28 @@ namespace Hpdi.Vss2Git
         void SetNeedsCommit();
         TimeSpan ElapsedTime();
         bool FindExecutable();
-		
+
         void Init(bool resetRepo);
         void Exit();
         
-		void Configure();
-        
-		bool Add(string path);
+        void Configure();
+
+        string GetCheckoutBranch();
+
+        bool Add(string path);
         bool Add(IEnumerable<string> paths);
         bool AddDir(string path);
         bool AddAll();
         
-		void RemoveFile(string path);
+        void RemoveFile(string path);
         void RemoveDir(string path, bool recursive);
         void RemoveEmptyDir(string path);
         
-		void MoveFile(string sourcePath, string destPath);
+        void MoveFile(string sourcePath, string destPath);
         void MoveDir(string sourcePath, string destPath);
         void MoveEmptyDir(string sourcePath, string destPath);
         
-		bool Commit(string authorName, string authorEmail, string comment, DateTime utcTime);
+        bool Commit(string authorName, string authorEmail, string comment, DateTime utcTime);
         void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime utcTime);
     }
 }

@@ -49,7 +49,6 @@ namespace Hpdi.Vss2Git
         {
         }
 
-
         private void SetConfig(string name, string value)
         {
             GitExec("config " + name + " " + Quote(value));

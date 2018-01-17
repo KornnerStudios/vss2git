@@ -48,6 +48,7 @@
             this.changeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.outputGroupBox = new System.Windows.Forms.GroupBox();
+            this.includeVssMetaDataInCommentsCheckBox = new System.Windows.Forms.CheckBox();
             this.emailDictFileTextBox = new System.Windows.Forms.TextBox();
             this.emailDictFileLabel = new System.Windows.Forms.Label();
             this.dryRunCheckBox = new System.Windows.Forms.CheckBox();
@@ -172,7 +173,7 @@
             // goButton
             // 
             this.goButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goButton.Location = new System.Drawing.Point(416, 407);
+            this.goButton.Location = new System.Drawing.Point(416, 430);
             this.goButton.Name = "goButton";
             this.goButton.Size = new System.Drawing.Size(75, 23);
             this.goButton.TabIndex = 3;
@@ -192,7 +193,7 @@
             this.revisionLabel,
             this.changeLabel,
             this.timeLabel});
-            this.statusStrip.Location = new System.Drawing.Point(0, 441);
+            this.statusStrip.Location = new System.Drawing.Point(0, 463);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(584, 22);
             this.statusStrip.TabIndex = 5;
@@ -234,6 +235,7 @@
             // 
             this.outputGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.outputGroupBox.Controls.Add(this.includeVssMetaDataInCommentsCheckBox);
             this.outputGroupBox.Controls.Add(this.emailDictFileTextBox);
             this.outputGroupBox.Controls.Add(this.emailDictFileLabel);
             this.outputGroupBox.Controls.Add(this.dryRunCheckBox);
@@ -248,10 +250,21 @@
             this.outputGroupBox.Controls.Add(this.logLabel);
             this.outputGroupBox.Location = new System.Drawing.Point(12, 144);
             this.outputGroupBox.Name = "outputGroupBox";
-            this.outputGroupBox.Size = new System.Drawing.Size(560, 175);
+            this.outputGroupBox.Size = new System.Drawing.Size(560, 199);
             this.outputGroupBox.TabIndex = 1;
             this.outputGroupBox.TabStop = false;
             this.outputGroupBox.Text = "Output Settings";
+            // 
+            // includeVssMetaDataInCommentsCheckBox
+            // 
+            this.includeVssMetaDataInCommentsCheckBox.AutoSize = true;
+            this.includeVssMetaDataInCommentsCheckBox.Location = new System.Drawing.Point(9, 149);
+            this.includeVssMetaDataInCommentsCheckBox.Name = "includeVssMetaDataInCommentsCheckBox";
+            this.includeVssMetaDataInCommentsCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.includeVssMetaDataInCommentsCheckBox.Size = new System.Drawing.Size(197, 17);
+            this.includeVssMetaDataInCommentsCheckBox.TabIndex = 9;
+            this.includeVssMetaDataInCommentsCheckBox.Text = "Include VSS meta data in comments";
+            this.includeVssMetaDataInCommentsCheckBox.UseVisualStyleBackColor = true;
             // 
             // emailDictFileTextBox
             // 
@@ -375,7 +388,7 @@
             // 
             this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(497, 407);
+            this.cancelButton.Location = new System.Drawing.Point(497, 430);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 4;
@@ -391,7 +404,7 @@
             this.changesetGroupBox.Controls.Add(this.label2);
             this.changesetGroupBox.Controls.Add(this.label1);
             this.changesetGroupBox.Controls.Add(this.anyCommentUpDown);
-            this.changesetGroupBox.Location = new System.Drawing.Point(12, 326);
+            this.changesetGroupBox.Location = new System.Drawing.Point(12, 349);
             this.changesetGroupBox.Name = "changesetGroupBox";
             this.changesetGroupBox.Size = new System.Drawing.Size(560, 75);
             this.changesetGroupBox.TabIndex = 2;
@@ -464,7 +477,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(584, 463);
+            this.ClientSize = new System.Drawing.Size(584, 485);
             this.Controls.Add(this.changesetGroupBox);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.outputGroupBox);
@@ -533,6 +546,7 @@
         private System.Windows.Forms.CheckBox dryRunCheckBox;
         private System.Windows.Forms.TextBox emailDictFileTextBox;
         private System.Windows.Forms.Label emailDictFileLabel;
+        private System.Windows.Forms.CheckBox includeVssMetaDataInCommentsCheckBox;
     }
 }
 

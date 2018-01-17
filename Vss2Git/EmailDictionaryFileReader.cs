@@ -1,4 +1,6 @@
-﻿/* Copyright 2009 HPDI, LLC
+﻿/* Copyright 2017, Trapeze Poland sp. z o.o.
+ * 
+ * Author: Dariusz Bywalec
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Hpdi.Vss2Git
 {
