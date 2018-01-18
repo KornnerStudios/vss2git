@@ -77,9 +77,21 @@ namespace Hpdi.Vss2Git
                 char c = glob[i];
                 switch (c)
                 {
-                    case '.':
                     case '$':
                     case '^':
+                        if (i + 1 < glob.Length && glob[i + 1] == c)
+                        {
+                            buf.Append(c);
+                            ++i;
+                        }
+                        else
+                        {
+                            // escape regex operators
+                            buf.Append('\\');
+                            buf.Append(c);
+                        }
+                        break;
+                    case '.':
                     case '{':
                     case '[':
                     case '(':
@@ -118,7 +130,6 @@ namespace Hpdi.Vss2Git
                         break;
                 }
             }
-            buf.Append('$');
         }
     }
 }

@@ -91,7 +91,7 @@ namespace Hpdi.Vss2Git
                 df.Encoding = encoding;
                 var db = df.Open();
 
-                var path = vssProjectTextBox.Text;
+                var path = VssDatabase.RootProjectName;
                 VssItem item;
                 try
                 {
@@ -113,10 +113,6 @@ namespace Hpdi.Vss2Git
                 }
 
                 revisionAnalyzer = new RevisionAnalyzer(workQueue, logger, db);
-                if (!string.IsNullOrEmpty(excludeTextBox.Text))
-                {
-                    revisionAnalyzer.ExcludeFiles = excludeTextBox.Text;
-                }
                 revisionAnalyzer.AddItem(project);
 
                 changesetBuilder = new ChangesetBuilder(workQueue, logger, revisionAnalyzer);
@@ -131,6 +127,14 @@ namespace Hpdi.Vss2Git
                     if (!string.IsNullOrEmpty(domainTextBox.Text))
                     {
                         gitExporter.EmailDomain = domainTextBox.Text;
+                    }
+                    if (!string.IsNullOrEmpty(vssProjectTextBox.Text))
+                    {
+                        gitExporter.VssIncludedProjects = vssProjectTextBox.Text;
+                    }
+                    if (!string.IsNullOrEmpty(excludeTextBox.Text))
+                    {
+                        gitExporter.ExcludeFiles = excludeTextBox.Text;
                     }
                     gitExporter.IgnoreErrors = ignoreErrorsCheckBox.Checked;
                     gitExporter.DryRun = dryRunCheckBox.Checked;
