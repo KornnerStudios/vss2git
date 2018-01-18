@@ -773,7 +773,7 @@ namespace Hpdi.Vss2Git
             }
             else
             {
-                newFile.Version = 1;
+                newFile.Version = oldFile.Version;
             }
 
             parentInfo.AddItem(newFile);
