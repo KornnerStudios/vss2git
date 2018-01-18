@@ -504,39 +504,67 @@ namespace Hpdi.Vss2Git
                             logger.WriteLine("{0}: Move from {1} to {2}",
                                 projectDesc, moveFromAction.OriginalProject, targetLogicalPathAsString);
 
-                            var projectInfo = pathMapper.MoveProjectFrom(project, target, moveFromAction.OriginalProject);
-
-                            if (targetLogicalPath != null && targetWorkDirPath != null && !projectInfo.Destroyed)
+                            if (pathMapper.IsProjectRooted(moveFromAction.Name.PhysicalName))
                             {
-                                var targetWorkDirPathAsString = pathMapper.WorkDirPathToString(targetWorkDirPath);
+                                var sourceLogicalPath = pathMapper.GetProjectLogicalPath(moveFromAction.Name.PhysicalName);
+                                var sourceWorkDirPath = pathMapper.GetProjectWorkDirPath(moveFromAction.Name.PhysicalName);
 
-                                var sourceLogicalPath = pathMapper.GetProjectLogicalPath(target.PhysicalName);
-                                var sourceWorkDirPath = pathMapper.GetProjectWorkDirPath(target.PhysicalName);
+                                var projectInfo = pathMapper.MoveProjectFrom(project, target, moveFromAction.OriginalProject);
 
-                                if (sourceLogicalPath != null && sourceWorkDirPath != null)
+                                if (targetLogicalPath != null && targetWorkDirPath != null && !projectInfo.Destroyed)
                                 {
-                                    var sourceWorkDirPathAsString = pathMapper.WorkDirPathToString(sourceWorkDirPath);
+                                    var targetWorkDirPathAsString = pathMapper.WorkDirPathToString(targetWorkDirPath);
 
-                                    if (Directory.Exists(sourceWorkDirPathAsString))
+                                    if (sourceLogicalPath != null && sourceWorkDirPath != null)
                                     {
-                                        if (projectInfo.ContainsFiles())
-                                        {
-                                            var sourceLogicalPathAsString = pathMapper.LogicalPathToString(sourceLogicalPath);
+                                        var sourceWorkDirPathAsString = pathMapper.WorkDirPathToString(sourceWorkDirPath);
 
-                                            var message = String.Format("{0} (from {1})", targetLogicalPathAsString, sourceLogicalPathAsString);
-
-                                            pendingCommit.MoveFileOrDirectory(revision, new GitActions.MoveDirectory(sourceWorkDirPathAsString, targetWorkDirPathAsString, true), message);
-                                        }
-                                        else
+                                        if (Directory.Exists(sourceWorkDirPathAsString))
                                         {
-                                            pendingCommit.AddAction(revision, new GitActions.MoveDirectory(sourceWorkDirPathAsString, targetWorkDirPathAsString, false), false);
+                                            if (projectInfo.ContainsFiles())
+                                            {
+                                                var sourceLogicalPathAsString = pathMapper.LogicalPathToString(sourceLogicalPath);
+
+                                                var message = String.Format("{0} (from {1})", targetLogicalPathAsString, sourceLogicalPathAsString);
+
+                                                pendingCommit.MoveFileOrDirectory(revision, new GitActions.MoveDirectory(sourceWorkDirPathAsString, targetWorkDirPathAsString, true), message);
+                                            }
+                                            else
+                                            {
+                                                pendingCommit.AddAction(revision, new GitActions.MoveDirectory(sourceWorkDirPathAsString, targetWorkDirPathAsString, false), false);
+                                            }
                                         }
                                     }
+                                    else
+                                    {
+                                        // project was moved from a now-destroyed project
+                                        writeProject = true;
+                                    }
+                                }
+                                else if (null != projectLogicalPath && projectInfo.Destroyed)
+                                {
+                                    logger.WriteLine("NOTE: Skipping move to because {0} is destroyed", pathMapper.LogicalPathToString(projectLogicalPath));
+                                }
+                            }
+                            else
+                            {
+                                // the moved project is currently not part of project tree
+
+                                bool destroyed = revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName);
+
+                                if (!destroyed)
+                                {
+                                    logger.WriteLine("NOTE: Moving unmapped project {0} from {1} to {2}",
+                                                     target.LogicalName, moveFromAction.OriginalProject, pathMapper.LogicalPathToString(projectLogicalPath));
+
+                                    // add it again
+                                    itemInfo = pathMapper.AddItem(project, target, destroyed);
+
+                                    isAddAction = true;
                                 }
                                 else
                                 {
-                                    // project was moved from a now-destroyed project
-                                    writeProject = true;
+                                    logger.WriteLine("NOTE: Skipping move to because {0} in project {1} is destroyed", target.LogicalName, pathMapper.LogicalPathToString(projectLogicalPath));
                                 }
                             }
                         }
@@ -687,7 +715,7 @@ namespace Hpdi.Vss2Git
                         // write current rev of all contained files
                         foreach (var fileInfo in pathMapper.GetAllFiles(target.PhysicalName))
                         {
-                            var paths = pathMapper.GetFilePaths(target.PhysicalName, target.PhysicalName, revision.Version, logger);
+                            var paths = pathMapper.GetFilePaths(fileInfo.PhysicalName, target.PhysicalName, revision.Version, logger);
 
                             foreach (var p in paths)
                             {
@@ -697,10 +725,10 @@ namespace Hpdi.Vss2Git
 
                                 if (dryRun)
                                 {
-                                    logger.WriteLine("{0}: {1} revision {2}", targetWorkDirPathAsString, actionType, revision.Version);
+                                    logger.WriteLine("{0}: {1} revision {2}", targetWorkDirPathAsString, actionType, fileInfo.Version);
                                 }
 
-                                pendingCommit.AddFile(revision, new GitActions.WriteFile(database, target.PhysicalName, revision.Version, targetWorkDirPathAsString), pathMapper.LogicalPathToString(p.Item1));
+                                pendingCommit.AddFile(revision, new GitActions.WriteFile(database, fileInfo.PhysicalName, fileInfo.Version, targetWorkDirPathAsString), pathMapper.LogicalPathToString(p.Item1));
                             }
                         }
                     }
