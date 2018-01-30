@@ -89,7 +89,7 @@ namespace Hpdi.Vss2Git
 
                         // Share actions are never conflict (which is important,
                         // since Share always precedes Branch)
-                        var nonconflicting = creating || (actionType == VssActionType.Share);
+                        var nonconflicting = creating || (actionType == VssActionType.Share) || (actionType == VssActionType.MoveFrom) || (actionType == VssActionType.MoveTo);
 
                         // look up the pending change for user of this revision
                         // and flush changes past time threshold
