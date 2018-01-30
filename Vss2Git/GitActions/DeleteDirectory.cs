@@ -47,7 +47,10 @@ namespace Hpdi.Vss2Git.GitActions
             else
             {
                 // git doesn't care about directories with no files
-                Directory.Delete(path, true);
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, true);
+                }
             }
 
             return true;

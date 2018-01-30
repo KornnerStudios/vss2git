@@ -37,18 +37,25 @@ namespace Hpdi.Vss2Git.GitActions
         {
             logger.WriteLine("Moving directory: {0} to {1}", sourcePath, targetPath);
 
-            RenameDelegate renameDelegate = null;
-
-            if (containsFiles)
+            if (Directory.Exists(sourcePath))
             {
-                renameDelegate = git.MoveDir;
+                RenameDelegate renameDelegate = null;
+
+                if (containsFiles)
+                {
+                    renameDelegate = git.MoveDir;
+                }
+                else
+                {
+                    renameDelegate = Directory.Move;
+                }
+
+                CaseSensitiveRename(sourcePath, targetPath, renameDelegate);
             }
             else
             {
-                renameDelegate = Directory.Move;
+                logger.WriteLine("NOTE: Skipping rename because {0} does not exist", sourcePath);
             }
-
-            CaseSensitiveRename(sourcePath, targetPath, renameDelegate);
 
             return true;
         }

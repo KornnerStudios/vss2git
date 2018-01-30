@@ -155,6 +155,8 @@ namespace Hpdi.Vss2Git
                     var namedAction = vssRevision.Action as VssNamedAction;
                     if (namedAction != null)
                     {
+                        var tuple = new Tuple<string, string>(item.PhysicalName, namedAction.Name.PhysicalName);
+
                         if (actionType == VssActionType.Destroy)
                         {
                             // https://msdn.microsoft.com/en-us/library/b3d0xbb5(v=vs.80).aspx
@@ -168,7 +170,14 @@ namespace Hpdi.Vss2Git
                             // track destroyed files so missing history can be anticipated
                             // (note that Destroy actions on shared files simply delete
                             // that copy, so destroyed files can't be completely ignored)
-                            destroyedFiles.Add(new Tuple<string, string>(item.PhysicalName, namedAction.Name.PhysicalName));
+                            destroyedFiles.Add(tuple);
+                        }
+                        else if (actionType == VssActionType.Share || actionType == VssActionType.Branch)
+                        {
+                            if (destroyedFiles.Contains(tuple))
+                            {
+                                destroyedFiles.Remove(tuple);
+                            }
                         }
                     }
 
@@ -179,7 +188,7 @@ namespace Hpdi.Vss2Git
                     ICollection<Revision> revisionSet;
                     if (!sortedRevisions.TryGetValue(vssRevision.DateTime, out revisionSet))
                     {
-                        revisionSet = new LinkedList<Revision>();
+                        revisionSet = new List<Revision>();
                         sortedRevisions[vssRevision.DateTime] = revisionSet;
                     }
                     revisionSet.Add(revision);
@@ -188,7 +197,7 @@ namespace Hpdi.Vss2Git
             }
             catch (RecordException e)
             {
-                var message = string.Format("Failed to read revisions for ({1}): {2}", item.PhysicalName, ExceptionFormatter.Format(e));
+                var message = string.Format("Failed to read revisions for ({0}): {1}", item.PhysicalName, ExceptionFormatter.Format(e));
                 LogException(e, message);
                 ReportError(message);
             }

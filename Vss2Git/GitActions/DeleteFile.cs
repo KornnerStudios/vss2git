@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+using System.IO;
+
 namespace Hpdi.Vss2Git.GitActions
 {
     class DeleteFile : IGitAction
@@ -34,7 +36,10 @@ namespace Hpdi.Vss2Git.GitActions
         {
             logger.WriteLine("Deleting file: {0}", path);
 
-            git.RemoveFile(path);
+            if (File.Exists(path))
+            {
+                git.RemoveFile(path);
+            }
 
             return true;
         }

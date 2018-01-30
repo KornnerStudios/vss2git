@@ -86,13 +86,6 @@ namespace Hpdi.Vss2Git
             set { logicalName = value; }
         }
 
-        private bool destroyed;
-        public bool Destroyed
-        {
-            get { return destroyed; }
-            set { destroyed = value; }
-        }
-
         public VssItemInfo(string physicalName, string logicalName)
         {
             this.physicalName = physicalName;
@@ -166,6 +159,13 @@ namespace Hpdi.Vss2Git
         public IEnumerable<VssItemInfo> Items
         {
             get { return items; }
+        }
+
+        private bool destroyed = false;
+        public bool Destroyed
+        {
+            get { return destroyed; }
+            set { destroyed = value; }
         }
 
         public VssProjectInfo(string physicalName, string logicalName)
@@ -649,13 +649,14 @@ namespace Hpdi.Vss2Git
             return itemInfo;
         }
 
-        public VssItemInfo DeleteItem(VssItemName project, VssItemName name)
+        public VssItemInfo DeleteItem(VssItemName project, VssItemName name, bool destroyed)
         {
             var parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
                 var projectInfo = GetOrCreateProject(name);
+                projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = null;
                 itemInfo = projectInfo;
             }
@@ -663,6 +664,10 @@ namespace Hpdi.Vss2Git
             {
                 var fileInfo = GetOrCreateFile(name);
                 fileInfo.RemoveProject(parentInfo);
+                if (destroyed)
+                {
+                    fileInfo.AddProject(parentInfo, destroyed);
+                }
                 parentInfo.RemoveItem(fileInfo);
                 itemInfo = fileInfo;
             }
@@ -912,7 +917,7 @@ namespace Hpdi.Vss2Git
 
         public string LogicalPathToString(IEnumerable<string> path)
         {
-            return String.Join("/", path);
+            return String.Join(VssDatabase.ProjectSeparator, path);
         }
 
         public string WorkDirPathToString(IEnumerable<string> path)

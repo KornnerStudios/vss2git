@@ -64,12 +64,7 @@ namespace Hpdi.Vss2Git.GitActions
                 a.Run(logger, git, stat);
             }
 
-            if (needsCommit != git.NeedsCommit())
-            {
-                throw new ApplicationException("Inconsistent NeedsCommit flag");
-            }
-
-            if (needsCommit && git.NeedsCommit())
+            if (git.NeedsCommit())
             {
                 logger.WriteLine("Creating commit: {0}", BuildCommitMessage(true));
 

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+using System.IO;
+
 namespace Hpdi.Vss2Git.GitActions
 {
     /// <summary>
@@ -32,7 +34,14 @@ namespace Hpdi.Vss2Git.GitActions
         {
             logger.WriteLine("Moving file: {0} to {1}", sourcePath, targetPath);
 
-            CaseSensitiveRename(sourcePath, targetPath, git.MoveFile);
+            if (File.Exists(sourcePath))
+            {
+                CaseSensitiveRename(sourcePath, targetPath, git.MoveFile);
+            }
+            else
+            {
+                logger.WriteLine("NOTE: Skipping rename because {0} does not exist", sourcePath);
+            }
 
             return true;
         }
