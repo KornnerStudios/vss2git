@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Vss2Git")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("HPDI, LLC")]
+[assembly: AssemblyCompany("Trapeze Group")]
 [assembly: AssemblyProduct("Vss2Git")]
-[assembly: AssemblyCopyright("Copyright ©  2009 HPDI, LLC")]
+[assembly: AssemblyCopyright("Copyright ©  2018 Trapeze Group")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.11.1")]
-[assembly: AssemblyFileVersion("1.0.11.1")]
+[assembly: AssemblyVersion("1.0.11.2")]
+[assembly: AssemblyFileVersion("1.0.11.2")]
