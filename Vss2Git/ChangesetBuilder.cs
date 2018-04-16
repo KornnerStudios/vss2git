@@ -56,6 +56,10 @@ namespace Hpdi.Vss2Git
             this.revisionAnalyzer = revisionAnalyzer;
         }
 
+		/// <summary>
+		/// For handling the case where there's an earlier Delete+Destroy but then in the same commit something tries to rename a file to what was destroyed
+		/// </summary>
+		public bool ForceFlushRenameAfterDeleteForFiles = true;
         public void BuildChangesets()
         {
             workQueue.AddLast(delegate(object work)
@@ -139,7 +143,7 @@ namespace Hpdi.Vss2Git
                             else if (hasDelete && actionType == VssActionType.Rename)
                             {
                                 var renameAction = revision.Action as VssRenameAction;
-                                if (renameAction != null && renameAction.Name.IsProject)
+                                if (renameAction != null && (renameAction.Name.IsProject || ForceFlushRenameAfterDeleteForFiles))
                                 {
                                     // split the change set if a rename of a directory follows a delete
                                     // otherwise a git error occurs

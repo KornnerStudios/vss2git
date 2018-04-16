@@ -76,12 +76,17 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public void Dump(TextWriter writer)
-        {
-            const int MAX_DATA_DUMP = 40;
-            writer.Write("  {0}: Offset={1}, Length={2}",
+		public static bool IncludeDataBytesInDump = false;
+        public void Dump(TextWriter writer, int indent)
+		{
+			const int MAX_DATA_DUMP = 40;
+
+			string indentStr = VssRecord.DumpGetIndentString(indent);
+
+			writer.Write(indentStr);
+            writer.Write("{0}: Offset={1}, Length={2}",
                 command, offset, length);
-            if (data.Array != null)
+            if (IncludeDataBytesInDump && data.Array != null)
             {
                 var dumpLength = data.Count;
                 var truncated = false;

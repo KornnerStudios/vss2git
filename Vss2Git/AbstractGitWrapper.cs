@@ -34,6 +34,8 @@ namespace Hpdi.Vss2Git
         private bool needsCommit = false;
         protected const string checkoutBranch = "master"; // default Git repo branch
 
+		public bool IncludeIgnoredFiles { get; set; }
+
         public Logger Logger
         {
             get { return logger; }

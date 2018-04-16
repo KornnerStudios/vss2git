@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,7 +48,8 @@ namespace Hpdi.Vss2Git
         private void CloseLog()
         {
             if (logger!=null)
-                logger.Dispose();            
+                logger.Dispose();
+			logger = Logger.Null;
         }
 
         private void goButton_Click(object sender, EventArgs e)
@@ -119,6 +120,7 @@ namespace Hpdi.Vss2Git
                 changesetBuilder.AnyCommentThreshold = TimeSpan.FromSeconds((double) anyCommentUpDown.Value);
                 changesetBuilder.SameCommentThreshold = TimeSpan.FromSeconds((double) sameCommentUpDown.Value);
                 changesetBuilder.BuildChangesets();
+				logger.Flush();
 
                 if (!string.IsNullOrEmpty(outDirTextBox.Text))
                 {
@@ -148,13 +150,15 @@ namespace Hpdi.Vss2Git
                         git.CommitEncoding = encoding;
                     }
 
+					gitExporter.IncludeIgnoredFiles = includeIgnoredFilesCheckbox.Checked;
+
                     gitExporter.ExportToGit(git);
                 }
 
                 workQueue.Idle += delegate
                 {
-                    logger.Dispose();
-                    logger = Logger.Null;
+                    //logger.Dispose();
+                    //logger = Logger.Null;
                 };
 
                 statusTimer.Enabled = true;
@@ -165,7 +169,7 @@ namespace Hpdi.Vss2Git
                 ShowException(ex);
 
                 CloseLog();
-            }            
+            }
         }
 
         private void cancelButton_Click(object sender, EventArgs e)

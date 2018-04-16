@@ -64,12 +64,17 @@ namespace Hpdi.VssPhysicalLib
             physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            writer.WriteLine("  Item Type: {0} - Name: {1} ({2})",
+        public override void Dump(TextWriter writer, int indent)
+		{
+			string indentStr = DumpGetIndentString(indent);
+
+			writer.Write(indentStr);
+			writer.WriteLine("Item Type: {0} - Name: {1} ({2})",
                 itemType, name.ShortName, physical);
-            writer.WriteLine("  Flags: {0}", flags);
-            writer.WriteLine("  Pinned version: {0}", pinnedVersion);
+			writer.Write(indentStr);
+			writer.WriteLine("Flags: {0}", flags);
+			writer.Write(indentStr);
+			writer.WriteLine("Pinned version: {0}", pinnedVersion);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Hpdi.Vss2Git
     /// Copies the contents of one stream to another.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    class StreamCopier
+    struct StreamCopier
     {
         private const int DEFAULT_BUFFER_SIZE = 4096;
 
@@ -34,14 +34,17 @@ namespace Hpdi.Vss2Git
             set { bufferSize = value; }
         }
 
-        public StreamCopier()
+#if false
+		public StreamCopier()
             : this(DEFAULT_BUFFER_SIZE)
         {
         }
+#endif
 
-        public StreamCopier(int bufferSize)
+		public StreamCopier(int bufferSize)
         {
             this.bufferSize = bufferSize;
+			buffer = null;
         }
 
         public long Copy(Stream inputStream, Stream outputStream)

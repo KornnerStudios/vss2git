@@ -79,7 +79,9 @@ namespace Hpdi.VssPhysicalLib
 
         public VssRecord GetNextRecord(bool skipUnknown)
         {
-            return GetNextRecord<VssRecord>(CreateRecord, skipUnknown);
+			if (reader.Offset == this.Header.EofOffset)
+				return null;
+			return GetNextRecord<VssRecord>(CreateRecord, skipUnknown);
         }
 
         public RevisionRecord GetFirstRevision()
@@ -93,7 +95,9 @@ namespace Hpdi.VssPhysicalLib
 
         public RevisionRecord GetNextRevision(RevisionRecord revision)
         {
-            reader.Offset = revision.Header.Offset + revision.Header.Length + RecordHeader.LENGTH;
+			if (reader.Offset == this.Header.EofOffset)
+				return null;
+			reader.Offset = revision.Header.Offset + revision.Header.Length + RecordHeader.LENGTH;
             return GetNextRecord<RevisionRecord>(CreateRevisionRecord, true);
         }
 
@@ -227,6 +231,15 @@ namespace Hpdi.VssPhysicalLib
                 default:
                     record = new CommonRevisionRecord();
                     break;
+
+				case Action.VssOpcode_ArchivedFile:
+				case Action.VssOpcode_ArchivedVersionFile:
+				case Action.VssOpcode_CheckedInProject:
+				case Action.VssOpcode_PinnedFile:
+				case Action.VssOpcode_RestoredFile:
+				case Action.VssOpcode_RestoredVersionFile:
+				case Action.VssOpcode_UnpinnedFile:
+					goto default;
             }
             return record;
         }

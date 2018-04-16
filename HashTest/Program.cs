@@ -37,6 +37,9 @@ namespace Hpdi.HashTest
 
             var crc32 = new Crc32(Crc32.IEEE, 0xFFFFFFFF, 0xFFFFFFFF);
             Console.WriteLine("CRC-32 = {0:X8}", crc32.Compute(data));
-        }
+
+			var crc32_fast = new Crc32_FAST(Crc32_FAST.IEEE, 0xFFFFFFFF, 0xFFFFFFFF);
+			Console.WriteLine("CRC-32 FAST = {0:X8}", crc32_fast.Compute(data));
+		}
     }
 }

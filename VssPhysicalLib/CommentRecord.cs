@@ -37,9 +37,12 @@ namespace Hpdi.VssPhysicalLib
             comment = reader.ReadString(reader.Remaining);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            writer.WriteLine("  {0}", comment);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			string indentStr = DumpGetIndentString(indent);
+
+			writer.Write(indentStr);
+			writer.WriteLine("{0}", comment);
         }
     }
 }

@@ -89,7 +89,9 @@ namespace Hpdi.Vss2Git.GitActions
 
                 // set file creation and update timestamps
                 File.SetCreationTimeUtc(destPath, createDateTimeUtc);
-                File.SetLastWriteTimeUtc(destPath, revisionDateTimeUtc);
+				// I've had one failure case for SetLastWriteTimeUtc because SetCreationTimeUtc had not yet completed
+				System.Threading.Thread.Sleep(343);
+				File.SetLastWriteTimeUtc(destPath, revisionDateTimeUtc);
             }
             catch (Exception e)
             {
@@ -111,10 +113,13 @@ namespace Hpdi.Vss2Git.GitActions
 
             using (var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                StreamCopier streamCopier = new StreamCopier(256*1024);
+#if false
+				StreamCopier streamCopier = new StreamCopier(256*1024);
 
-                streamCopier.Copy(inputStream, outputStream);
-            }
-        }
+				streamCopier.Copy(inputStream, outputStream);
+#endif
+				inputStream.CopyTo(outputStream);
+			}
+		}
     }
 }

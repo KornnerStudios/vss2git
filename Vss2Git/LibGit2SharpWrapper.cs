@@ -29,8 +29,9 @@ namespace Hpdi.Vss2Git
     class LibGit2SharpWrapper : AbstractGitWrapper
     {
         LibGit2Sharp.Repository repo = null;
+		LibGit2Sharp.StageOptions stageOptions = null;
 
-        public LibGit2SharpWrapper(string repoPath, Logger logger)
+		public LibGit2SharpWrapper(string repoPath, Logger logger)
             : base(repoPath, logger)
         {
         }
@@ -81,7 +82,14 @@ namespace Hpdi.Vss2Git
                 Directory.CreateDirectory(GetRepoPath());
             }
 
-            repo = new LibGit2Sharp.Repository(LibGit2Sharp.Repository.Init(GetRepoPath()));
+			if (base.IncludeIgnoredFiles)
+				stageOptions = new LibGit2Sharp.StageOptions()
+				{
+					IncludeIgnored=true,
+				};
+
+			var repoPath = LibGit2Sharp.Repository.Init(GetRepoPath());
+			repo = new LibGit2Sharp.Repository(repoPath);
         }
 
         public override void Exit()
@@ -109,7 +117,7 @@ namespace Hpdi.Vss2Git
         public override bool Add(string path)
         {
             // Stage the file
-            LibGit2Sharp.Commands.Stage(repo, path);
+            LibGit2Sharp.Commands.Stage(repo, path, stageOptions);
 
             SetNeedsCommit();
 
@@ -124,7 +132,7 @@ namespace Hpdi.Vss2Git
             }
 
             // Stage the files
-            LibGit2Sharp.Commands.Stage(repo, paths);
+            LibGit2Sharp.Commands.Stage(repo, paths, stageOptions);
 
             SetNeedsCommit();
 
@@ -139,7 +147,7 @@ namespace Hpdi.Vss2Git
 
         public override bool AddAll()
         {
-            LibGit2Sharp.Commands.Stage(repo, "*");
+            LibGit2Sharp.Commands.Stage(repo, "*", stageOptions);
 
             SetNeedsCommit();
 
@@ -194,7 +202,12 @@ namespace Hpdi.Vss2Git
                 needsCommit |= true;
             }
 
-            LibGit2Sharp.Commands.Move(repo, sourceFiles, destFiles);
+			if (sourceFiles.Count > 0 && destFiles.Count > 0)
+				LibGit2Sharp.Commands.Move(repo, sourceFiles, destFiles);
+			else if (sourceFiles.Count == 0 && destFiles.Count == 0)
+				MoveEmptyDir(sourcePath, destPath);
+			else
+				throw new InvalidOperationException("MOVEDIRWTF: " + sourceFiles.Count + " " + destFiles.Count);
 
             try
             {
@@ -265,12 +278,14 @@ namespace Hpdi.Vss2Git
             }
 
             var commiter = new LibGit2Sharp.Signature(taggerName, taggerEmail, utcTime);
-            repo.Tags.Add(name, RetrieveHeadCommit(repo), commiter, comment);
+			var commit = RetrieveHeadCommit(repo);
+			repo.Tags.Add(name, commit, commiter, comment);
         }
 
         private static LibGit2Sharp.Commit RetrieveHeadCommit(LibGit2Sharp.IRepository repository)
         {
-            LibGit2Sharp.Commit commit = repository.Head.Tip;
+			var head = repository.Head;
+            LibGit2Sharp.Commit commit = head.Tip;
 
             GitObjectIsNotNull(commit, "HEAD");
 

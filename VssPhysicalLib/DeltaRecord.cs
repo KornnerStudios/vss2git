@@ -36,20 +36,31 @@ namespace Hpdi.VssPhysicalLib
         {
             base.Read(reader, header);
 
-            for (; ; )
+			int dataStartOffset = header.Offset + RecordHeader.LENGTH;
+			int dataEndOffset = dataStartOffset + header.Length;
+			bool encounteredStop = false;
+
+            for (int offset = reader.Offset; offset < dataEndOffset; offset = reader.Offset)
             {
                 DeltaOperation operation = new DeltaOperation();
                 operation.Read(reader);
-                if (operation.Command == DeltaCommand.Stop) break;
+				if (operation.Command == DeltaCommand.Stop)
+				{
+					encounteredStop = true;
+					break;
+				}
                 operations.AddLast(operation);
             }
+
+			if (!encounteredStop)
+				"".ToString();
         }
 
-        public override void Dump(TextWriter writer)
+        public override void Dump(TextWriter writer, int indent)
         {
             foreach (DeltaOperation operation in operations)
             {
-                operation.Dump(writer);
+                operation.Dump(writer, indent);
             }
         }
     }

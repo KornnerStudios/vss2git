@@ -92,11 +92,13 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            for (int i = 0; i < kindCount; ++i)
+        public override void Dump(TextWriter writer, int indent)
+		{
+			string indentStr = DumpGetIndentString(indent);
+			for (int i = 0; i < kindCount; ++i)
             {
-                writer.WriteLine("  {0} name: {1}", kinds[i], names[i]);
+				writer.Write(indentStr);
+				writer.WriteLine("{0} name: {1}", kinds[i], names[i]);
             }
         }
     }

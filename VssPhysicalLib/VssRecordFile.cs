@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -35,7 +37,7 @@ namespace Hpdi.VssPhysicalLib
         public VssRecordFile(string filename, Encoding encoding)
         {
             this.filename = filename;
-            reader = new BufferReader(encoding, ReadFile(filename));
+            reader = new BufferReader(encoding, ReadFile(filename), filename);
         }
 
         public void ReadRecord(VssRecord record)
@@ -50,7 +52,7 @@ namespace Hpdi.VssPhysicalLib
                 // comment records always seem to have a zero CRC
                 if (recordHeader.Signature != CommentRecord.SIGNATURE)
                 {
-                    recordHeader.CheckCrc();
+                    recordHeader.CheckCrc(Filename);
                 }
 
                 recordHeader.CheckSignature(record.Signature);
@@ -83,7 +85,7 @@ namespace Hpdi.VssPhysicalLib
                     // comment records always seem to have a zero CRC
                     if (recordHeader.Signature != CommentRecord.SIGNATURE)
                     {
-                        recordHeader.CheckCrc();
+                        recordHeader.CheckCrc(Filename);
                     }
 
                     if (recordHeader.Signature == record.Signature)
@@ -116,7 +118,7 @@ namespace Hpdi.VssPhysicalLib
             // comment records always seem to have a zero CRC
             if (recordHeader.Signature != CommentRecord.SIGNATURE)
             {
-                recordHeader.CheckCrc();
+                recordHeader.CheckCrc(Filename);
             }
 
             T record = creationCallback(recordHeader, recordReader);
@@ -150,26 +152,135 @@ namespace Hpdi.VssPhysicalLib
             bool skipUnknown)
             where T : VssRecord
         {
+			int startingOffset = reader.Offset;
+			int startingRemaining = reader.Remaining;
+			int iters = 0;
+
             while (reader.Remaining > RecordHeader.LENGTH)
             {
+				int recordOffset = reader.Offset;
                 T record = GetRecord<T>(creationCallback, skipUnknown);
                 if (record != null)
                 {
                     return record;
                 }
+
+				iters++;
             }
             return null;
         }
 
+		public static long FilesPoolMaxSize =
+			//6442450944 // 6GB
+			4294967296 // 4GB
+			;
+		public static int FilesPoolMaxEntries = 128;
+		public static long FilesPoolTotalSize = 0;
+		public static Dictionary<string, byte[]> FilesPool = new Dictionary<string, byte[]>();
+		public static List<string> FilesMostRecentlyAccessed = new List<string>();
+
         private static byte[] ReadFile(string filename)
         {
             byte[] data;
-            using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            {
-                data = new byte[stream.Length];
-                stream.Read(data, 0, data.Length);
-            }
+			if (FilesPool.TryGetValue(filename, out data))
+			{
+				AccessFileInFilesPool(filename);
+			}
+			else
+			{
+				if (FilesMostRecentlyAccessed.Count >= FilesPoolMaxEntries)
+					CleanUpFilesPoolForCount();
+
+				using (var stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+				{
+#if DEBUG
+					if (Debugger.IsAttached)
+						Debug.WriteLine("FilesPoolAdd {0} {1}",
+							stream.Length.ToString("X8"), filename);
+#endif
+
+					long nextFilesPoolTotalSize = FilesPoolTotalSize;
+					nextFilesPoolTotalSize += stream.Length;
+					if (nextFilesPoolTotalSize < 0 || nextFilesPoolTotalSize >= FilesPoolMaxSize)
+						CleanUpFilesPool(stream.Length);
+
+					data = new byte[stream.Length];
+					stream.Read(data, 0, data.Length);
+				}
+
+				FilesPoolTotalSize += data.LongLength;
+				FilesPool.Add(filename, data);
+				FilesMostRecentlyAccessed.Add(filename);
+			}
             return data;
         }
-    }
+
+		private static void AccessFileInFilesPool(string filename)
+		{
+#if DEBUG
+			if (Debugger.IsAttached)
+				Debug.WriteLine("AccessFileInFilesPool({0})", (object)filename);
+#endif
+
+			int index = FilesMostRecentlyAccessed.IndexOf(filename);
+			if (index < 0)
+				throw new System.InvalidOperationException(filename);
+			FilesMostRecentlyAccessed.RemoveAt(index);
+			FilesMostRecentlyAccessed.Add(filename);
+		}
+
+		private static void CleanUpFilesPool(long incomingFileSize)
+		{
+#if DEBUG
+			bool debugLog = Debugger.IsAttached;
+			if (debugLog)
+				Debug.WriteLine("CleanUpFilesPool({0}) on {1}", incomingFileSize.ToString("X8"), FilesMostRecentlyAccessed.Count);
+#endif
+
+			long memoryToReclaimRemaing = incomingFileSize;
+			for (int x = 0; x < FilesMostRecentlyAccessed.Count && memoryToReclaimRemaing > 0; )
+			{
+				string filename = FilesMostRecentlyAccessed[x];
+				byte[] data = FilesPool[filename];
+
+#if DEBUG
+				if (debugLog)
+					Debug.WriteLine("\t{0} {1} {2}",
+						data.LongLength.ToString("X8"), memoryToReclaimRemaing.ToString("X8"), filename);
+#endif
+
+				FilesPoolTotalSize -= data.LongLength;
+				FilesPool.Remove(filename);
+				FilesMostRecentlyAccessed.RemoveAt(x);
+
+				memoryToReclaimRemaing -= data.LongLength;
+			}
+		}
+
+		private static void CleanUpFilesPoolForCount()
+		{
+#if DEBUG
+			bool debugLog = Debugger.IsAttached;
+			if (debugLog)
+				Debug.WriteLine("CleanUpFilesPoolForCount() on {0}", FilesMostRecentlyAccessed.Count);
+#endif
+
+			int fileEntriesToReclaim = 4+System.Math.Max(0, FilesMostRecentlyAccessed.Count-FilesPoolMaxEntries);
+			for (int x = 0; x < FilesMostRecentlyAccessed.Count && fileEntriesToReclaim > 0; fileEntriesToReclaim--)
+			{
+				string filename = FilesMostRecentlyAccessed[x];
+				byte[] data = FilesPool[filename];
+
+#if DEBUG
+				if (debugLog)
+					Debug.WriteLine("\t{0} {1} {2}",
+						data.LongLength.ToString("X8"), fileEntriesToReclaim.ToString(), filename);
+#endif
+
+				FilesPoolTotalSize -= data.LongLength;
+				FilesPool.Remove(filename);
+				FilesMostRecentlyAccessed.RemoveAt(x);
+			}
+		}
+	}
 }

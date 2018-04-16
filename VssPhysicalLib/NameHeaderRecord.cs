@@ -39,9 +39,12 @@ namespace Hpdi.VssPhysicalLib
             // remaining reserved; always 0
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            writer.WriteLine("  EOF offset: {0:X6}", eofOffset);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			string indentStr = DumpGetIndentString(indent);
+
+			writer.Write(indentStr);
+			writer.WriteLine("EOF offset: {0:X6}", eofOffset);
         }
     }
 }

@@ -40,10 +40,14 @@ namespace Hpdi.VssPhysicalLib
             projectFile = reader.ReadString(12);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            writer.WriteLine("  Prev project offset: {0:X6}", prevProjectOffset);
-            writer.WriteLine("  Project file: {0}", projectFile);
-        }
+        public override void Dump(TextWriter writer, int indent)
+		{
+			string indentStr = DumpGetIndentString(indent);
+
+			writer.Write(indentStr);
+			writer.WriteLine("Project file: {0}", projectFile);
+			writer.Write(indentStr);
+			writer.WriteLine("Prev project offset: {0:X6}", prevProjectOffset);
+		}
     }
 }

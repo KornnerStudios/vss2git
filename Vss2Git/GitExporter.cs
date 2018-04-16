@@ -75,6 +75,8 @@ namespace Hpdi.Vss2Git
             set { ignoreErrors = value; }
         }
 
+		public bool IncludeIgnoredFiles { get; set; }
+
         public bool DryRun
         {
             get { return dryRun; }
@@ -197,6 +199,9 @@ namespace Hpdi.Vss2Git
                 tagsUsed.Clear();
                 foreach (var changeset in changesets)
                 {
+					if ((changesetId % 64)==0)
+						logger.Flush();
+
                     var changesetDesc = string.Format(CultureInfo.InvariantCulture,
                         "changeset {0} from {1}", changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime));
 
@@ -881,11 +886,13 @@ namespace Hpdi.Vss2Git
 
             if (null != logicalPath)
             {
-                var path = pathMapper.LogicalPathToString(logicalPath);
+				string path = null;
 
                 if (null != vssProjectInclusionMatcher)
                 {
-                    if (vssProjectInclusionMatcher.Matches(path))
+					path = pathMapper.LogicalPathToString(logicalPath);
+
+					if (vssProjectInclusionMatcher.Matches(path))
                     {
                         if (fileExclusionMatcher == null || !fileExclusionMatcher.Matches(path))
                         {

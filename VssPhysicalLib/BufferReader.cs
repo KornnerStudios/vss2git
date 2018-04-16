@@ -29,18 +29,20 @@ namespace Hpdi.VssPhysicalLib
         private readonly byte[] data;
         private int offset;
         private int limit;
+		public string FileName { get; private set; }
 
-        public BufferReader(Encoding encoding, byte[] data)
-            : this(encoding, data, 0, data.Length)
+        public BufferReader(Encoding encoding, byte[] data, string fileName)
+            : this(encoding, data, 0, data.Length, fileName)
         {
         }
 
-        public BufferReader(Encoding encoding, byte[] data, int offset, int limit)
+        public BufferReader(Encoding encoding, byte[] data, int offset, int limit, string fileName = null)
         {
             this.encoding = encoding;
             this.data = data;
             this.offset = offset;
             this.limit = limit;
+			FileName = fileName;
         }
 
         public int Offset
@@ -64,7 +66,7 @@ namespace Hpdi.VssPhysicalLib
             return sum;
         }
 
-        private static Hash16 crc16 = new XorHash32To16(new Crc32(Crc32.IEEE));
+        private static Hash16 crc16 = new XorHash32To16(new Crc32_FAST(Crc32_FAST.IEEE));
 
         public ushort Crc16()
         {
@@ -150,7 +152,7 @@ namespace Hpdi.VssPhysicalLib
         public BufferReader Extract(int bytes)
         {
             CheckRead(bytes);
-            return new BufferReader(encoding, data, offset, offset += bytes);
+            return new BufferReader(encoding, data, offset, offset += bytes, (FileName??"BufferReader") + "__chunk");
         }
 
         public ArraySegment<byte> GetBytes(int bytes)
@@ -182,8 +184,8 @@ namespace Hpdi.VssPhysicalLib
             if (offset + bytes > limit)
             {
                 throw new EndOfBufferException(string.Format(
-                    "Attempted read of {0} bytes with only {1} bytes remaining in buffer",
-                    bytes, Remaining));
+                    "Attempted read of {0} bytes with only {1} bytes remaining in buffer for {2}",
+                    bytes, Remaining, FileName));
             }
         }
     }

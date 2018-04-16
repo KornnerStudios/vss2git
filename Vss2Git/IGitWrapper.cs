@@ -20,6 +20,8 @@ namespace Hpdi.Vss2Git
 {
     interface IGitWrapper
     {
+		bool IncludeIgnoredFiles { get; set; }
+
         string GetRepoPath();
         bool NeedsCommit();
         void SetNeedsCommit();

@@ -49,14 +49,19 @@ namespace Hpdi.VssPhysicalLib
             subprojects = reader.ReadInt16();
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Parent project: {0}", parentProject);
-            writer.WriteLine("  Parent file: {0}", parentFile);
-            writer.WriteLine("  Total items: {0}", totalItems);
-            writer.WriteLine("  Subprojects: {0}", subprojects);
+			writer.Write(indentStr);
+			writer.WriteLine("Parent project: {0}", parentProject);
+			writer.Write(indentStr);
+			writer.WriteLine("Parent file: {0}", parentFile);
+			writer.Write(indentStr);
+			writer.WriteLine("Total items: {0}", totalItems);
+			writer.Write(indentStr);
+			writer.WriteLine("Subprojects: {0}", subprojects);
         }
     }
 }

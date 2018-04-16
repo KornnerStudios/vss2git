@@ -45,12 +45,19 @@ namespace Hpdi.VssPhysicalLib
         // file actions
         CreateFile = 16,
         EditFile = 17,
-        CreateBranch = 19,
+		VssOpcode_CheckedInProject = 18,
+		CreateBranch = 19,
 
-        // archive actions
-        ArchiveProject = 23,
-        RestoreProject = 25
-    }
+		// archive actions
+		VssOpcode_ArchivedVersionFile = 20,
+		VssOpcode_RestoredVersionFile = 21,
+		VssOpcode_ArchivedFile = 22,
+		ArchiveProject = 23,
+		VssOpcode_RestoredFile = 24,
+		RestoreProject = 25,
+		VssOpcode_PinnedFile = 26,
+		VssOpcode_UnpinnedFile = 27,
+	}
 
     /// <summary>
     /// VSS record representing a project/file revision.
@@ -113,14 +120,21 @@ namespace Hpdi.VssPhysicalLib
             labelCommentLength = reader.ReadInt16();
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            writer.WriteLine("  Prev rev offset: {0:X6}", prevRevOffset);
-            writer.WriteLine("  #{0:D3} {1} by '{2}' at {3}",
+        public override void Dump(TextWriter writer, int indent)
+		{
+			string indentStr = DumpGetIndentString(indent);
+
+			writer.Write(indentStr);
+			writer.WriteLine("Prev rev offset: {0:X6}", prevRevOffset);
+			writer.Write(indentStr);
+			writer.WriteLine("#{0:D3} {1} by '{2}' at {3}",
                 revision, action, user, dateTime);
-            writer.WriteLine("  Label: {0}", label);
-            writer.WriteLine("  Comment: length {0}, offset {1:X6}", commentLength, commentOffset);
-            writer.WriteLine("  Label comment: length {0}, offset {1:X6}", labelCommentLength, labelCommentOffset);
+			writer.Write(indentStr);
+            writer.WriteLine("Label: {0}", label);
+			writer.Write(indentStr);
+			writer.WriteLine("Comment: length {0}, offset {1:X6}", commentLength, commentOffset);
+			writer.Write(indentStr);
+			writer.WriteLine("Label comment: length {0}, offset {1:X6}", labelCommentLength, labelCommentOffset);
         }
     }
 
@@ -140,11 +154,13 @@ namespace Hpdi.VssPhysicalLib
             physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Name: {0} ({1})", name.ShortName, physical);
+			writer.Write(indentStr);
+			writer.WriteLine("Name: {0} ({1})", name.ShortName, physical);
         }
     }
 
@@ -166,11 +182,13 @@ namespace Hpdi.VssPhysicalLib
             physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Name: {0} ({1})", name.ShortName, physical);
+			writer.Write(indentStr);
+			writer.WriteLine("Name: {0} ({1})", name.ShortName, physical);
         }
     }
 
@@ -193,11 +211,13 @@ namespace Hpdi.VssPhysicalLib
             physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Name: {0} -> {1} ({2})",
+			writer.Write(indentStr);
+			writer.WriteLine("Name: {0} -> {1} ({2})",
                 oldName.ShortName, name.ShortName, physical);
         }
     }
@@ -221,12 +241,15 @@ namespace Hpdi.VssPhysicalLib
             physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Project path: {0}", projectPath);
-            writer.WriteLine("  Name: {0} ({1})", name.ShortName, physical);
+			writer.Write(indentStr);
+			writer.WriteLine("Project path: {0}", projectPath);
+			writer.Write(indentStr);
+			writer.WriteLine("Name: {0} ({1})", name.ShortName, physical);
         }
     }
 
@@ -257,19 +280,24 @@ namespace Hpdi.VssPhysicalLib
             physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Project path: {0}", projectPath);
-            writer.WriteLine("  Name: {0} ({1})", name.ShortName, physical);
+			writer.Write(indentStr);
+			writer.WriteLine("Project path: {0}", projectPath);
+			writer.Write(indentStr);
+			writer.WriteLine("Name: {0} ({1})", name.ShortName, physical);
             if (unpinnedRevision == 0)
-            {
-                writer.WriteLine("  Pinned at revision {0}", pinnedRevision);
+			{
+				writer.Write(indentStr);
+				writer.WriteLine("Pinned at revision {0}", pinnedRevision);
             }
             else if (unpinnedRevision > 0)
-            {
-                writer.WriteLine("  Unpinned at revision {0}", unpinnedRevision);
+			{
+				writer.Write(indentStr);
+				writer.WriteLine("Unpinned at revision {0}", unpinnedRevision);
             }
         }
     }
@@ -293,12 +321,15 @@ namespace Hpdi.VssPhysicalLib
             branchFile = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Name: {0} ({1})", name.ShortName, physical);
-            writer.WriteLine("  Branched from file: {0}", branchFile);
+			writer.Write(indentStr);
+			writer.WriteLine("Name: {0} ({1})", name.ShortName, physical);
+			writer.Write(indentStr);
+			writer.WriteLine("Branched from file: {0}", branchFile);
         }
     }
 
@@ -308,6 +339,7 @@ namespace Hpdi.VssPhysicalLib
         string projectPath;
 
         public int PrevDeltaOffset { get { return prevDeltaOffset; } }
+		public int Unknown5C { get; private set; }
         public string ProjectPath { get { return projectPath; } }
 
         public override void Read(BufferReader reader, RecordHeader header)
@@ -315,16 +347,26 @@ namespace Hpdi.VssPhysicalLib
             base.Read(reader, header);
 
             prevDeltaOffset = reader.ReadInt32();
-            reader.Skip(4); // reserved; always 0
+			Unknown5C = reader.ReadInt32();
+			if (Unknown5C != 0)
+				"".ToString();
             projectPath = reader.ReadString(260);
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Prev delta offset: {0:X6}", prevDeltaOffset);
-            writer.WriteLine("  Project path: {0}", projectPath);
+			writer.Write(indentStr);
+			writer.WriteLine("Prev delta offset: {0:X6}", prevDeltaOffset);
+			if (Unknown5C != 0)
+			{
+				writer.Write(indentStr);
+				writer.WriteLine("Unknown delta offset: {0:X8}", Unknown5C);
+			}
+			writer.Write(indentStr);
+			writer.WriteLine("Project path: {0}", projectPath);
         }
     }
 
@@ -349,12 +391,15 @@ namespace Hpdi.VssPhysicalLib
             reader.Skip(4); // ?
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Name: {0} ({1})", name.ShortName, physical);
-            writer.WriteLine("  Archive path: {0}", archivePath);
+			writer.Write(indentStr);
+			writer.WriteLine("Name: {0} ({1})", name.ShortName, physical);
+			writer.Write(indentStr);
+			writer.WriteLine("Archive path: {0}", archivePath);
         }
     }
 }

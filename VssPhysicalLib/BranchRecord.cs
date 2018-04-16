@@ -40,10 +40,14 @@ namespace Hpdi.VssPhysicalLib
             branchFile = reader.ReadString(12);
         }
 
-        public override void Dump(TextWriter writer)
+        public override void Dump(TextWriter writer, int indent)
         {
-            writer.WriteLine("  Prev branch offset: {0:X6}", prevBranchOffset);
-            writer.WriteLine("  Branch file: {0}", branchFile);
+			string indentStr = DumpGetIndentString(indent);
+
+			writer.Write(indentStr);
+			writer.WriteLine("Prev branch offset: {0:X6}", prevBranchOffset);
+			writer.Write(indentStr);
+			writer.WriteLine("Branch file: {0}", branchFile);
         }
     }
 }

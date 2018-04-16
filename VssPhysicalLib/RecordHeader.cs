@@ -25,6 +25,8 @@ namespace Hpdi.VssPhysicalLib
     {
         public const int LENGTH = 8;
 
+		public static bool IgnoreCrcErrors = false;
+
         int offset;
         int length;
         string signature;
@@ -48,15 +50,33 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public void CheckCrc()
+        public void CheckCrc(string fileName = null)
         {
             if (!IsCrcValid)
             {
-                throw new RecordCrcException(this, string.Format(
-                    "CRC error in {0} record: expected={1}, actual={2}",
-                    signature, fileCrc, actualCrc));
+				if (IgnoreCrcErrors)
+				{
+					System.Diagnostics.Debug.WriteLine(
+						"CRC error in {0} record: expected={1}, actual={2} in {3}",
+						signature, fileCrc, actualCrc, fileName);
+					return;
+				}
+
+				throw new RecordCrcException(this, string.Format(
+                    "CRC error in {0} record: expected={1}, actual={2} in {3}",
+                    signature, fileCrc, actualCrc, fileName));
             }
         }
+
+		private void CheckFileLength(BufferReader reader)
+		{
+			if (length > reader.Remaining)
+			{
+				throw new EndOfBufferException(string.Format(
+					"Attempted read of {0} bytes with only {1} bytes remaining in from {2}",
+					length, reader.Remaining, reader.FileName));
+			}
+		}
 
         public void Read(BufferReader reader)
         {
@@ -64,14 +84,31 @@ namespace Hpdi.VssPhysicalLib
             length = reader.ReadInt32();
             signature = reader.ReadSignature(2);
             fileCrc = (ushort)reader.ReadInt16();
-            actualCrc = reader.Crc16(length);
+			CheckFileLength(reader);
+			actualCrc = reader.Crc16(length);
         }
 
-        public void Dump(TextWriter writer)
+        public void Dump(TextWriter writer, int indent)
         {
-            writer.WriteLine(
-                "Signature: {0} - Length: {1} - Offset: {2:X6} - CRC: {3:X4} ({5}: {4:X4})",
-                signature, length, offset, fileCrc, actualCrc, IsCrcValid ? "valid" : "INVALID");
+			if (indent > 0)
+			{
+				for (int x = 0; x < indent; x++)
+					writer.Write('\t');
+			}
+
+            writer.Write(
+                "Signature: {0} - Length: {1} - Offset: {2}",
+                signature,
+				length.ToString("X8"),
+				offset.ToString("X8"));
+			if (!IsCrcValid)
+			{
+				writer.Write(
+					" - INVALID CRC: expected={0} actual={1})",
+					fileCrc.ToString("X4"),
+					actualCrc.ToString("X4"));
+			}
+			writer.WriteLine();
         }
     }
 }

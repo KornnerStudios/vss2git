@@ -91,22 +91,34 @@ namespace Hpdi.VssPhysicalLib
             // remaining appears to be trash
         }
 
-        public override void Dump(TextWriter writer)
-        {
-            base.Dump(writer);
+        public override void Dump(TextWriter writer, int indent)
+		{
+			base.Dump(writer, indent);
+			string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Flags: {0}", flags);
-            writer.WriteLine("  Branched from file: {0}", branchFile);
-            writer.WriteLine("  Branch offset: {0:X6}", branchOffset);
-            writer.WriteLine("  Branch count: {0}", branchCount);
-            writer.WriteLine("  Project offset: {0:X6}", projectOffset);
-            writer.WriteLine("  Project count: {0}", projectCount);
-            writer.WriteLine("  First/last checkout offset: {0:X6}/{1:X6}",
+			writer.Write(indentStr);
+			writer.WriteLine("Flags: {0}", flags);
+			writer.Write(indentStr);
+			writer.WriteLine("Branched from file: {0}", branchFile);
+			writer.Write(indentStr);
+			writer.WriteLine("Branch offset: {0:X6}", branchOffset);
+			writer.Write(indentStr);
+			writer.WriteLine("Branch count: {0}", branchCount);
+			writer.Write(indentStr);
+			writer.WriteLine("Project offset: {0:X6}", projectOffset);
+			writer.Write(indentStr);
+			writer.WriteLine("Project count: {0}", projectCount);
+			writer.Write(indentStr);
+			writer.WriteLine("First/last checkout offset: {0:X6}/{1:X6}",
                 firstCheckoutOffset, lastCheckoutOffset);
-            writer.WriteLine("  Data CRC: {0:X8}", dataCrc);
-            writer.WriteLine("  Last revision time: {0}", lastRevDateTime);
-            writer.WriteLine("  Modification time: {0}", modificationDateTime);
-            writer.WriteLine("  Creation time: {0}", creationDateTime);
+			writer.Write(indentStr);
+			writer.WriteLine("Data CRC: {0:X8}", dataCrc);
+			writer.Write(indentStr);
+			writer.WriteLine("Last revision time: {0}", lastRevDateTime);
+			writer.Write(indentStr);
+			writer.WriteLine("Modification time: {0}", modificationDateTime);
+			writer.Write(indentStr);
+			writer.WriteLine("Creation time: {0}", creationDateTime);
         }
     }
 }
