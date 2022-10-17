@@ -79,6 +79,15 @@ namespace Hpdi.VssPhysicalLib
 
         public VssRecord GetNextRecord(bool skipUnknown)
         {
+            #if false   // #REVIEW: https://github.com/trevorr/vss2git/pull/48#issuecomment-804139011
+                        // "When you change a comment of a checkin, VSS does not change the original comment record, but appends a new comment record to the physical file,
+                        // updating the EOF offset. Therefore the proposed fix let Vss2Git fail to analyse any physical file with a such edited comment, because the iterator
+                        // skips all the records between the one owning the new comment and the corresponding comment record, while building the changeset list."
+            if (reader.Offset == this.Header.EofOffset)
+            {
+                return null;
+            }
+            #endif
             return GetNextRecord<VssRecord>(CreateRecord, skipUnknown);
         }
 
@@ -93,6 +102,15 @@ namespace Hpdi.VssPhysicalLib
 
         public RevisionRecord GetNextRevision(RevisionRecord revision)
         {
+            #if false   // #REVIEW: https://github.com/trevorr/vss2git/pull/48#issuecomment-804139011
+                        // "When you change a comment of a checkin, VSS does not change the original comment record, but appends a new comment record to the physical file,
+                        // updating the EOF offset. Therefore the proposed fix let Vss2Git fail to analyse any physical file with a such edited comment, because the iterator
+                        // skips all the records between the one owning the new comment and the corresponding comment record, while building the changeset list."
+            if (reader.Offset == this.Header.EofOffset)
+            {
+                return null;
+            }
+            #endif
             reader.Offset = revision.Header.Offset + revision.Header.Length + RecordHeader.LENGTH;
             return GetNextRecord<RevisionRecord>(CreateRevisionRecord, true);
         }
@@ -214,6 +232,7 @@ namespace Hpdi.VssPhysicalLib
                     break;
                 case Action.ArchiveProject:
                 case Action.RestoreProject:
+                case Action.RestoreFile:
                     record = new ArchiveRevisionRecord();
                     break;
                 case Action.CreateProject:
