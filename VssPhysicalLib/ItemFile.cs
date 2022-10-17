@@ -246,6 +246,14 @@ namespace Hpdi.VssPhysicalLib
                 default:
                     record = new CommonRevisionRecord();
                     break;
+
+				case Action.CheckInProject:
+				case Action.ArchiveVersionFile:
+				case Action.RestoreVersionFile:
+				case Action.PinFile:
+				case Action.UnpinFile:
+					// Untested actions, from #vssnotes
+					goto default;
             }
             return record;
         }

@@ -45,13 +45,21 @@ namespace Hpdi.VssPhysicalLib
         // file actions
         CreateFile = 16,
         EditFile = 17,
-        CreateBranch = 19,
+		CheckInProject = 18, // Untested, from #vssnotes
+        CreateBranch = 19, // #vssnotes says this is RollBack?
 
-        // archive actions
-        ArchiveProject = 23,
+		ArchiveVersionFile = 20, // Untested, from #vssnotes
+		RestoreVersionFile = 21, // Untested, from #vssnotes
+		ArchiveFile = 22, // Untested, from #vssnotes
+
+		// archive actions
+		ArchiveProject = 23,
         RestoreFile = 24,
-        RestoreProject = 25
-    }
+        RestoreProject = 25,
+
+		PinFile = 26, // Untested, from #vssnotes
+		UnpinFile = 27, // Untested, from #vssnotes
+	}
 
     /// <summary>
     /// VSS record representing a project/file revision.
