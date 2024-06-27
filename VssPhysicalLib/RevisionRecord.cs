@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,21 +45,21 @@ namespace Hpdi.VssPhysicalLib
         // file actions
         CreateFile = 16,
         EditFile = 17,
-		CheckInProject = 18, // Untested, from #vssnotes
+        CheckInProject = 18, // Untested, from #vssnotes
         CreateBranch = 19, // #vssnotes says this is RollBack?
 
-		ArchiveVersionFile = 20, // Untested, from #vssnotes
-		RestoreVersionFile = 21, // Untested, from #vssnotes
-		ArchiveFile = 22, // Untested, from #vssnotes
+        ArchiveVersionFile = 20, // Untested, from #vssnotes
+        RestoreVersionFile = 21, // Untested, from #vssnotes
+        ArchiveFile = 22, // Untested, from #vssnotes
 
-		// archive actions
-		ArchiveProject = 23,
+        // archive actions
+        ArchiveProject = 23,
         RestoreFile = 24,
         RestoreProject = 25,
 
-		PinFile = 26, // Untested, from #vssnotes
-		UnpinFile = 27, // Untested, from #vssnotes
-	}
+        PinFile = 26, // Untested, from #vssnotes
+        UnpinFile = 27, // Untested, from #vssnotes
+    }
 
     /// <summary>
     /// VSS record representing a project/file revision.
