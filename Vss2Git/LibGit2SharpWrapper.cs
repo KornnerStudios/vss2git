@@ -1,13 +1,13 @@
 ﻿/* Copyright 2017, Trapeze Poland sp. z o.o.
- * 
+ *
  * Author: Dariusz Bywalec
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,6 +29,7 @@ namespace Hpdi.Vss2Git
     class LibGit2SharpWrapper : AbstractGitWrapper
     {
         LibGit2Sharp.Repository repo = null;
+        LibGit2Sharp.StageOptions stageOptions = null;
 
         public LibGit2SharpWrapper(string repoPath, Logger logger)
             : base(repoPath, logger)
@@ -81,7 +82,16 @@ namespace Hpdi.Vss2Git
                 Directory.CreateDirectory(GetRepoPath());
             }
 
-            repo = new LibGit2Sharp.Repository(LibGit2Sharp.Repository.Init(GetRepoPath()));
+            if (base.IncludeIgnoredFiles)
+            {
+                stageOptions = new LibGit2Sharp.StageOptions()
+                {
+                    IncludeIgnored = true,
+                };
+            }
+
+            var repoPath = LibGit2Sharp.Repository.Init(GetRepoPath());
+            repo = new LibGit2Sharp.Repository(repoPath);
         }
 
         public override void Exit()
@@ -109,7 +119,7 @@ namespace Hpdi.Vss2Git
         public override bool Add(string path)
         {
             // Stage the file
-            LibGit2Sharp.Commands.Stage(repo, path);
+            LibGit2Sharp.Commands.Stage(repo, path, stageOptions);
 
             SetNeedsCommit();
 
@@ -124,7 +134,7 @@ namespace Hpdi.Vss2Git
             }
 
             // Stage the files
-            LibGit2Sharp.Commands.Stage(repo, paths);
+            LibGit2Sharp.Commands.Stage(repo, paths, stageOptions);
 
             SetNeedsCommit();
 
@@ -139,7 +149,7 @@ namespace Hpdi.Vss2Git
 
         public override bool AddAll()
         {
-            LibGit2Sharp.Commands.Stage(repo, "*");
+            LibGit2Sharp.Commands.Stage(repo, "*", stageOptions);
 
             SetNeedsCommit();
 
@@ -265,12 +275,14 @@ namespace Hpdi.Vss2Git
             }
 
             var commiter = new LibGit2Sharp.Signature(taggerName, taggerEmail, utcTime);
-            repo.Tags.Add(name, RetrieveHeadCommit(repo), commiter, comment);
+            var commit = RetrieveHeadCommit(repo);
+            repo.Tags.Add(name, commit, commiter, comment);
         }
 
         private static LibGit2Sharp.Commit RetrieveHeadCommit(LibGit2Sharp.IRepository repository)
         {
-            LibGit2Sharp.Commit commit = repository.Head.Tip;
+            var head = repository.Head;
+            LibGit2Sharp.Commit commit = head.Tip;
 
             GitObjectIsNotNull(commit, "HEAD");
 
@@ -293,6 +305,6 @@ namespace Hpdi.Vss2Git
 
             throw new LibGit2Sharp.NotFoundException(messageFormat, identifier);
         }
-       
+
     }
 }

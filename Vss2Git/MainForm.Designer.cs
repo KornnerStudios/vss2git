@@ -48,6 +48,7 @@
             changeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             outputGroupBox = new System.Windows.Forms.GroupBox();
+            includeIgnoredFilesCheckbox = new System.Windows.Forms.CheckBox();
             includeVssMetaDataInCommentsCheckBox = new System.Windows.Forms.CheckBox();
             emailDictFileTextBox = new System.Windows.Forms.TextBox();
             emailDictFileLabel = new System.Windows.Forms.Label();
@@ -238,6 +239,7 @@
             // outputGroupBox
             // 
             outputGroupBox.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            outputGroupBox.Controls.Add(includeIgnoredFilesCheckbox);
             outputGroupBox.Controls.Add(includeVssMetaDataInCommentsCheckBox);
             outputGroupBox.Controls.Add(emailDictFileTextBox);
             outputGroupBox.Controls.Add(emailDictFileLabel);
@@ -261,6 +263,17 @@
             outputGroupBox.TabIndex = 1;
             outputGroupBox.TabStop = false;
             outputGroupBox.Text = "Output Settings";
+            // 
+            // includeIgnoredFilesCheckbox
+            // 
+            includeIgnoredFilesCheckbox.AutoSize = true;
+            includeIgnoredFilesCheckbox.Location = new System.Drawing.Point(492, 170);
+            includeIgnoredFilesCheckbox.Name = "includeIgnoredFilesCheckbox";
+            includeIgnoredFilesCheckbox.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            includeIgnoredFilesCheckbox.Size = new System.Drawing.Size(133, 19);
+            includeIgnoredFilesCheckbox.TabIndex = 13;
+            includeIgnoredFilesCheckbox.Text = "Include Ignored files";
+            includeIgnoredFilesCheckbox.UseVisualStyleBackColor = true;
             // 
             // includeVssMetaDataInCommentsCheckBox
             // 
@@ -585,6 +598,7 @@
         private System.Windows.Forms.CheckBox includeVssMetaDataInCommentsCheckBox;
         private System.Windows.Forms.TextBox commentTextBox;
         private System.Windows.Forms.Label commentLabel;
+        private System.Windows.Forms.CheckBox includeIgnoredFilesCheckbox;
     }
 }
 

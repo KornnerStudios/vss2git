@@ -32,17 +32,33 @@ namespace Hpdi.VssPhysicalLib
         public override string Signature { get { return SIGNATURE; } }
         public IEnumerable<DeltaOperation> Operations { get { return operations; } }
 
+        public static bool ReadCheckForMissingStopCommands { get; set; } = false;
         public override void Read(BufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
-            for (; ; )
+            int dataStartOffset = header.Offset + RecordHeader.LENGTH;
+            int dataEndOffset = dataStartOffset + header.Length;
+            bool encounteredStop = false;
+
+            for (int offset = reader.Offset; offset < dataEndOffset; offset = reader.Offset)
             {
                 DeltaOperation operation = new DeltaOperation();
                 operation.Read(reader);
-                if (operation.Command == DeltaCommand.Stop) break;
+                if (operation.Command == DeltaCommand.Stop)
+                {
+                    encounteredStop = true;
+                    break;
+                }
                 operations.AddLast(operation);
             }
+
+#if DEBUG
+            if (ReadCheckForMissingStopCommands && !encounteredStop)
+            {
+                "".ToString(); // place a breakpoint as needed
+            }
+#endif // DEBUG
         }
 
         public override void Dump(TextWriter writer, int indent)

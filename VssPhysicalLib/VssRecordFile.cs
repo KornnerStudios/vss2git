@@ -150,13 +150,20 @@ namespace Hpdi.VssPhysicalLib
             bool skipUnknown)
             where T : VssRecord
         {
+            int startingOffset = reader.Offset;
+            int startingRemaining = reader.Remaining;
+            int iterationCount = 0;
+
             while (reader.Remaining > RecordHeader.LENGTH)
             {
+                int recordOffset = reader.Offset;
                 T record = GetRecord<T>(creationCallback, skipUnknown);
                 if (record != null)
                 {
                     return record;
                 }
+
+                iterationCount++;
             }
             return null;
         }

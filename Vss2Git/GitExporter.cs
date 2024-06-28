@@ -19,7 +19,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
@@ -75,6 +74,9 @@ namespace Hpdi.Vss2Git
             get { return ignoreErrors; }
             set { ignoreErrors = value; }
         }
+
+        public int LoggerAutoFlushOnChangesetInterval { get; set; } = 64;
+        public bool IncludeIgnoredFiles { get; set; }
 
         public bool DryRun
         {
@@ -204,6 +206,11 @@ namespace Hpdi.Vss2Git
                 tagsUsed.Clear();
                 foreach (var changeset in changesets)
                 {
+                    if (LoggerAutoFlushOnChangesetInterval > 0 && (changesetId % LoggerAutoFlushOnChangesetInterval) == 0)
+                    {
+                        logger.Flush();
+                    }
+
                     var changesetDesc = string.Format(CultureInfo.InvariantCulture,
                         "changeset {0} from {1}", changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime));
 

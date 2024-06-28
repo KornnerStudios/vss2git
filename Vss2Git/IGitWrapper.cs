@@ -1,11 +1,11 @@
 ﻿/* Copyright 2012 Remigius stalder, Descom Consulting Ltd.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,8 @@ namespace Hpdi.Vss2Git
 {
     interface IGitWrapper
     {
+        bool IncludeIgnoredFiles { get; set; }
+
         string GetRepoPath();
         bool NeedsCommit();
         void SetNeedsCommit();
@@ -28,7 +30,7 @@ namespace Hpdi.Vss2Git
 
         void Init(bool resetRepo);
         void Exit();
-        
+
         void Configure();
 
         string GetCheckoutBranch();
@@ -37,15 +39,15 @@ namespace Hpdi.Vss2Git
         bool Add(IEnumerable<string> paths);
         bool AddDir(string path);
         bool AddAll();
-        
+
         void RemoveFile(string path);
         void RemoveDir(string path, bool recursive);
         void RemoveEmptyDir(string path);
-        
+
         void MoveFile(string sourcePath, string destPath);
         void MoveDir(string sourcePath, string destPath);
         void MoveEmptyDir(string sourcePath, string destPath);
-        
+
         bool Commit(string authorName, string authorEmail, string comment, DateTime utcTime);
         void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime utcTime);
     }

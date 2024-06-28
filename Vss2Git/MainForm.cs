@@ -48,7 +48,8 @@ namespace Hpdi.Vss2Git
         private void CloseLog()
         {
             if (logger!=null)
-                logger.Dispose();            
+                logger.Dispose();
+            logger = Logger.Null;
         }
 
         private void goButton_Click(object sender, EventArgs e)
@@ -119,6 +120,7 @@ namespace Hpdi.Vss2Git
                 changesetBuilder.AnyCommentThreshold = TimeSpan.FromSeconds((double)anyCommentUpDown.Value);
                 changesetBuilder.SameCommentThreshold = TimeSpan.FromSeconds((double)sameCommentUpDown.Value);
                 changesetBuilder.BuildChangesets();
+                logger.Flush();
 
                 if (!string.IsNullOrEmpty(outDirTextBox.Text))
                 {
@@ -152,13 +154,15 @@ namespace Hpdi.Vss2Git
                         git.CommitEncoding = encoding;
                     }
 
+                    gitExporter.IncludeIgnoredFiles = includeIgnoredFilesCheckbox.Checked;
+
                     gitExporter.ExportToGit(git);
                 }
 
                 workQueue.Idle += delegate
                 {
-                    logger.Dispose();
-                    logger = Logger.Null;
+                    //logger.Dispose();
+                    //logger = Logger.Null;
                 };
 
                 statusTimer.Enabled = true;
@@ -169,7 +173,7 @@ namespace Hpdi.Vss2Git
                 ShowException(ex);
 
                 CloseLog();
-            }            
+            }
         }
 
         private void cancelButton_Click(object sender, EventArgs e)

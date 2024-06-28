@@ -59,6 +59,14 @@ namespace Hpdi.Vss2Git
             }
         }
 
+        public void Flush()
+        {
+            if (baseStream != null)
+            {
+                baseStream.Flush();
+            }
+        }
+
         public void Write(bool value)
         {
             if (baseStream != null)

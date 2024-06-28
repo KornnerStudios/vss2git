@@ -344,13 +344,19 @@ namespace Hpdi.VssPhysicalLib
         public int Unknown5C { get; private set; }
         public string ProjectPath { get { return projectPath; } }
 
+        public static bool ReadCheckForNonZeroUnknown5C { get; set; } = false;
         public override void Read(BufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
             prevDeltaOffset = reader.ReadInt32();
             Unknown5C = reader.ReadInt32();
-            reader.Skip(4); // reserved; always 0
+#if DEBUG
+            if (ReadCheckForNonZeroUnknown5C && Unknown5C != 0)
+            {
+                "".ToString(); // place a breakpoint as needed
+            }
+#endif // DEBUG
             projectPath = reader.ReadString(260);
         }
 
