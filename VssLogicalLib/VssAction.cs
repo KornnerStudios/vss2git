@@ -280,15 +280,29 @@ namespace Hpdi.VssLogicalLib
             get { return originalProject; }
         }
 
-        public VssShareAction(VssItemName name, string originalProject)
+        private readonly bool pinned;
+        public bool Pinned
+        {
+          get { return pinned; }
+        }
+
+        private readonly int revision;
+        public int Revision
+        {
+          get { return revision; }
+        }
+
+        public VssShareAction(VssItemName name, string originalProject, bool pinned, int revision)
             : base(name)
         {
             this.originalProject = originalProject;
+            this.pinned = pinned;
+            this.revision = revision;
         }
 
         public override string ToString()
         {
-            return string.Format("Share {0} from {1}", Name, originalProject);
+          return string.Format("Share {0} from {1}, {2} at revision {3}", Name, originalProject, pinned ? "Pin" : "Unpin", revision);
         }
     }
 
@@ -321,7 +335,7 @@ namespace Hpdi.VssLogicalLib
 
         public override string ToString()
         {
-            return string.Format("{0} {1} at revision {2}", pinned ? "Pin " : "Unpin ", Name, revision);
+            return string.Format("{0} {1} at revision {2}", pinned ? "Pin" : "Unpin", Name, revision);
         }
     }
 

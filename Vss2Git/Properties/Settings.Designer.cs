@@ -82,7 +82,22 @@ namespace Hpdi.Vss2Git.Properties {
                 this["DefaultEmailDomain"] = value;
             }
         }
-        
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string EmailDictionaryFile
+        {
+            get
+            {
+                return ((string)(this["EmailDictionaryFile"]));
+            }
+            set
+            {
+                this["EmailDictionaryFile"] = value;
+            }
+        }
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Vss2Git.log")]
@@ -142,7 +157,37 @@ namespace Hpdi.Vss2Git.Properties {
                 this["ForceAnnotatedTags"] = value;
             }
         }
-        
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Encoding
+        {
+            get
+            {
+                return ((string)(this["Encoding"]));
+            }
+            set
+            {
+                this["Encoding"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool IncludeVssMetaDataInComments
+        {
+            get
+            {
+                return ((bool)(this["IncludeVssMetaDataInComments"]));
+            }
+            set
+            {
+                this["IncludeVssMetaDataInComments"] = value;
+            }
+        }
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]

@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,13 +28,6 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     class RevisionAnalyzer : Worker
     {
-        private string excludeFiles;
-        public string ExcludeFiles
-        {
-            get { return excludeFiles; }
-            set { excludeFiles = value; }
-        }
-
         private readonly VssDatabase database;
         public VssDatabase Database
         {
@@ -60,8 +53,8 @@ namespace Hpdi.Vss2Git
             get { return processedFiles; }
         }
 
-        private readonly HashSet<string> destroyedFiles = new HashSet<string>();
-        public HashSet<string> DestroyedFiles
+        private readonly HashSet<Tuple<string, string>> destroyedFiles = new HashSet<Tuple<string, string>>();
+        public HashSet<Tuple<string,string>> DestroyedFiles
         {
             get { return destroyedFiles; }
         }
@@ -90,9 +83,9 @@ namespace Hpdi.Vss2Git
             this.database = database;
         }
 
-        public bool IsDestroyed(string physicalName)
+        public bool IsDestroyed(string parentPhysicalName, string itemPhysicalName)
         {
-            return destroyedFiles.Contains(physicalName);
+            return destroyedFiles.Contains(new Tuple<string, string>(parentPhysicalName, itemPhysicalName));
         }
 
         public void AddItem(VssProject project)
@@ -108,24 +101,13 @@ namespace Hpdi.Vss2Git
 
             rootProjects.AddLast(project);
 
-            PathMatcher exclusionMatcher = null;
-            if (!string.IsNullOrEmpty(excludeFiles))
-            {
-                var excludeFileArray = excludeFiles.Split(
-                    new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                exclusionMatcher = new PathMatcher(excludeFileArray);
-            }
-
             workQueue.AddLast(delegate(object work)
             {
                 logger.WriteSectionSeparator();
                 LogStatus(work, "Building revision list");
 
                 logger.WriteLine("Root project: {0}", project.Path);
-                logger.WriteLine("Excluded files: {0}", excludeFiles);
 
-                int excludedProjects = 0;
-                int excludedFiles = 0;
                 var stopwatch = Stopwatch.StartNew();
                 VssUtil.RecurseItems(project,
                     delegate(VssProject subproject)
@@ -135,15 +117,7 @@ namespace Hpdi.Vss2Git
                             return RecursionStatus.Abort;
                         }
 
-                        var path = subproject.Path;
-                        if (exclusionMatcher != null && exclusionMatcher.Matches(path))
-                        {
-                            logger.WriteLine("Excluding project {0}", path);
-                            ++excludedProjects;
-                            return RecursionStatus.Skip;
-                        }
-
-                        ProcessItem(subproject, path, exclusionMatcher);
+                        ProcessItem(subproject);
                         ++projectCount;
                         return RecursionStatus.Continue;
                     },
@@ -154,19 +128,11 @@ namespace Hpdi.Vss2Git
                             return RecursionStatus.Abort;
                         }
 
-                        var path = file.GetPath(subproject);
-                        if (exclusionMatcher != null && exclusionMatcher.Matches(path))
-                        {
-                            logger.WriteLine("Excluding file {0}", path);
-                            ++excludedFiles;
-                            return RecursionStatus.Skip;
-                        }
-
                         // only process shared files once (projects are never shared)
                         if (!processedFiles.Contains(file.PhysicalName))
                         {
                             processedFiles.Add(file.PhysicalName);
-                            ProcessItem(file, path, exclusionMatcher);
+                            ProcessItem(file);
                             ++fileCount;
                         }
                         return RecursionStatus.Continue;
@@ -175,13 +141,11 @@ namespace Hpdi.Vss2Git
 
                 logger.WriteSectionSeparator();
                 logger.WriteLine("Analysis complete in {0:HH:mm:ss}", new DateTime(stopwatch.ElapsedTicks));
-                logger.WriteLine("Projects: {0} ({1} excluded)", projectCount, excludedProjects);
-                logger.WriteLine("Files: {0} ({1} excluded)", fileCount, excludedFiles);
                 logger.WriteLine("Revisions: {0}", revisionCount);
             });
         }
 
-        private void ProcessItem(VssItem item, string path, PathMatcher exclusionMatcher)
+        private void ProcessItem(VssItem item)
         {
             try
             {
@@ -191,19 +155,29 @@ namespace Hpdi.Vss2Git
                     var namedAction = vssRevision.Action as VssNamedAction;
                     if (namedAction != null)
                     {
+                        var tuple = new Tuple<string, string>(item.PhysicalName, namedAction.Name.PhysicalName);
+
                         if (actionType == VssActionType.Destroy)
                         {
+                            // https://msdn.microsoft.com/en-us/library/b3d0xbb5(v=vs.80).aspx
+
+                            // This command is available through the Destroy Permanently check box
+                            // available in the Delete dialog box. When you select this check box,
+                            // you remove the selected file or project from the database permanently,
+                            // and destroy any related history. You cannot recover an item that you
+                            // have destroyed. You must have the Destroy project right to use this command.
+
                             // track destroyed files so missing history can be anticipated
                             // (note that Destroy actions on shared files simply delete
                             // that copy, so destroyed files can't be completely ignored)
-                            destroyedFiles.Add(namedAction.Name.PhysicalName);
+                            destroyedFiles.Add(tuple);
                         }
-
-                        var targetPath = path + VssDatabase.ProjectSeparator + namedAction.Name.LogicalName;
-                        if (exclusionMatcher != null && exclusionMatcher.Matches(targetPath))
+                        else if (actionType == VssActionType.Share || actionType == VssActionType.Branch)
                         {
-                            // project action targets an excluded file
-                            continue;
+                            if (destroyedFiles.Contains(tuple))
+                            {
+                                destroyedFiles.Remove(tuple);
+                            }
                         }
                     }
 
@@ -214,7 +188,7 @@ namespace Hpdi.Vss2Git
                     ICollection<Revision> revisionSet;
                     if (!sortedRevisions.TryGetValue(vssRevision.DateTime, out revisionSet))
                     {
-                        revisionSet = new LinkedList<Revision>();
+                        revisionSet = new List<Revision>();
                         sortedRevisions[vssRevision.DateTime] = revisionSet;
                     }
                     revisionSet.Add(revision);
@@ -223,8 +197,7 @@ namespace Hpdi.Vss2Git
             }
             catch (RecordException e)
             {
-                var message = string.Format("Failed to read revisions for {0} ({1}): {2}",
-                    path, item.PhysicalName, ExceptionFormatter.Format(e));
+                var message = string.Format("Failed to read revisions for ({0}): {1}", item.PhysicalName, ExceptionFormatter.Format(e));
                 LogException(e, message);
                 ReportError(message);
             }

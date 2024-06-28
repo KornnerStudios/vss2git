@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,9 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     class Changeset
     {
+        private int id = 0;
+        public int Id { get => id; set => id = value; }
+
         private DateTime dateTime;
         public DateTime DateTime
         {
@@ -39,15 +42,15 @@ namespace Hpdi.Vss2Git
             set { user = value; }
         }
 
-        private string comment;
-        public string Comment
+        private List<string> comment = new List<string>();
+        public List<string> Comment
         {
             get { return comment; }
             set { comment = value; }
         }
 
-        private readonly LinkedList<Revision> revisions = new LinkedList<Revision>();
-        public LinkedList<Revision> Revisions
+        private readonly List<Revision> revisions = new List<Revision>();
+        public List<Revision> Revisions
         {
             get { return revisions; }
         }

@@ -48,6 +48,11 @@
             this.changeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.timeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.outputGroupBox = new System.Windows.Forms.GroupBox();
+            this.includeVssMetaDataInCommentsCheckBox = new System.Windows.Forms.CheckBox();
+            this.emailDictFileTextBox = new System.Windows.Forms.TextBox();
+            this.emailDictFileLabel = new System.Windows.Forms.Label();
+            this.dryRunCheckBox = new System.Windows.Forms.CheckBox();
+            this.ignoreErrorsCheckBox = new System.Windows.Forms.CheckBox();
             this.commentTextBox = new System.Windows.Forms.TextBox();
             this.commentLabel = new System.Windows.Forms.Label();
             this.forceAnnotatedCheckBox = new System.Windows.Forms.CheckBox();
@@ -66,7 +71,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.anyCommentUpDown = new System.Windows.Forms.NumericUpDown();
-            this.ignoreErrorsCheckBox = new System.Windows.Forms.CheckBox();
             this.vssGroupBox.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.outputGroupBox.SuspendLayout();
@@ -231,8 +235,12 @@
             // 
             // outputGroupBox
             // 
-            this.outputGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.outputGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.outputGroupBox.Controls.Add(this.includeVssMetaDataInCommentsCheckBox);
+            this.outputGroupBox.Controls.Add(this.emailDictFileTextBox);
+            this.outputGroupBox.Controls.Add(this.emailDictFileLabel);
+            this.outputGroupBox.Controls.Add(this.dryRunCheckBox);
             this.outputGroupBox.Controls.Add(this.ignoreErrorsCheckBox);
             this.outputGroupBox.Controls.Add(this.commentTextBox);
             this.outputGroupBox.Controls.Add(this.commentLabel);
@@ -250,6 +258,57 @@
             this.outputGroupBox.TabIndex = 1;
             this.outputGroupBox.TabStop = false;
             this.outputGroupBox.Text = "Output Settings";
+            // 
+            // includeVssMetaDataInCommentsCheckBox
+            // 
+            this.includeVssMetaDataInCommentsCheckBox.AutoSize = true;
+            this.includeVssMetaDataInCommentsCheckBox.Location = new System.Drawing.Point(9, 149);
+            this.includeVssMetaDataInCommentsCheckBox.Name = "includeVssMetaDataInCommentsCheckBox";
+            this.includeVssMetaDataInCommentsCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.includeVssMetaDataInCommentsCheckBox.Size = new System.Drawing.Size(197, 17);
+            this.includeVssMetaDataInCommentsCheckBox.TabIndex = 9;
+            this.includeVssMetaDataInCommentsCheckBox.Text = "Include VSS meta data in comments";
+            this.includeVssMetaDataInCommentsCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // emailDictFileTextBox
+            // 
+            this.emailDictFileTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.emailDictFileTextBox.Location = new System.Drawing.Point(81, 71);
+            this.emailDictFileTextBox.Name = "emailDictFileTextBox";
+            this.emailDictFileTextBox.Size = new System.Drawing.Size(473, 20);
+            this.emailDictFileTextBox.TabIndex = 12;
+            // 
+            // emailDictFileLabel
+            // 
+            this.emailDictFileLabel.AutoSize = true;
+            this.emailDictFileLabel.Location = new System.Drawing.Point(6, 74);
+            this.emailDictFileLabel.Name = "emailDictFileLabel";
+            this.emailDictFileLabel.Size = new System.Drawing.Size(71, 13);
+            this.emailDictFileLabel.TabIndex = 11;
+            this.emailDictFileLabel.Text = "Email dict. file";
+            // 
+            // dryRunCheckBox
+            // 
+            this.dryRunCheckBox.AutoSize = true;
+            this.dryRunCheckBox.Location = new System.Drawing.Point(224, 149);
+            this.dryRunCheckBox.Name = "dryRunCheckBox";
+            this.dryRunCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.dryRunCheckBox.Size = new System.Drawing.Size(143, 17);
+            this.dryRunCheckBox.TabIndex = 8;
+            this.dryRunCheckBox.Text = "Dry Run (no Git commits)";
+            this.dryRunCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // ignoreErrorsCheckBox
+            // 
+            this.ignoreErrorsCheckBox.AutoSize = true;
+            this.ignoreErrorsCheckBox.Location = new System.Drawing.Point(422, 126);
+            this.ignoreErrorsCheckBox.Name = "ignoreErrorsCheckBox";
+            this.ignoreErrorsCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.ignoreErrorsCheckBox.Size = new System.Drawing.Size(101, 17);
+            this.ignoreErrorsCheckBox.TabIndex = 8;
+            this.ignoreErrorsCheckBox.Text = "Ignore Git errors";
+            this.ignoreErrorsCheckBox.UseVisualStyleBackColor = true;
             // 
             // commentTextBox
             // 
@@ -433,17 +492,6 @@
             this.anyCommentUpDown.Name = "anyCommentUpDown";
             this.anyCommentUpDown.Size = new System.Drawing.Size(54, 20);
             this.anyCommentUpDown.TabIndex = 1;
-            //
-            // ignoreErrorsCheckBox
-            //
-            this.ignoreErrorsCheckBox.AutoSize = true;
-            this.ignoreErrorsCheckBox.Location = new System.Drawing.Point(422, 97);
-            this.ignoreErrorsCheckBox.Name = "ignoreErrorsCheckBox";
-            this.ignoreErrorsCheckBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.ignoreErrorsCheckBox.Size = new System.Drawing.Size(101, 17);
-            this.ignoreErrorsCheckBox.TabIndex = 8;
-            this.ignoreErrorsCheckBox.Text = "Ignore Git errors";
-            this.ignoreErrorsCheckBox.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -463,8 +511,8 @@
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "VSS2Git";
-            this.Load += new System.EventHandler(this.MainForm_Load);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.vssGroupBox.ResumeLayout(false);
             this.vssGroupBox.PerformLayout();
             this.statusStrip.ResumeLayout(false);
@@ -517,6 +565,10 @@
         private System.Windows.Forms.CheckBox transcodeCheckBox;
         private System.Windows.Forms.CheckBox forceAnnotatedCheckBox;
         private System.Windows.Forms.CheckBox ignoreErrorsCheckBox;
+        private System.Windows.Forms.CheckBox dryRunCheckBox;
+        private System.Windows.Forms.TextBox emailDictFileTextBox;
+        private System.Windows.Forms.Label emailDictFileLabel;
+        private System.Windows.Forms.CheckBox includeVssMetaDataInCommentsCheckBox;
         private System.Windows.Forms.TextBox commentTextBox;
         private System.Windows.Forms.Label commentLabel;
     }

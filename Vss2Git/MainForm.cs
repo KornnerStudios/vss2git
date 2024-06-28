@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
@@ -44,10 +45,26 @@ namespace Hpdi.Vss2Git
             logger = string.IsNullOrEmpty(filename) ? Logger.Null : new Logger(filename);
         }
 
+        private void CloseLog()
+        {
+            if (logger!=null)
+                logger.Dispose();            
+        }
+
         private void goButton_Click(object sender, EventArgs e)
         {
             try
             {
+                AbstractGitWrapper git = new GitExeWrapper(string.Empty, null);
+                while (!git.FindExecutable())
+                {
+                    var button = MessageBox.Show("Git not found in PATH. " +
+                        "If you need to modify your PATH variable, please " +
+                        "restart the program for the changes to take effect.",
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 OpenLog(logTextBox.Text);
 
                 logger.WriteLine("VSS2Git version {0}", Assembly.GetExecutingAssembly().GetName().Version);
@@ -67,12 +84,14 @@ namespace Hpdi.Vss2Git
                     transcodeCheckBox.Checked ? "enabled" : "disabled");
                 logger.WriteLine("Ignore errors: {0}",
                     ignoreErrorsCheckBox.Checked ? "enabled" : "disabled");
+                logger.WriteLine("Dry run: {0}",
+                    dryRunCheckBox.Checked ? "enabled" : "disabled");
 
                 var df = new VssDatabaseFactory(vssDirTextBox.Text);
                 df.Encoding = encoding;
                 var db = df.Open();
 
-                var path = vssProjectTextBox.Text;
+                var path = VssDatabase.RootProjectName;
                 VssItem item;
                 try
                 {
@@ -94,10 +113,6 @@ namespace Hpdi.Vss2Git
                 }
 
                 revisionAnalyzer = new RevisionAnalyzer(workQueue, logger, db);
-                if (!string.IsNullOrEmpty(excludeTextBox.Text))
-                {
-                    revisionAnalyzer.ExcludeFiles = excludeTextBox.Text;
-                }
                 revisionAnalyzer.AddItem(project);
 
                 changesetBuilder = new ChangesetBuilder(workQueue, logger, revisionAnalyzer);
@@ -117,12 +132,27 @@ namespace Hpdi.Vss2Git
                     {
                         gitExporter.DefaultComment = commentTextBox.Text;
                     }
-                    if (!transcodeCheckBox.Checked)
+                    if (!string.IsNullOrEmpty(vssProjectTextBox.Text))
                     {
-                        gitExporter.CommitEncoding = encoding;
+                        gitExporter.VssIncludedProjects = vssProjectTextBox.Text;
+                    }
+                    if (!string.IsNullOrEmpty(excludeTextBox.Text))
+                    {
+                        gitExporter.ExcludeFiles = excludeTextBox.Text;
                     }
                     gitExporter.IgnoreErrors = ignoreErrorsCheckBox.Checked;
-                    gitExporter.ExportToGit(outDirTextBox.Text);
+                    gitExporter.DryRun = dryRunCheckBox.Checked;
+                    gitExporter.UserToEmailDictionaryFile = emailDictFileTextBox.Text;
+                    gitExporter.IncludeVssMetaDataInComments = includeVssMetaDataInCommentsCheckBox.Checked;
+
+                    //git = new GitExeWrapper(outDirTextBox.Text, logger);
+                    git = new LibGit2SharpWrapper(outDirTextBox.Text, logger);
+                    if (!transcodeCheckBox.Checked)
+                    {
+                        git.CommitEncoding = encoding;
+                    }
+
+                    gitExporter.ExportToGit(git);
                 }
 
                 workQueue.Idle += delegate
@@ -136,15 +166,17 @@ namespace Hpdi.Vss2Git
             }
             catch (Exception ex)
             {
-                logger.Dispose();
-                logger = Logger.Null;
                 ShowException(ex);
-            }
+
+                CloseLog();
+            }            
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
             workQueue.Abort();
+
+            this.Close();
         }
 
         private void statusTimer_Tick(object sender, EventArgs e)
@@ -205,8 +237,8 @@ namespace Hpdi.Vss2Git
             var encodings = Encoding.GetEncodings();
             foreach (var encoding in encodings)
             {
+                description = FormatCodePageDescription(encoding);
                 var codePage = encoding.CodePage;
-                description = string.Format("CP{0} - {1}", codePage, encoding.DisplayName);
                 var index = encodingComboBox.Items.Add(description);
                 codePages[index] = encoding;
                 if (codePage == defaultCodePage)
@@ -234,12 +266,18 @@ namespace Hpdi.Vss2Git
             excludeTextBox.Text = settings.VssExcludePaths;
             outDirTextBox.Text = settings.GitDirectory;
             domainTextBox.Text = settings.DefaultEmailDomain;
-            commentTextBox.Text = settings.DefaultComment;
+            emailDictFileTextBox.Text = settings.EmailDictionaryFile;
             logTextBox.Text = settings.LogFile;
             transcodeCheckBox.Checked = settings.TranscodeComments;
             forceAnnotatedCheckBox.Checked = settings.ForceAnnotatedTags;
             anyCommentUpDown.Value = settings.AnyCommentSeconds;
             sameCommentUpDown.Value = settings.SameCommentSeconds;
+            includeVssMetaDataInCommentsCheckBox.Checked = settings.IncludeVssMetaDataInComments;
+
+            if (!String.IsNullOrEmpty(settings.Encoding))
+            {
+                encodingComboBox.SelectedIndex = codePages.FirstOrDefault(x => x.Value.Name == settings.Encoding).Key;
+            }
         }
 
         private void WriteSettings()
@@ -250,12 +288,35 @@ namespace Hpdi.Vss2Git
             settings.VssExcludePaths = excludeTextBox.Text;
             settings.GitDirectory = outDirTextBox.Text;
             settings.DefaultEmailDomain = domainTextBox.Text;
+            settings.EmailDictionaryFile = emailDictFileTextBox.Text;
             settings.LogFile = logTextBox.Text;
             settings.TranscodeComments = transcodeCheckBox.Checked;
             settings.ForceAnnotatedTags = forceAnnotatedCheckBox.Checked;
             settings.AnyCommentSeconds = (int)anyCommentUpDown.Value;
             settings.SameCommentSeconds = (int)sameCommentUpDown.Value;
+            settings.IncludeVssMetaDataInComments = includeVssMetaDataInCommentsCheckBox.Checked;
+
+            string encodingName = "";
+
+            var encodings = Encoding.GetEncodings();
+            foreach (var encoding in encodings)
+            {
+                var description = FormatCodePageDescription(encoding);
+
+                if (encodingComboBox.SelectedItem.ToString() == description)
+                {
+                    encodingName = encoding.Name;
+                    break;
+                }
+            }
+            settings.Encoding = encodingName;
+
             settings.Save();
+        }
+
+        static private string FormatCodePageDescription(EncodingInfo info)
+        {
+            return string.Format("CP{0} - {1}", info.CodePage, info.DisplayName);
         }
     }
 }
