@@ -204,7 +204,18 @@ namespace Hpdi.Vss2Git
                 needsCommit |= true;
             }
 
-            LibGit2Sharp.Commands.Move(repo, sourceFiles, destFiles);
+            if (sourceFiles.Count > 0 && destFiles.Count > 0)
+            {
+                LibGit2Sharp.Commands.Move(repo, sourceFiles, destFiles);
+            }
+            else if (sourceFiles.Count == 0 && destFiles.Count == 0)
+            {
+                MoveEmptyDir(sourcePath, destPath);
+            }
+            else
+            {
+                throw new InvalidOperationException($"MOVEDIRWTF: SrcCount={sourceFiles.Count} DstCount={destFiles.Count}");
+            }
 
             try
             {

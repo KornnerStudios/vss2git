@@ -1,13 +1,13 @@
 ﻿/* Copyright 2017, Trapeze Poland sp. z o.o.
- * 
+ *
  * Author: Dariusz Bywalec
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +29,7 @@ namespace Hpdi.Vss2Git.GitActions
     class Commit : BranchAction
     {
         private const string DefaultComment = "Vss2Git";
-        private readonly char[] charsToTrim = { '$', '/', '\\' };
+        private static readonly char[] charsToTrim = { '$', '/', '\\' };
 
         private readonly Changeset changeset;
         private readonly string authorName;
@@ -66,12 +66,14 @@ namespace Hpdi.Vss2Git.GitActions
 
             if (git.NeedsCommit())
             {
-                logger.WriteLine("Creating commit: {0}", BuildCommitMessage(true));
+                var message = BuildCommitMessage(false);
+
+                logger.WriteLine("Creating commit: {0}", message.FirstOrDefault());
 
                 try
                 {
                     result = git.AddAll() &&
-                             git.Commit(authorName, authorEmail, BuildCommitMessage(false), utcTime);
+                             git.Commit(authorName, authorEmail, String.Join("\n", message), utcTime);
 
                     stat.AddCommit();
                 }
@@ -140,7 +142,7 @@ namespace Hpdi.Vss2Git.GitActions
             }
         }
 
-        private string BuildCommitMessage(bool firstLineOnly)
+        private List<string> BuildCommitMessage(bool firstLineOnly)
         {
             List<string> message = new List<string>();
 
@@ -257,6 +259,7 @@ namespace Hpdi.Vss2Git.GitActions
                 }
             }
 
+#if false // leave the formatting to the caller, e.g. trim to the first message only in the logger
             if (firstLineOnly && 0 < message.Count)
             {
                 return message[0];
@@ -265,6 +268,9 @@ namespace Hpdi.Vss2Git.GitActions
             {
                 return String.Join("\n", message);
             }
+#else
+            return message;
+#endif
         }
     }
 }
