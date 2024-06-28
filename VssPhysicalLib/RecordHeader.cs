@@ -25,6 +25,8 @@ namespace Hpdi.VssPhysicalLib
     {
         public const int LENGTH = 8;
 
+        public static bool IgnoreCrcErrors { get; set; } = false;
+
         int offset;
         int length;
         string signature;
@@ -48,13 +50,31 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public void CheckCrc()
+        public void CheckCrc(string fileName = null)
         {
             if (!IsCrcValid)
             {
+                if (IgnoreCrcErrors)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        "CRC error in {0} record: expected={1}, actual={2} in {3}",
+                        signature, fileCrc, actualCrc, fileName);
+                    return;
+                }
+
                 throw new RecordCrcException(this, string.Format(
-                    "CRC error in {0} record: expected={1}, actual={2}",
-                    signature, fileCrc, actualCrc));
+                    "CRC error in {0} record: expected={1}, actual={2} in {3}",
+                    signature, fileCrc, actualCrc, fileName));
+            }
+        }
+
+        private void CheckFileLength(BufferReader reader)
+        {
+            if (length > reader.Remaining)
+            {
+                throw new EndOfBufferException(string.Format(
+                    "Attempted read of {0} bytes with only {1} bytes remaining in from {2}",
+                    length, reader.Remaining, reader.FileName));
             }
         }
 
@@ -64,6 +84,7 @@ namespace Hpdi.VssPhysicalLib
             length = reader.ReadInt32();
             signature = reader.ReadSignature(2);
             fileCrc = (ushort)reader.ReadInt16();
+            CheckFileLength(reader);
             actualCrc = reader.Crc16(length);
         }
 

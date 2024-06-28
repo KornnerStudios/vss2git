@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ namespace Hpdi.VssPhysicalLib
         public VssRecordFile(string filename, Encoding encoding)
         {
             this.filename = filename;
-            reader = new BufferReader(encoding, ReadFile(filename));
+            reader = new BufferReader(encoding, ReadFile(filename), filename);
         }
 
         public void ReadRecord(VssRecord record)
@@ -50,7 +50,7 @@ namespace Hpdi.VssPhysicalLib
                 // comment records always seem to have a zero CRC
                 if (recordHeader.Signature != CommentRecord.SIGNATURE)
                 {
-                    recordHeader.CheckCrc();
+                    recordHeader.CheckCrc(Filename);
                 }
 
                 recordHeader.CheckSignature(record.Signature);
@@ -83,7 +83,7 @@ namespace Hpdi.VssPhysicalLib
                     // comment records always seem to have a zero CRC
                     if (recordHeader.Signature != CommentRecord.SIGNATURE)
                     {
-                        recordHeader.CheckCrc();
+                        recordHeader.CheckCrc(Filename);
                     }
 
                     if (recordHeader.Signature == record.Signature)
@@ -116,7 +116,7 @@ namespace Hpdi.VssPhysicalLib
             // comment records always seem to have a zero CRC
             if (recordHeader.Signature != CommentRecord.SIGNATURE)
             {
-                recordHeader.CheckCrc();
+                recordHeader.CheckCrc(Filename);
             }
 
             T record = creationCallback(recordHeader, recordReader);
