@@ -28,7 +28,9 @@
     <FileVersion>1.0.1.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VssPhysicalLib\VssPhysicalLib.csproj" />
+    <ProjectReference Include="..\VssPhysicalLib\VssPhysicalLib.csproj">
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
