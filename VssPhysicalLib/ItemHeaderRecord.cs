@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -78,17 +78,26 @@ namespace Hpdi.VssPhysicalLib
             reader.Skip(16); // reserved; always 0
         }
 
-        public override void Dump(TextWriter writer)
+        public override void Dump(TextWriter writer, int indent)
         {
-            writer.WriteLine("  Item Type: {0} - Revisions: {1} - Name: {2}",
+            string indentStr = DumpGetIndentString(indent);
+
+            writer.Write(indentStr);
+            writer.WriteLine("Item Type: {0} - Revisions: {1} - Name: {2}",
                 itemType, revisions, name.ShortName);
-            writer.WriteLine("  Name offset: {0:X6}", name.NameFileOffset);
-            writer.WriteLine("  First revision: #{0:D3}", firstRevision);
-            writer.WriteLine("  Data extension: {0}", dataExt);
-            writer.WriteLine("  First/last rev offset: {0:X6}/{1:X6}",
+            writer.Write(indentStr);
+            writer.WriteLine("Name offset: {0:X6}", name.NameFileOffset);
+            writer.Write(indentStr);
+            writer.WriteLine("First revision: #{0:D3}", firstRevision);
+            writer.Write(indentStr);
+            writer.WriteLine("Data extension: {0}", dataExt);
+            writer.Write(indentStr);
+            writer.WriteLine("First/last rev offset: {0:X6}/{1:X6}",
                 firstRevOffset, lastRevOffset);
-            writer.WriteLine("  EOF offset: {0:X6}", eofOffset);
-            writer.WriteLine("  Rights offset: {0:X8}", rightsOffset);
+            writer.Write(indentStr);
+            writer.WriteLine("EOF offset: {0:X6}", eofOffset);
+            writer.Write(indentStr);
+            writer.WriteLine("Rights offset: {0:X8}", rightsOffset);
         }
     }
 }

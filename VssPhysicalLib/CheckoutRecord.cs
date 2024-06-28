@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -71,19 +71,31 @@ namespace Hpdi.VssPhysicalLib
             checkouts = reader.ReadInt32();
         }
 
-        public override void Dump(TextWriter writer)
+        public override void Dump(TextWriter writer, int indent)
         {
-            writer.WriteLine("  User: {0} @ {1}", user, dateTime);
-            writer.WriteLine("  Working: {0}", workingDir);
-            writer.WriteLine("  Machine: {0}", machine);
-            writer.WriteLine("  Project: {0}", project);
-            writer.WriteLine("  Comment: {0}", comment);
-            writer.WriteLine("  Revision: #{0:D3}", revision);
-            writer.WriteLine("  Flags: {0:X4}{1}", flags,
+            string indentStr = DumpGetIndentString(indent);
+
+            writer.Write(indentStr);
+            writer.WriteLine("User: {0} @ {1}", user, dateTime);
+            writer.Write(indentStr);
+            writer.WriteLine("Working: {0}", workingDir);
+            writer.Write(indentStr);
+            writer.WriteLine("Machine: {0}", machine);
+            writer.Write(indentStr);
+            writer.WriteLine("Project: {0}", project);
+            writer.Write(indentStr);
+            writer.WriteLine("Comment: {0}", comment);
+            writer.Write(indentStr);
+            writer.WriteLine("Revision: #{0:D3}", revision);
+            writer.Write(indentStr);
+            writer.WriteLine("Flags: {0:X4}{1}", flags,
                 exclusive ? " (exclusive)" : "");
-            writer.WriteLine("  Prev checkout offset: {0:X6}", prevCheckoutOffset);
-            writer.WriteLine("  This checkout offset: {0:X6}", thisCheckoutOffset);
-            writer.WriteLine("  Checkouts: {0}", checkouts);
+            writer.Write(indentStr);
+            writer.WriteLine("Prev checkout offset: {0:X6}", prevCheckoutOffset);
+            writer.Write(indentStr);
+            writer.WriteLine("This checkout offset: {0:X6}", thisCheckoutOffset);
+            writer.Write(indentStr);
+            writer.WriteLine("Checkouts: {0}", checkouts);
         }
     }
 }

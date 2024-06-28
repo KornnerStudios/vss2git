@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,14 +49,19 @@ namespace Hpdi.VssPhysicalLib
             subprojects = reader.ReadInt16();
         }
 
-        public override void Dump(TextWriter writer)
+        public override void Dump(TextWriter writer, int indent)
         {
-            base.Dump(writer);
+            base.Dump(writer, indent);
+            string indentStr = DumpGetIndentString(indent);
 
-            writer.WriteLine("  Parent project: {0}", parentProject);
-            writer.WriteLine("  Parent file: {0}", parentFile);
-            writer.WriteLine("  Total items: {0}", totalItems);
-            writer.WriteLine("  Subprojects: {0}", subprojects);
+            writer.Write(indentStr);
+            writer.WriteLine("Parent project: {0}", parentProject);
+            writer.Write(indentStr);
+            writer.WriteLine("Parent file: {0}", parentFile);
+            writer.Write(indentStr);
+            writer.WriteLine("Total items: {0}", totalItems);
+            writer.Write(indentStr);
+            writer.WriteLine("Subprojects: {0}", subprojects);
         }
     }
 }

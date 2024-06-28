@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -173,16 +173,18 @@ namespace Hpdi.VssDump
 
         private static void DumpLogFile(string filename)
         {
+            const int kDumpIndent = 0;
+
             try
             {
                 var itemFile = new ItemFile(filename, Encoding.Default);
-                itemFile.Header.Header.Dump(Console.Out);
-                itemFile.Header.Dump(Console.Out);
+                itemFile.Header.Header.Dump(Console.Out, kDumpIndent);
+                itemFile.Header.Dump(Console.Out, kDumpIndent);
                 var record = itemFile.GetNextRecord(true);
                 while (record != null)
                 {
-                    record.Header.Dump(Console.Out);
-                    record.Dump(Console.Out);
+                    record.Header.Dump(Console.Out, kDumpIndent + 1);
+                    record.Dump(Console.Out, kDumpIndent + 2);
                     var revision = record as RevisionRecord;
                     if (revision != null)
                     {
@@ -206,16 +208,18 @@ namespace Hpdi.VssDump
 
         private static void DumpNameFile(string filename)
         {
+            const int kDumpIndent = 0;
+
             try
             {
                 var nameFile = new NameFile(filename, Encoding.Default);
-                nameFile.Header.Header.Dump(Console.Out);
-                nameFile.Header.Dump(Console.Out);
+                nameFile.Header.Header.Dump(Console.Out, kDumpIndent);
+                nameFile.Header.Dump(Console.Out, kDumpIndent);
                 var name = nameFile.GetNextName();
                 while (name != null)
                 {
-                    name.Header.Dump(Console.Out);
-                    name.Dump(Console.Out);
+                    name.Header.Dump(Console.Out, kDumpIndent + 1);
+                    name.Dump(Console.Out, kDumpIndent + 2);
                     name = nameFile.GetNextName();
                 }
             }

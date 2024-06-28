@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -76,12 +76,17 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public void Dump(TextWriter writer)
+        public static bool IncludeDataBytesInDump { get; set; } = false;
+        public void Dump(TextWriter writer, int indent)
         {
             const int MAX_DATA_DUMP = 40;
-            writer.Write("  {0}: Offset={1}, Length={2}",
+
+            string indentStr = VssRecord.DumpGetIndentString(indent);
+
+            writer.Write(indentStr);
+            writer.Write("{0}: Offset={1}, Length={2}",
                 command, offset, length);
-            if (data.Array != null)
+            if (IncludeDataBytesInDump && data.Array != null)
             {
                 var dumpLength = data.Count;
                 var truncated = false;
