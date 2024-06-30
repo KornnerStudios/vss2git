@@ -29,8 +29,8 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     public partial class MainForm : Form
     {
-        private readonly Dictionary<int, EncodingInfo> codePages = new Dictionary<int, EncodingInfo>();
-        private readonly WorkQueue workQueue = new WorkQueue(1);
+        private readonly Dictionary<int, EncodingInfo> codePages = [];
+        private readonly WorkQueue workQueue = new(1);
         private Logger logger = Logger.Null;
         private RevisionAnalyzer revisionAnalyzer;
         private ChangesetBuilder changesetBuilder;
@@ -47,12 +47,11 @@ namespace Hpdi.Vss2Git
 
         private void CloseLog()
         {
-            if (logger!=null)
-                logger.Dispose();
+            logger?.Dispose();
             logger = Logger.Null;
         }
 
-        private void goButton_Click(object sender, EventArgs e)
+        private void GoButton_Click(object sender, EventArgs e)
         {
             try
             {
@@ -73,8 +72,7 @@ namespace Hpdi.Vss2Git
                 WriteSettings();
 
                 Encoding encoding = Encoding.Default;
-                EncodingInfo encodingInfo;
-                if (codePages.TryGetValue(encodingComboBox.SelectedIndex, out encodingInfo))
+                if (codePages.TryGetValue(encodingComboBox.SelectedIndex, out EncodingInfo encodingInfo))
                 {
                     encoding = encodingInfo.GetEncoding();
                 }
@@ -88,8 +86,10 @@ namespace Hpdi.Vss2Git
                 logger.WriteLine("Dry run: {0}",
                     dryRunCheckBox.Checked ? "enabled" : "disabled");
 
-                var df = new VssDatabaseFactory(vssDirTextBox.Text);
-                df.Encoding = encoding;
+                var df = new VssDatabaseFactory(vssDirTextBox.Text)
+                {
+                    Encoding = encoding,
+                };
                 VssDatabase db = df.Open();
 
                 string path = VssDatabase.RootProjectName;
@@ -105,8 +105,7 @@ namespace Hpdi.Vss2Git
                     return;
                 }
 
-                var project = item as VssProject;
-                if (project == null)
+                if (item is not VssProject project)
                 {
                     MessageBox.Show(path + " is not a project", "Invalid project path",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -116,9 +115,11 @@ namespace Hpdi.Vss2Git
                 revisionAnalyzer = new RevisionAnalyzer(workQueue, logger, db);
                 revisionAnalyzer.AddItem(project);
 
-                changesetBuilder = new ChangesetBuilder(workQueue, logger, revisionAnalyzer);
-                changesetBuilder.AnyCommentThreshold = TimeSpan.FromSeconds((double)anyCommentUpDown.Value);
-                changesetBuilder.SameCommentThreshold = TimeSpan.FromSeconds((double)sameCommentUpDown.Value);
+                changesetBuilder = new ChangesetBuilder(workQueue, logger, revisionAnalyzer)
+                {
+                    AnyCommentThreshold = TimeSpan.FromSeconds((double)anyCommentUpDown.Value),
+                    SameCommentThreshold = TimeSpan.FromSeconds((double)sameCommentUpDown.Value),
+                };
                 changesetBuilder.BuildChangesets();
                 logger.Flush();
 
@@ -176,14 +177,14 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        private void cancelButton_Click(object sender, EventArgs e)
+        private void CancelButton_Click(object sender, EventArgs e)
         {
             workQueue.Abort();
 
             this.Close();
         }
 
-        private void statusTimer_Tick(object sender, EventArgs e)
+        private void StatusTimer_Tick(object sender, EventArgs e)
         {
             statusLabel.Text = workQueue.LastStatus ?? "Idle";
             timeLabel.Text = string.Format("Elapsed: {0:HH:mm:ss}",
@@ -320,7 +321,7 @@ namespace Hpdi.Vss2Git
 
         static private string FormatCodePageDescription(EncodingInfo info)
         {
-            return string.Format("CP{0} - {1}", info.CodePage, info.DisplayName);
+            return $"CP{info.CodePage} - {info.DisplayName}";
         }
     }
 }

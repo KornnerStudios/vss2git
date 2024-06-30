@@ -96,7 +96,7 @@ namespace Hpdi.VssLogicalLib
             if (isProject)
             {
                 string parentFile = ((ProjectHeaderRecord)itemFile.Header).ParentFile;
-                VssProject parent = (VssProject)GetItemPhysical(parentFile);
+                var parent = (VssProject)GetItemPhysical(parentFile);
                 string logicalPath = BuildPath(parent, logicalName);
                 item = new VssProject(this, itemName, physicalPath, logicalPath);
             }

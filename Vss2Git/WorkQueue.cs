@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,17 +26,13 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     public class WorkQueue : SimpleWorkQueue
     {
-        private readonly ManualResetEvent idleEvent = new ManualResetEvent(true);
-        private readonly Stopwatch stopwatch = new Stopwatch();
-        private readonly LinkedList<Exception> workExceptions = new LinkedList<Exception>();
-        private readonly Dictionary<object, string> workStatuses = new Dictionary<object, string>();
+        private readonly ManualResetEvent idleEvent = new(true);
+        private readonly Stopwatch stopwatch = new();
+        private readonly LinkedList<Exception> workExceptions = [];
+        private readonly Dictionary<object, string> workStatuses = [];
         private object lastStatusWork;
-        private string lastStatus;
 
-        public string LastStatus
-        {
-            get { return lastStatus; }
-        }
+        public string LastStatus { get; private set; }
 
         public WorkQueue()
         {
@@ -47,15 +43,9 @@ namespace Hpdi.Vss2Git
         {
         }
 
-        public TimeSpan ActiveTime
-        {
-            get { return stopwatch.Elapsed; }
-        }
+        public TimeSpan ActiveTime => stopwatch.Elapsed;
 
-        public WaitHandle IdleEvent
-        {
-            get { return idleEvent; }
-        }
+        public WaitHandle IdleEvent => idleEvent;
 
         public event EventHandler Idle;
 
@@ -104,7 +94,7 @@ namespace Hpdi.Vss2Git
                     else
                     {
                         lastStatusWork = work;
-                        lastStatus = status;
+                        LastStatus = status;
                     }
                 }
             }
@@ -169,14 +159,14 @@ namespace Hpdi.Vss2Git
             if (work == lastStatusWork)
             {
                 lastStatusWork = null;
-                lastStatus = null;
+                LastStatus = null;
 
                 foreach (KeyValuePair<object, string> entry in workStatuses)
                 {
                     if (!string.IsNullOrEmpty(entry.Value))
                     {
                         lastStatusWork = entry.Key;
-                        lastStatus = entry.Value;
+                        LastStatus = entry.Value;
                         break;
                     }
                 }

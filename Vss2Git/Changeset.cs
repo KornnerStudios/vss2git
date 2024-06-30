@@ -15,7 +15,6 @@
 
 using System;
 using System.Collections.Generic;
-using Hpdi.VssLogicalLib;
 
 namespace Hpdi.Vss2Git
 {
@@ -23,42 +22,13 @@ namespace Hpdi.Vss2Git
     /// Represents a set of revisions made by a particular person at a particular time.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    class Changeset
+    sealed class Changeset
     {
-        private int id = 0;
-        public int Id { get => id; set => id = value; }
-
-        private DateTime dateTime;
-        public DateTime DateTime
-        {
-            get { return dateTime; }
-            set { dateTime = value; }
-        }
-
-        private string user;
-        public string User
-        {
-            get { return user; }
-            set { user = value; }
-        }
-
-        private List<string> comment = new List<string>();
-        public List<string> Comment
-        {
-            get { return comment; }
-            set { comment = value; }
-        }
-
-        private readonly List<Revision> revisions = new List<Revision>();
-        public List<Revision> Revisions
-        {
-            get { return revisions; }
-        }
-
-        private readonly HashSet<string> targetFiles = new HashSet<string>();
-        public HashSet<string> TargetFiles
-        {
-            get { return targetFiles; }
-        }
+        public int Id { get; set; } = 0;
+        public DateTime DateTime { get; set; }
+        public string User { get; set; }
+        public List<string> Comment { get; set; } = new List<string>();
+        public List<Revision> Revisions { get; } = new List<Revision>();
+        public HashSet<string> TargetFiles { get; } = new HashSet<string>();
     }
 }

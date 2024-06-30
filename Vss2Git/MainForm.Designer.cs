@@ -188,11 +188,11 @@
             goButton.TabIndex = 3;
             goButton.Text = "Go!";
             goButton.UseVisualStyleBackColor = true;
-            goButton.Click += goButton_Click;
+            goButton.Click += GoButton_Click;
             // 
             // statusTimer
             // 
-            statusTimer.Tick += statusTimer_Tick;
+            statusTimer.Tick += StatusTimer_Tick;
             // 
             // statusStrip
             // 
@@ -443,7 +443,7 @@
             cancelButton.TabIndex = 4;
             cancelButton.Text = "Cancel";
             cancelButton.UseVisualStyleBackColor = true;
-            cancelButton.Click += cancelButton_Click;
+            cancelButton.Click += CancelButton_Click;
             // 
             // changesetGroupBox
             // 

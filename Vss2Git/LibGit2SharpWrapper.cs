@@ -26,7 +26,7 @@ namespace Hpdi.Vss2Git
     /// Wraps execution of LibGit2Sharp and implements the common LibGit2Sharp commands.
     /// </summary>
     /// <author>Dariusz Bywalec</author>
-    class LibGit2SharpWrapper : AbstractGitWrapper
+    sealed class LibGit2SharpWrapper : AbstractGitWrapper
     {
         LibGit2Sharp.Repository repo = null;
         LibGit2Sharp.StageOptions stageOptions = null;
@@ -36,7 +36,7 @@ namespace Hpdi.Vss2Git
         {
         }
 
-        protected static void DeleteDirectory(string path)
+        /*protected*/ static void DeleteDirectory(string path)
         {
             // this method should be used with caution - therefore it is protected
             if (!Directory.Exists(path))
@@ -188,8 +188,8 @@ namespace Hpdi.Vss2Git
         {
             bool needsCommit = false;
 
-            List<string> sourceFiles = new List<string>();
-            List<string> destFiles = new List<string>();
+            List<string> sourceFiles = [];
+            List<string> destFiles = [];
 
             foreach (string file in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories))
             {
@@ -246,7 +246,7 @@ namespace Hpdi.Vss2Git
             }
             catch (IOException e)
             {
-                this.Logger.WriteLine("Deleting of empty directories failed: {0}", e.Message);
+                this.Logger.WriteLine($"Deleting of empty directories failed: {e.Message}");
             }
 
             if (needsCommit)
@@ -265,7 +265,7 @@ namespace Hpdi.Vss2Git
         {
             if (utcTime.Kind != DateTimeKind.Utc)
             {
-                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+                throw new ArgumentException($"Specified time {utcTime} is not Utc", nameof(utcTime));
             }
 
             // Create the committer's signature and commit
@@ -273,7 +273,7 @@ namespace Hpdi.Vss2Git
             LibGit2Sharp.Signature committer = author;
 
             // Commit to the repository
-            repo.Commit(comment, author, committer, default(LibGit2Sharp.CommitOptions));
+            repo.Commit(comment, author, committer, default);
 
             return true;
         }
@@ -282,7 +282,7 @@ namespace Hpdi.Vss2Git
         {
             if (utcTime.Kind != DateTimeKind.Utc)
             {
-                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+                throw new ArgumentException($"Specified time {utcTime} is not Utc", nameof(utcTime));
             }
 
             var commiter = new LibGit2Sharp.Signature(taggerName, taggerEmail, utcTime);
@@ -307,7 +307,7 @@ namespace Hpdi.Vss2Git
                 return;
             }
 
-            string messageFormat = "No valid git object identified by '{0}' exists in the repository.";
+            const string messageFormat = "No valid git object identified by '{0}' exists in the repository.";
 
             if (string.Equals("HEAD", identifier, StringComparison.Ordinal))
             {

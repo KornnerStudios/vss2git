@@ -24,9 +24,9 @@ namespace Hpdi.Vss2Git
     /// Writes log messages to an optional stream.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class Logger : IDisposable
+    public sealed class Logger : IDisposable
     {
-        public static readonly Logger Null = new Logger((Stream)null);
+        public static readonly Logger Null = new((Stream)null);
 
         private const string sectionSeparator = "------------------------------------------------------------";
 
@@ -53,18 +53,12 @@ namespace Hpdi.Vss2Git
 
         public void Dispose()
         {
-            if (baseStream != null)
-            {
-                baseStream.Dispose();
-            }
+            baseStream?.Dispose();
         }
 
         public void Flush()
         {
-            if (baseStream != null)
-            {
-                baseStream.Flush();
-            }
+            baseStream?.Flush();
         }
 
         public void Write(bool value)

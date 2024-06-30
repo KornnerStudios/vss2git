@@ -28,75 +28,44 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     class RevisionAnalyzer : Worker
     {
-        private readonly VssDatabase database;
-        public VssDatabase Database
-        {
-            get { return database; }
-        }
+        public VssDatabase Database { get; }
 
-        private readonly LinkedList<VssProject> rootProjects = new LinkedList<VssProject>();
-        public IEnumerable<VssProject> RootProjects
-        {
-            get { return rootProjects; }
-        }
+        private readonly LinkedList<VssProject> rootProjects = [];
+        public IEnumerable<VssProject> RootProjects => rootProjects;
 
-        private readonly SortedDictionary<DateTime, ICollection<Revision>> sortedRevisions =
-            new SortedDictionary<DateTime, ICollection<Revision>>();
-        public SortedDictionary<DateTime, ICollection<Revision>> SortedRevisions
-        {
-            get { return sortedRevisions; }
-        }
-
-        private readonly HashSet<string> processedFiles = new HashSet<string>();
-        public HashSet<string> ProcessedFiles
-        {
-            get { return processedFiles; }
-        }
-
-        private readonly HashSet<Tuple<string, string>> destroyedFiles = new HashSet<Tuple<string, string>>();
-        public HashSet<Tuple<string,string>> DestroyedFiles
-        {
-            get { return destroyedFiles; }
-        }
+        public SortedDictionary<DateTime, ICollection<Revision>> SortedRevisions { get; } = [];
+        public HashSet<string> ProcessedFiles { get; } = [];
+        public HashSet<Tuple<string, string>> DestroyedFiles { get; } = [];
 
         private int projectCount;
-        public int ProjectCount
-        {
-            get { return Thread.VolatileRead(ref projectCount); }
-        }
+        public int ProjectCount => Thread.VolatileRead(ref projectCount);
 
         private int fileCount;
-        public int FileCount
-        {
-            get { return Thread.VolatileRead(ref fileCount); }
-        }
+        public int FileCount => Thread.VolatileRead(ref fileCount);
 
         private int revisionCount;
-        public int RevisionCount
-        {
-            get { return Thread.VolatileRead(ref revisionCount); }
-        }
+        public int RevisionCount => Thread.VolatileRead(ref revisionCount);
 
         public RevisionAnalyzer(WorkQueue workQueue, Logger logger, VssDatabase database)
             : base(workQueue, logger)
         {
-            this.database = database;
+            Database = database;
         }
 
         public bool IsDestroyed(string parentPhysicalName, string itemPhysicalName)
         {
-            return destroyedFiles.Contains(new Tuple<string, string>(parentPhysicalName, itemPhysicalName));
+            return DestroyedFiles.Contains(new Tuple<string, string>(parentPhysicalName, itemPhysicalName));
         }
 
         public void AddItem(VssProject project)
         {
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
-            else if (project.Database != database)
+            else if (project.Database != Database)
             {
-                throw new ArgumentException("Project database mismatch", "project");
+                throw new ArgumentException("Project database mismatch", nameof(project));
             }
 
             rootProjects.AddLast(project);
@@ -106,7 +75,7 @@ namespace Hpdi.Vss2Git
                 logger.WriteSectionSeparator();
                 LogStatus(work, "Building revision list");
 
-                logger.WriteLine("Root project: {0}", project.LogicalPath);
+                logger.WriteLine($"Root project: {project.LogicalPath}");
 
                 var stopwatch = Stopwatch.StartNew();
                 VssUtil.RecurseItems(project,
@@ -129,9 +98,9 @@ namespace Hpdi.Vss2Git
                         }
 
                         // only process shared files once (projects are never shared)
-                        if (!processedFiles.Contains(file.PhysicalName))
+                        if (!ProcessedFiles.Contains(file.PhysicalName))
                         {
-                            processedFiles.Add(file.PhysicalName);
+                            ProcessedFiles.Add(file.PhysicalName);
                             ProcessItem(file);
                             ++fileCount;
                         }
@@ -141,7 +110,7 @@ namespace Hpdi.Vss2Git
 
                 logger.WriteSectionSeparator();
                 logger.WriteLine("Analysis complete in {0:HH:mm:ss}", new DateTime(stopwatch.ElapsedTicks));
-                logger.WriteLine("Revisions: {0}", revisionCount);
+                logger.WriteLine($"Revisions: {revisionCount}");
             });
         }
 
@@ -152,8 +121,7 @@ namespace Hpdi.Vss2Git
                 foreach (VssRevision vssRevision in item.Revisions)
                 {
                     VssActionType actionType = vssRevision.Action.Type;
-                    var namedAction = vssRevision.Action as VssNamedAction;
-                    if (namedAction != null)
+                    if (vssRevision.Action is VssNamedAction namedAction)
                     {
                         var tuple = new Tuple<string, string>(item.PhysicalName, namedAction.Name.PhysicalName);
 
@@ -170,26 +138,23 @@ namespace Hpdi.Vss2Git
                             // track destroyed files so missing history can be anticipated
                             // (note that Destroy actions on shared files simply delete
                             // that copy, so destroyed files can't be completely ignored)
-                            destroyedFiles.Add(tuple);
+                            DestroyedFiles.Add(tuple);
                         }
                         else if (actionType == VssActionType.Share || actionType == VssActionType.Branch)
                         {
-                            if (destroyedFiles.Contains(tuple))
-                            {
-                                destroyedFiles.Remove(tuple);
-                            }
+                            bool wasRemoved = DestroyedFiles.Remove(tuple);
+                            VssUtil.MarkUnusedVariable(ref wasRemoved);
                         }
                     }
 
-                    Revision revision = new Revision(vssRevision.DateTime,
+                    var revision = new Revision(vssRevision.DateTime,
                         vssRevision.User, item.ItemName, vssRevision.Version,
                         vssRevision.Comment, vssRevision.Action);
 
-                    ICollection<Revision> revisionSet;
-                    if (!sortedRevisions.TryGetValue(vssRevision.DateTime, out revisionSet))
+                    if (!SortedRevisions.TryGetValue(vssRevision.DateTime, out ICollection<Revision> revisionSet))
                     {
                         revisionSet = new List<Revision>();
-                        sortedRevisions[vssRevision.DateTime] = revisionSet;
+                        SortedRevisions[vssRevision.DateTime] = revisionSet;
                     }
                     revisionSet.Add(revision);
                     ++revisionCount;
@@ -197,7 +162,7 @@ namespace Hpdi.Vss2Git
             }
             catch (RecordException e)
             {
-                string message = string.Format("Failed to read revisions for ({0}): {1}", item.PhysicalName, ExceptionFormatter.Format(e));
+                string message = $"Failed to read revisions for ({item.PhysicalName}): {ExceptionFormatter.Format(e)}";
                 LogException(e, message);
                 ReportError(message);
             }

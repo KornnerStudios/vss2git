@@ -29,48 +29,29 @@ namespace Hpdi.Vss2Git
     abstract class AbstractGitWrapper : IGitWrapper
     {
         private readonly string repoPath = "";
-        private readonly Logger logger = null;
-        private readonly Stopwatch stopwatch = new Stopwatch();
         private bool needsCommit = false;
-        protected const string checkoutBranch = "master"; // default Git repo branch
+        public const string DefaultCheckoutBranch = "main"; // default Git repo branch
 
         public bool IncludeIgnoredFiles { get; set; }
 
-        public Logger Logger
-        {
-            get { return logger; }
-        }
+        public Logger Logger { get; } = null;
 
-        public Stopwatch Stopwatch
-        {
-            get { return stopwatch; }
-        }
+        public Stopwatch Stopwatch { get; } = new Stopwatch();
+        public bool ShellQuoting { get; set; } = false;
 
-        private bool shellQuoting = false;
-        public bool ShellQuoting
-        {
-            get { return shellQuoting; }
-            set { shellQuoting = value; }
-        }
-
-        private Encoding commitEncoding = Encoding.UTF8;
-        public Encoding CommitEncoding
-        {
-            get { return commitEncoding; }
-            set { commitEncoding = value; }
-        }
+        public Encoding CommitEncoding { get; set; } = Encoding.UTF8;
 
         public AbstractGitWrapper(string repoPath, Logger logger)
         {
             this.repoPath = repoPath;
-            this.logger = logger;
+            Logger = logger;
         }
 
         protected static string GetUtcTimeString(DateTime utcTime)
         {
             if (utcTime.Kind != DateTimeKind.Utc)
             {
-                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+                throw new ArgumentException($"Specified time {utcTime} is not Utc", nameof(utcTime));
             }
 
             // format time according to ISO 8601 (avoiding locale-dependent month/day names)
@@ -85,7 +66,7 @@ namespace Hpdi.Vss2Git
             if (path.StartsWith(repoPath))
             {
                 path = path.Substring(repoPath.Length);
-                if (path.StartsWith("\\") || path.StartsWith("/"))
+                if (path.StartsWith('\\') || path.StartsWith('/'))
                 {
                     path = path.Substring(1);
                 }
@@ -147,7 +128,7 @@ namespace Hpdi.Vss2Git
         private bool NeedsQuoting(char c)
         {
             return char.IsWhiteSpace(c) || c == QuoteChar ||
-                (shellQuoting && (c == '&' || c == '|' || c == '<' || c == '>' || c == '^' || c == '%'));
+                (ShellQuoting && (c == '&' || c == '|' || c == '<' || c == '>' || c == '^' || c == '%'));
         }
 
         public abstract bool DoCommit(string authorName, string authorEmail, string comment, DateTime utcTime);
@@ -167,7 +148,7 @@ namespace Hpdi.Vss2Git
 
         TimeSpan IGitWrapper.ElapsedTime()
         {
-            return stopwatch.Elapsed;
+            return Stopwatch.Elapsed;
         }
 
         public abstract bool FindExecutable();
@@ -177,7 +158,7 @@ namespace Hpdi.Vss2Git
 
         public string GetCheckoutBranch()
         {
-            return checkoutBranch;
+            return DefaultCheckoutBranch;
         }
 
         public abstract bool Add(string path);
@@ -194,7 +175,7 @@ namespace Hpdi.Vss2Git
         {
             if (utcTime.Kind != DateTimeKind.Utc)
             {
-                throw new ArgumentException(String.Format("Specified time {0} is not Utc", utcTime), "utcTime");
+                throw new ArgumentException($"Specified time {utcTime} is not Utc", nameof(utcTime));
             }
 
             if (!needsCommit)

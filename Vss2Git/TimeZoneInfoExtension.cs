@@ -37,11 +37,11 @@ namespace Hpdi.Vss2Git
                 }
             }
 
-            DateTime ambiguousTimeUtc = DateTime.SpecifyKind(ambiguousTime - tzi.BaseUtcOffset, DateTimeKind.Utc);
+            var ambiguousTimeUtc = DateTime.SpecifyKind(ambiguousTime - tzi.BaseUtcOffset, DateTimeKind.Utc);
 
             if (null != logger)
             {
-                logger.WriteLine("WARNING: Ambiguous time '{0}', falling back to '{1}'", ambiguousTime, ambiguousTimeUtc);
+                logger.WriteLine($"WARNING: Ambiguous time '{ambiguousTime}', falling back to '{ambiguousTimeUtc}'");
             }
 
             return ambiguousTimeUtc;

@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,10 +25,9 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     public class SimpleWorkQueue
     {
-        private readonly LinkedList<WaitCallback> workQueue = new LinkedList<WaitCallback>();
+        private readonly LinkedList<WaitCallback> workQueue = [];
         private readonly int maxThreads;
         private int activeThreads = 0;
-        private bool suspended = false;
         private volatile bool aborting = false;
 
         public SimpleWorkQueue()
@@ -41,25 +40,13 @@ namespace Hpdi.Vss2Git
             this.maxThreads = maxThreads;
         }
 
-        public bool IsIdle
-        {
-            get { return activeThreads == 0; }
-        }
+        public bool IsIdle => activeThreads == 0;
 
-        public bool IsFullyActive
-        {
-            get { return activeThreads == maxThreads; }
-        }
+        public bool IsFullyActive => activeThreads == maxThreads;
 
-        public bool IsSuspended
-        {
-            get { return suspended; }
-        }
+        public bool IsSuspended { get; private set; } = false;
 
-        public bool IsAborting
-        {
-            get { return aborting; }
-        }
+        public bool IsAborting => aborting;
 
         // Adds work to the head of the work queue. Useful for workers that
         // want to reschedule themselves on suspend.
@@ -96,7 +83,7 @@ namespace Hpdi.Vss2Git
         {
             lock (workQueue)
             {
-                suspended = true;
+                IsSuspended = true;
             }
         }
 
@@ -105,7 +92,7 @@ namespace Hpdi.Vss2Git
         {
             lock (workQueue)
             {
-                suspended = false;
+                IsSuspended = false;
                 while (activeThreads < workQueue.Count)
                 {
                     StartWorker();
@@ -154,7 +141,7 @@ namespace Hpdi.Vss2Git
         // Assumes work queue lock is held.
         private void StartWorker()
         {
-            if (activeThreads < maxThreads && !suspended)
+            if (activeThreads < maxThreads && !IsSuspended)
             {
                 if (++activeThreads == 1)
                 {
@@ -173,7 +160,7 @@ namespace Hpdi.Vss2Git
                 lock (workQueue)
                 {
                     LinkedListNode<WaitCallback> head = workQueue.First;
-                    if (head == null || suspended)
+                    if (head == null || IsSuspended)
                     {
                         if (--activeThreads == 0)
                         {

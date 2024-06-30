@@ -29,26 +29,9 @@ namespace Hpdi.Vss2Git
     {
         private readonly RevisionAnalyzer revisionAnalyzer;
 
-        private readonly LinkedList<Changeset> changesets = new LinkedList<Changeset>();
-        public LinkedList<Changeset> Changesets
-        {
-            get { return changesets; }
-        }
-
-        private TimeSpan anyCommentThreshold = TimeSpan.FromSeconds(30);
-        public TimeSpan AnyCommentThreshold
-        {
-            get { return anyCommentThreshold; }
-            set { anyCommentThreshold = value; }
-        }
-
-
-        private TimeSpan sameCommentThreshold = TimeSpan.FromMinutes(10);
-        public TimeSpan SameCommentThreshold
-        {
-            get { return sameCommentThreshold; }
-            set { sameCommentThreshold = value; }
-        }
+        public LinkedList<Changeset> Changesets { get; } = new LinkedList<Changeset>();
+        public TimeSpan AnyCommentThreshold { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan SameCommentThreshold { get; set; } = TimeSpan.FromMinutes(10);
 
         public ChangesetBuilder(WorkQueue workQueue, Logger logger, RevisionAnalyzer revisionAnalyzer)
             : base(workQueue, logger)
@@ -108,12 +91,12 @@ namespace Hpdi.Vss2Git
                             // flush change if file conflict or past time threshold
                             bool flush = false;
                             TimeSpan timeDiff = revision.DateTime - change.DateTime;
-                            if (timeDiff > anyCommentThreshold)
+                            if (timeDiff > AnyCommentThreshold)
                             {
                                 if (HasSameComment(revision, change.Revisions.Last()))
                                 {
                                     string message;
-                                    if (timeDiff < sameCommentThreshold)
+                                    if (timeDiff < SameCommentThreshold)
                                     {
                                         message = "Using same-comment threshold";
                                     }
@@ -132,22 +115,21 @@ namespace Hpdi.Vss2Git
 
                                 if (flush)
                                 {
-                                    changesetReason = String.Format("Time difference {0} - {1} ({2} sec)", revision.DateTime, change.DateTime, timeDiff);
+                                    changesetReason = $"Time difference {revision.DateTime} - {change.DateTime} ({timeDiff} sec)";
                                 }
                             }
                             else if (!nonconflicting && change.TargetFiles.Contains(targetFile))
                             {
-                                changesetReason = String.Format("File conflict on ({0})", targetFile);
+                                changesetReason = $"File conflict on ({targetFile})";
                                 flush = true;
                             }
                             else if (hasDelete && actionType == VssActionType.Rename)
                             {
-                                var renameAction = revision.Action as VssRenameAction;
-                                if (renameAction != null && (renameAction.Name.IsProject || ForceFlushRenameAfterDeleteForFiles))
+                                if (revision.Action is VssRenameAction renameAction && (renameAction.Name.IsProject || ForceFlushRenameAfterDeleteForFiles))
                                 {
                                     // split the change set if a rename of a directory follows a delete
                                     // otherwise a git error occurs
-                                    changesetReason = String.Format("Splitting changeset due to rename after delete in ({0})", targetFile);
+                                    changesetReason = $"Splitting changeset due to rename after delete in ({targetFile})";
                                     flush = true;
                                 }
                             }
@@ -157,7 +139,7 @@ namespace Hpdi.Vss2Git
                                 {
                                     // split the change set if a rename of a directory follows a delete
                                     // otherwise a git error occurs
-                                    changesetReason = String.Format("Splitting changeset due to delete after rename in ({0})", targetFile);
+                                    changesetReason = $"Splitting changeset due to delete after rename in ({targetFile})";
                                     flush = true;
                                 }
                             }
@@ -189,8 +171,10 @@ namespace Hpdi.Vss2Git
                         // if no pending change for user, create a new one
                         if (pendingChange == null)
                         {
-                            pendingChange = new Changeset();
-                            pendingChange.User = pendingUser;
+                            pendingChange = new Changeset
+                            {
+                                User = pendingUser,
+                            };
                             pendingChangesByUser[pendingUser] = pendingChange;
                         }
 
@@ -231,19 +215,19 @@ namespace Hpdi.Vss2Git
 
                 logger.WriteSectionSeparator();
                 logger.WriteLine("Found {0} changesets in {1:HH:mm:ss}",
-                    changesets.Count, new DateTime(stopwatch.ElapsedTicks));
+                    Changesets.Count, new DateTime(stopwatch.ElapsedTicks));
             });
         }
 
-        private bool HasSameComment(Revision rev1, Revision rev2)
+        private static bool HasSameComment(Revision rev1, Revision rev2)
         {
             return (!string.IsNullOrEmpty(rev1.Comment) && !string.IsNullOrEmpty(rev1.Comment) && rev1.Comment == rev2.Comment);
         }
 
         private void AddChangeset(Changeset change, string reason)
         {
-            change.Id = changesets.Count + 1;
-            changesets.AddLast(change);
+            change.Id = Changesets.Count + 1;
+            Changesets.AddLast(change);
             DumpChangeset(change, change.Id, 0, reason);
         }
 
