@@ -145,7 +145,7 @@ namespace Hpdi.Vss2Git
         {
             get
             {
-                var project = this;
+                VssProjectInfo project = this;
                 while (project.parentInfo != null)
                 {
                     project = project.parentInfo;
@@ -216,7 +216,7 @@ namespace Hpdi.Vss2Git
 
         public bool IsSameOrSubproject(VssProjectInfo parentInfo)
         {
-            var project = this;
+            VssProjectInfo project = this;
             while (project != null)
             {
                 if (project == parentInfo)
@@ -240,7 +240,7 @@ namespace Hpdi.Vss2Git
 
         public bool ContainsLogicalName(string logicalName)
         {
-            foreach (var item in items)
+            foreach (VssItemInfo item in items)
             {
                 if (item.LogicalName.Equals(logicalName))
                 {
@@ -253,10 +253,10 @@ namespace Hpdi.Vss2Git
         public bool ContainsFiles()
         {
             var subprojects = new LinkedList<VssProjectInfo>();
-            var project = this;
+            VssProjectInfo project = this;
             while (project != null)
             {
-                foreach (var item in project.items)
+                foreach (VssItemInfo item in project.items)
                 {
                     var subproject = item as VssProjectInfo;
                     if (subproject != null)
@@ -284,10 +284,10 @@ namespace Hpdi.Vss2Git
         public IEnumerable<VssFileInfo> GetAllFiles()
         {
             var subprojects = new LinkedList<VssProjectInfo>();
-            var project = this;
+            VssProjectInfo project = this;
             while (project != null)
             {
-                foreach (var item in project.items)
+                foreach (VssItemInfo item in project.items)
                 {
                     var subproject = item as VssProjectInfo;
                     if (subproject != null)
@@ -314,10 +314,10 @@ namespace Hpdi.Vss2Git
         public IEnumerable<VssProjectInfo> GetAllProjects()
         {
             var subprojects = new LinkedList<VssProjectInfo>();
-            var project = this;
+            VssProjectInfo project = this;
             while (project != null)
             {
-                foreach (var item in project.items)
+                foreach (VssItemInfo item in project.items)
                 {
                     var subproject = item as VssProjectInfo;
                     if (subproject != null)
@@ -487,13 +487,13 @@ namespace Hpdi.Vss2Git
                         return result;
                     }
                 }
-                foreach (var project in fileInfo.Projects)
+                foreach (KeyValuePair<VssProjectInfo, VssPin> project in fileInfo.Projects)
                 {
                     if (underProjectInfo == null || project.Key.IsSameOrSubproject(underProjectInfo))
                     {
                         // ignore projects that are not rooted
-                        var projectLogicalPath = project.Key.GetLogicalPath();
-                        var projectWorkDirPath = project.Key.GetWorkDirPath();
+                        List<string> projectLogicalPath = project.Key.GetLogicalPath();
+                        List<string> projectWorkDirPath = project.Key.GetWorkDirPath();
                         if (projectLogicalPath != null && projectWorkDirPath != null)
                         {
                             var logicalPath = new List<string>(projectLogicalPath);
@@ -529,7 +529,7 @@ namespace Hpdi.Vss2Git
             {
                 version = fileInfo.Version;
 
-                var projectInfo = GetOrCreateProject(project);
+                VssProjectInfo projectInfo = GetOrCreateProject(project);
 
                 if ( null != projectInfo )
                 {
@@ -553,7 +553,7 @@ namespace Hpdi.Vss2Git
             VssFileInfo fileInfo;
             if (fileInfos.TryGetValue(file, out fileInfo))
             {
-                var projectInfo = GetOrCreateProject(project);
+                VssProjectInfo projectInfo = GetOrCreateProject(project);
 
                 if (null != projectInfo)
                 {
@@ -583,18 +583,18 @@ namespace Hpdi.Vss2Git
 
         public VssItemInfo AddItem(VssItemName project, VssItemName name, bool destroyed)
         {
-            var parentInfo = GetOrCreateProject(project);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
-                var projectInfo = GetOrCreateProject(name);
+                VssProjectInfo projectInfo = GetOrCreateProject(name);
                 projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = parentInfo;
                 itemInfo = projectInfo;
             }
             else
             {
-                var fileInfo = GetOrCreateFile(name);
+                VssFileInfo fileInfo = GetOrCreateFile(name);
                 fileInfo.AddProject(parentInfo, destroyed);
                 parentInfo.AddItem(fileInfo);
                 itemInfo = fileInfo;
@@ -609,18 +609,18 @@ namespace Hpdi.Vss2Git
 
         public VssItemInfo AddItem(VssItemName project, VssItemName name, bool destroyed, int pinnedRevision)
         {
-            var parentInfo = GetOrCreateProject(project);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
-                var projectInfo = GetOrCreateProject(name);
+                VssProjectInfo projectInfo = GetOrCreateProject(name);
                 projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = parentInfo;
                 itemInfo = projectInfo;
             }
             else
             {
-                var fileInfo = GetOrCreateFile(name);
+                VssFileInfo fileInfo = GetOrCreateFile(name);
                 fileInfo.AddProject(parentInfo, pinnedRevision, destroyed);
                 parentInfo.AddItem(fileInfo);
                 itemInfo = fileInfo;
@@ -650,18 +650,18 @@ namespace Hpdi.Vss2Git
 
         public VssItemInfo DeleteItem(VssItemName project, VssItemName name, bool destroyed)
         {
-            var parentInfo = GetOrCreateProject(project);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
-                var projectInfo = GetOrCreateProject(name);
+                VssProjectInfo projectInfo = GetOrCreateProject(name);
                 projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = null;
                 itemInfo = projectInfo;
             }
             else
             {
-                var fileInfo = GetOrCreateFile(name);
+                VssFileInfo fileInfo = GetOrCreateFile(name);
                 fileInfo.RemoveProject(parentInfo);
                 if (destroyed)
                 {
@@ -675,18 +675,18 @@ namespace Hpdi.Vss2Git
 
         public VssItemInfo RecoverItem(VssItemName project, VssItemName name, bool destroyed)
         {
-            var parentInfo = GetOrCreateProject(project);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
-                var projectInfo = GetOrCreateProject(name);
+                VssProjectInfo projectInfo = GetOrCreateProject(name);
                 projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = parentInfo;
                 itemInfo = projectInfo;
             }
             else
             {
-                var fileInfo = GetOrCreateFile(name);
+                VssFileInfo fileInfo = GetOrCreateFile(name);
                 fileInfo.AddProject(parentInfo, destroyed);
                 parentInfo.AddItem(fileInfo);
                 itemInfo = fileInfo;
@@ -700,18 +700,18 @@ namespace Hpdi.Vss2Git
             // sharing projects, so it no longer receives edits
             //return DeleteItem(project, name);
 
-            var parentInfo = GetOrCreateProject(project);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
-                var projectInfo = GetOrCreateProject(name);
+                VssProjectInfo projectInfo = GetOrCreateProject(name);
                 projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = null;
                 itemInfo = projectInfo;
             }
             else
             {
-                var fileInfo = GetOrCreateFile(name);
+                VssFileInfo fileInfo = GetOrCreateFile(name);
 
                 fileInfo.RemoveProject(parentInfo);
                 parentInfo.RemoveItem(fileInfo);
@@ -727,18 +727,18 @@ namespace Hpdi.Vss2Git
         {
             // unpinning restores the project to the list of
             // sharing projects, so it receives edits
-            var parentInfo = GetOrCreateProject(project);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
             VssItemInfo itemInfo;
             if (name.IsProject)
             {
-                var projectInfo = GetOrCreateProject(name);
+                VssProjectInfo projectInfo = GetOrCreateProject(name);
                 projectInfo.Destroyed = destroyed;
                 projectInfo.Parent = parentInfo;
                 itemInfo = projectInfo;
             }
             else
             {
-                var fileInfo = GetOrCreateFile(name);
+                VssFileInfo fileInfo = GetOrCreateFile(name);
                 fileInfo.RemoveProject(parentInfo);
                 parentInfo.RemoveItem(fileInfo);
 
@@ -757,18 +757,18 @@ namespace Hpdi.Vss2Git
 
             // "branching a file" (in VSS parlance) essentially moves it from
             // one project to another (and could potentially change its name)
-            var parentInfo = GetOrCreateProject(project);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
 
             // remove filename from old project
-            var oldFile = GetOrCreateFile(oldName);
+            VssFileInfo oldFile = GetOrCreateFile(oldName);
             // retain version number from old file
-            var oldPin = oldFile.GetProjectPin(parentInfo);
+            VssPin oldPin = oldFile.GetProjectPin(parentInfo);
 
             oldFile.RemoveProject(parentInfo);
             parentInfo.RemoveItem(oldFile);
 
             // add filename to new project
-            var newFile = GetOrCreateFile(newName);
+            VssFileInfo newFile = GetOrCreateFile(newName);
             newFile.AddProject(parentInfo, newDestroyed);
 
             if (null != oldPin && oldPin.Pinned)
@@ -789,20 +789,20 @@ namespace Hpdi.Vss2Git
         {
             Debug.Assert(subproject.IsProject);
 
-            var parentInfo = GetOrCreateProject(project);
-            var subprojectInfo = GetOrCreateProject(subproject);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
+            VssProjectInfo subprojectInfo = GetOrCreateProject(subproject);
             subprojectInfo.Parent = parentInfo;
             return subprojectInfo;
         }
 
         public VssProjectInfo MoveProjectTo(VssItemName project, VssItemName subproject, string newProjectSpec)
         {
-            var subprojectInfo = GetOrCreateProject(subproject);
-            var lastSlash = newProjectSpec.LastIndexOf('/');
+            VssProjectInfo subprojectInfo = GetOrCreateProject(subproject);
+            int lastSlash = newProjectSpec.LastIndexOf('/');
             if (lastSlash > 0)
             {
-                var newParentSpec = newProjectSpec.Substring(0, lastSlash);
-                var parentInfo = ResolveProjectSpec(newParentSpec);
+                string newParentSpec = newProjectSpec.Substring(0, lastSlash);
+                VssProjectInfo parentInfo = ResolveProjectSpec(newParentSpec);
                 if (parentInfo != null)
                 {
                     // propagate the destroyed flag from the new parent
@@ -821,7 +821,7 @@ namespace Hpdi.Vss2Git
 
         public bool ProjectContainsLogicalName(VssItemName project, VssItemName name)
         {
-            var parentInfo = GetOrCreateProject(project);
+            VssProjectInfo parentInfo = GetOrCreateProject(project);
             return parentInfo.ContainsLogicalName(name.LogicalName);
         }
 
@@ -854,11 +854,11 @@ namespace Hpdi.Vss2Git
                 throw new ArgumentException("Project spec must start with $/", "projectSpec");
             }
 
-            foreach (var rootInfo in rootInfos.Values)
+            foreach (VssProjectInfo rootInfo in rootInfos.Values)
             {
                 if (projectSpec.StartsWith(rootInfo.OriginalVssPath))
                 {
-                    var rootLength = rootInfo.OriginalVssPath.Length;
+                    int rootLength = rootInfo.OriginalVssPath.Length;
                     if (!rootInfo.OriginalVssPath.EndsWith("/"))
                     {
                         ++rootLength;
@@ -871,13 +871,13 @@ namespace Hpdi.Vss2Git
                         goto NotFound;
                     }
 
-                    var subpath = projectSpec.Substring(rootLength);
-                    var subprojectNames = subpath.Split('/');
-                    var projectInfo = rootInfo;
-                    foreach (var subprojectName in subprojectNames)
+                    string subpath = projectSpec.Substring(rootLength);
+                    string[] subprojectNames = subpath.Split('/');
+                    VssProjectInfo projectInfo = rootInfo;
+                    foreach (string subprojectName in subprojectNames)
                     {
-                        var found = false;
-                        foreach (var item in projectInfo.Items)
+                        bool found = false;
+                        foreach (VssItemInfo item in projectInfo.Items)
                         {
                             var subprojectInfo = item as VssProjectInfo;
                             if (subprojectInfo != null && subprojectInfo.LogicalName == subprojectName)
@@ -912,7 +912,7 @@ namespace Hpdi.Vss2Git
                 vssPath = vssPath.Substring(2);
             }
 
-            var relPath = vssPath.Replace(VssDatabase.ProjectSeparatorChar, Path.DirectorySeparatorChar);
+            string relPath = vssPath.Replace(VssDatabase.ProjectSeparatorChar, Path.DirectorySeparatorChar);
             return Path.Combine(workingRoot, relPath);
         }
 
@@ -923,9 +923,9 @@ namespace Hpdi.Vss2Git
 
         public string WorkDirPathToString(IEnumerable<string> path)
         {
-            var result = "";
+            string result = "";
 
-            foreach (var p in path)
+            foreach (string p in path)
             {
                 result = Path.Combine(result, p);
             }

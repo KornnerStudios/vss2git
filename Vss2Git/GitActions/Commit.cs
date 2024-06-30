@@ -59,14 +59,14 @@ namespace Hpdi.Vss2Git.GitActions
         {
             bool result = false;
 
-            foreach (var a in actions)
+            foreach (IGitAction a in actions)
             {
                 a.Run(logger, git, stat);
             }
 
             if (git.NeedsCommit())
             {
-                var message = BuildCommitMessage(false);
+                List<string> message = BuildCommitMessage(false);
 
                 logger.WriteLine("Creating commit: {0}", message.FirstOrDefault());
 
@@ -84,7 +84,7 @@ namespace Hpdi.Vss2Git.GitActions
                 }
             }
 
-            foreach (var t in tags)
+            foreach (IGitAction t in tags)
             {
                 t.Run(logger, git, stat);
             }
@@ -243,16 +243,16 @@ namespace Hpdi.Vss2Git.GitActions
             {
                 message.Add("");
 
-                var indentStr = "";
+                string indentStr = "";
 
-                var firstRevTime = revisions.First().DateTime;
-                var changeDuration = changeset.DateTime - firstRevTime;
+                DateTime firstRevTime = revisions.First().DateTime;
+                TimeSpan changeDuration = changeset.DateTime - firstRevTime;
 
                 message.Add(String.Format("{0}Changeset {1} - {2} ({3} secs){4} {5} {6} file(s)",
                     indentStr, changeset.Id, VssDatabase.FormatISOTimestamp(changeset.DateTime), changeDuration.TotalSeconds,
                     "", changeset.User, changeset.Revisions.Count));
 
-                foreach (var revision in revisions)
+                foreach (Revision revision in revisions)
                 {
                     message.Add(String.Format("{0}  {1} {2}@{3} {4}", indentStr, VssDatabase.FormatISOTimestamp(revision.DateTime),
                                                                       revision.Item, revision.Version, revision.Action));

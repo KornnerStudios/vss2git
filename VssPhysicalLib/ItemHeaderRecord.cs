@@ -31,50 +31,39 @@ namespace Hpdi.VssPhysicalLib
     /// Base class for item VSS header records.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class ItemHeaderRecord : VssRecord
+    public abstract class ItemHeaderRecord : VssRecord
     {
         public const string SIGNATURE = "DH";
 
-        protected ItemType itemType;
-        protected int revisions;
-        protected VssName name;
-        protected int firstRevision;
-        protected string dataExt;
-        protected int firstRevOffset;
-        protected int lastRevOffset;
-        protected int eofOffset;
-        protected int rightsOffset;
+        public override string Signature => SIGNATURE;
+        public ItemType ItemType { get; private set; }
+        public int Revisions { get; private set; }
+        public VssName Name { get; private set; }
+        public int FirstRevision { get; private set; }
+        public string DataExt { get; private set; }
+        public int FirstRevOffset { get; private set; }
+        public int LastRevOffset { get; private set; }
+        public int EofOffset { get; private set; }
+        public int RightsOffset { get; private set; }
 
-
-        public override string Signature { get { return SIGNATURE; } }
-        public ItemType ItemType { get { return itemType; } }
-        public int Revisions { get { return revisions; } }
-        public VssName Name { get { return name; } }
-        public int FirstRevision { get { return firstRevision; } }
-        public string DataExt { get { return dataExt; } }
-        public int FirstRevOffset { get { return firstRevOffset; } }
-        public int LastRevOffset { get { return lastRevOffset; } }
-        public int EofOffset { get { return eofOffset; } }
-        public int RightsOffset { get { return rightsOffset; } }
-
-        public ItemHeaderRecord(ItemType itemType)
+        protected ItemHeaderRecord(ItemType itemType)
         {
-            this.itemType = itemType;
+            ItemType = itemType;
         }
 
         public override void Read(BufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
-            itemType = (ItemType)reader.ReadInt16();
-            revisions = reader.ReadInt16();
-            name = reader.ReadName();
-            firstRevision = reader.ReadInt16();
-            dataExt = reader.ReadString(2);
-            firstRevOffset = reader.ReadInt32();
-            lastRevOffset = reader.ReadInt32();
-            eofOffset = reader.ReadInt32();
-            rightsOffset = reader.ReadInt32();
+            ItemType = (ItemType)reader.ReadInt16();
+            Revisions = reader.ReadInt16();
+            Name = reader.ReadName();
+            FirstRevision = reader.ReadInt16();
+            DataExt = reader.ReadString(2);
+            FirstRevOffset = reader.ReadInt32();
+            LastRevOffset = reader.ReadInt32();
+            EofOffset = reader.ReadInt32();
+            RightsOffset = reader.ReadInt32();
             reader.Skip(16); // reserved; always 0
         }
 
@@ -84,20 +73,20 @@ namespace Hpdi.VssPhysicalLib
 
             writer.Write(indentStr);
             writer.WriteLine("Item Type: {0} - Revisions: {1} - Name: {2}",
-                itemType, revisions, name.ShortName);
+                ItemType, Revisions, Name.ShortName);
             writer.Write(indentStr);
-            writer.WriteLine("Name offset: {0:X6}", name.NameFileOffset);
+            writer.WriteLine("Name offset: {0:X6}", Name.NameFileOffset);
             writer.Write(indentStr);
-            writer.WriteLine("First revision: #{0:D3}", firstRevision);
+            writer.WriteLine("First revision: #{0:D3}", FirstRevision);
             writer.Write(indentStr);
-            writer.WriteLine("Data extension: {0}", dataExt);
+            writer.WriteLine("Data extension: {0}", DataExt);
             writer.Write(indentStr);
             writer.WriteLine("First/last rev offset: {0:X6}/{1:X6}",
-                firstRevOffset, lastRevOffset);
+                FirstRevOffset, LastRevOffset);
             writer.Write(indentStr);
-            writer.WriteLine("EOF offset: {0:X6}", eofOffset);
+            writer.WriteLine("EOF offset: {0:X6}", EofOffset);
             writer.Write(indentStr);
-            writer.WriteLine("Rights offset: {0:X8}", rightsOffset);
+            writer.WriteLine("Rights offset: {0:X8}", RightsOffset);
         }
     }
 }

@@ -22,15 +22,14 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record representing a reverse-delta for a file revision.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class DeltaRecord : VssRecord
+    public sealed class DeltaRecord : VssRecord
     {
         public const string SIGNATURE = "FD";
 
-        private readonly LinkedList<DeltaOperation> operations =
-            new LinkedList<DeltaOperation>();
+        private readonly LinkedList<DeltaOperation> operations = new();
 
-        public override string Signature { get { return SIGNATURE; } }
-        public IEnumerable<DeltaOperation> Operations { get { return operations; } }
+        public override string Signature => SIGNATURE;
+        public IEnumerable<DeltaOperation> Operations => operations;
 
         public static bool ReadCheckForMissingStopCommands { get; set; } = false;
         public override void Read(BufferReader reader, RecordHeader header)
@@ -43,7 +42,7 @@ namespace Hpdi.VssPhysicalLib
 
             for (int offset = reader.Offset; offset < dataEndOffset; offset = reader.Offset)
             {
-                DeltaOperation operation = new DeltaOperation();
+                DeltaOperation operation = new();
                 operation.Read(reader);
                 if (operation.Command == DeltaCommand.Stop)
                 {

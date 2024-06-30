@@ -172,7 +172,7 @@ namespace Hpdi.Vss2Git
                 WaitCallback work;
                 lock (workQueue)
                 {
-                    var head = workQueue.First;
+                    LinkedListNode<WaitCallback> head = workQueue.First;
                     if (head == null || suspended)
                     {
                         if (--activeThreads == 0)

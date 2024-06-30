@@ -72,7 +72,7 @@ namespace Hpdi.Vss2Git
 
             public void Write(string text, Encoding encoding)
             {
-                var bytes = encoding.GetBytes(text);
+                byte[] bytes = encoding.GetBytes(text);
                 fileStream.Write(bytes, 0, bytes.Length);
                 fileStream.Flush();
             }
@@ -115,7 +115,7 @@ namespace Hpdi.Vss2Git
 
         private void GitExec(string args)
         {
-            var startInfo = GetStartInfo(args);
+            ProcessStartInfo startInfo = GetStartInfo(args);
             ExecuteUnless(startInfo, null);
         }
 
@@ -373,7 +373,7 @@ namespace Hpdi.Vss2Git
 
         public override bool Add(string path)
         {
-            var startInfo = GetStartInfo("add -- " + QuoteRelativePath(path));
+            ProcessStartInfo startInfo = GetStartInfo("add -- " + QuoteRelativePath(path));
 
             // add fails if there are no files (directories don't count)
             bool result = ExecuteUnless(startInfo, "did not match any files");
@@ -395,7 +395,7 @@ namespace Hpdi.Vss2Git
 
             var args = new StringBuilder("add -- ");
             CollectionUtil.Join(args, " ", CollectionUtil.Transform<string, string>(paths, QuoteRelativePath));
-            var startInfo = GetStartInfo(args.ToString());
+            ProcessStartInfo startInfo = GetStartInfo(args.ToString());
 
             // add fails if there are no files (directories don't count)
             bool result = ExecuteUnless(startInfo, "did not match any files");
@@ -416,7 +416,7 @@ namespace Hpdi.Vss2Git
 
         public override bool AddAll()
         {
-            var startInfo = GetStartInfo("add -A");
+            ProcessStartInfo startInfo = GetStartInfo("add -A");
 
             // add fails if there are no files (directories don't count)
             bool result = ExecuteUnless(startInfo, "did not match any files");
@@ -468,12 +468,12 @@ namespace Hpdi.Vss2Git
 
             TempFile commentFile;
 
-            var args = "commit";
+            string args = "commit";
             AddComment(comment, ref args, out commentFile);
 
             using (commentFile)
             {
-                var startInfo = GetStartInfo(args);
+                ProcessStartInfo startInfo = GetStartInfo(args);
                 startInfo.EnvironmentVariables["GIT_AUTHOR_NAME"] = authorName;
                 startInfo.EnvironmentVariables["GIT_AUTHOR_EMAIL"] = authorEmail;
                 startInfo.EnvironmentVariables["GIT_AUTHOR_DATE"] = GetUtcTimeString(utcTime);
@@ -498,7 +498,7 @@ namespace Hpdi.Vss2Git
 
             TempFile commentFile;
 
-            var args = "tag";
+            string args = "tag";
             AddComment(comment, ref args, out commentFile);
 
             // tag names are not quoted because they cannot contain whitespace or quotes
@@ -506,7 +506,7 @@ namespace Hpdi.Vss2Git
 
             using (commentFile)
             {
-                var startInfo = GetStartInfo(args);
+                ProcessStartInfo startInfo = GetStartInfo(args);
                 startInfo.EnvironmentVariables["GIT_COMMITTER_NAME"] = taggerName;
                 startInfo.EnvironmentVariables["GIT_COMMITTER_EMAIL"] = taggerEmail;
                 startInfo.EnvironmentVariables["GIT_COMMITTER_DATE"] = GetUtcTimeString(utcTime);

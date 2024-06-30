@@ -21,20 +21,18 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record representing a comment message.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class CommentRecord : VssRecord
+    public sealed class CommentRecord : VssRecord
     {
         public const string SIGNATURE = "MC";
 
-        string comment;
-
-        public override string Signature { get { return SIGNATURE; } }
-        public string Comment { get { return comment; } }
+        public override string Signature => SIGNATURE;
+        public string Comment { get; private set; }
 
         public override void Read(BufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
-            comment = reader.ReadString(reader.Remaining);
+            Comment = reader.ReadString(reader.Remaining);
         }
 
         public override void Dump(TextWriter writer, int indent)
@@ -42,7 +40,7 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.WriteLine("{0}", comment);
+            writer.WriteLine("{0}", Comment);
         }
     }
 }

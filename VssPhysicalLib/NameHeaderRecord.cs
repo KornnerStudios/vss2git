@@ -21,21 +21,20 @@ namespace Hpdi.VssPhysicalLib
     /// VSS header record for the name file.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class NameHeaderRecord : VssRecord
+    public sealed class NameHeaderRecord : VssRecord
     {
         public const string SIGNATURE = "HN";
 
-        int eofOffset;
-
-        public override string Signature { get { return SIGNATURE; } }
-        public int EofOffset { get { return eofOffset; } }
+        public override string Signature => SIGNATURE;
+        public int EofOffset { get; private set; }
 
         public override void Read(BufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
+            // #TODO : Check if these are indeed always zero
             reader.Skip(16); // reserved; always 0
-            eofOffset = reader.ReadInt32();
+            EofOffset = reader.ReadInt32();
             // remaining reserved; always 0
         }
 
@@ -44,7 +43,7 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.WriteLine("EOF offset: {0:X6}", eofOffset);
+            writer.WriteLine("EOF offset: {0:X6}", EofOffset);
         }
     }
 }

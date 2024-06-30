@@ -90,7 +90,7 @@ namespace Hpdi.Vss2Git
                 };
             }
 
-            var repoPath = LibGit2Sharp.Repository.Init(GetRepoPath());
+            string repoPath = LibGit2Sharp.Repository.Init(GetRepoPath());
             repo = new LibGit2Sharp.Repository(repoPath);
         }
 
@@ -191,11 +191,11 @@ namespace Hpdi.Vss2Git
             List<string> sourceFiles = new List<string>();
             List<string> destFiles = new List<string>();
 
-            foreach (var file in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories))
+            foreach (string file in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories))
             {
                 sourceFiles.Add(file);
 
-                var destFile = file.Replace(sourcePath, destPath);
+                string destFile = file.Replace(sourcePath, destPath);
 
                 destFiles.Add(destFile);
 
@@ -224,7 +224,7 @@ namespace Hpdi.Vss2Git
                 {
                     string[] files = null;
 
-                    foreach (var subdirectory in Directory.GetDirectories(sourcePath))
+                    foreach (string subdirectory in Directory.GetDirectories(sourcePath))
                     {
                         files = Directory.GetFiles(subdirectory, "*.*");
 
@@ -270,7 +270,7 @@ namespace Hpdi.Vss2Git
 
             // Create the committer's signature and commit
             var author = new LibGit2Sharp.Signature(authorName, authorEmail, utcTime);
-            var committer = author;
+            LibGit2Sharp.Signature committer = author;
 
             // Commit to the repository
             repo.Commit(comment, author, committer, default(LibGit2Sharp.CommitOptions));
@@ -286,13 +286,13 @@ namespace Hpdi.Vss2Git
             }
 
             var commiter = new LibGit2Sharp.Signature(taggerName, taggerEmail, utcTime);
-            var commit = RetrieveHeadCommit(repo);
+            LibGit2Sharp.Commit commit = RetrieveHeadCommit(repo);
             repo.Tags.Add(name, commit, commiter, comment);
         }
 
         private static LibGit2Sharp.Commit RetrieveHeadCommit(LibGit2Sharp.IRepository repository)
         {
-            var head = repository.Head;
+            LibGit2Sharp.Branch head = repository.Head;
             LibGit2Sharp.Commit commit = head.Tip;
 
             GitObjectIsNotNull(commit, "HEAD");
@@ -307,7 +307,7 @@ namespace Hpdi.Vss2Git
                 return;
             }
 
-            var messageFormat = "No valid git object identified by '{0}' exists in the repository.";
+            string messageFormat = "No valid git object identified by '{0}' exists in the repository.";
 
             if (string.Equals("HEAD", identifier, StringComparison.Ordinal))
             {

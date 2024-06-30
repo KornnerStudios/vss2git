@@ -58,7 +58,7 @@ namespace Hpdi.Vss2Git.GitActions
             catch (Exception e)
             {
                 // log an error for missing data files or versions, but keep processing
-                var message = ExceptionFormatter.Format(e);
+                string message = ExceptionFormatter.Format(e);
                 logger.WriteLine("ERROR: {0}", message);
                 logger.WriteLine(e);
                 return false;
@@ -75,8 +75,8 @@ namespace Hpdi.Vss2Git.GitActions
 
             // try to use the first revision (for this branch) as the create time,
             // since the item creation time doesn't seem to be meaningful
-            var createDateTime = item.Created;
-            using (var revEnum = item.Revisions.GetEnumerator())
+            DateTime createDateTime = item.Created;
+            using (System.Collections.Generic.IEnumerator<VssFileRevision> revEnum = item.Revisions.GetEnumerator())
             {
                 if (revEnum.MoveNext())
                 {
@@ -102,7 +102,7 @@ namespace Hpdi.Vss2Git.GitActions
             catch (Exception e)
             {
                 // log an error for missing data files or versions, but keep processing
-                var message = ExceptionFormatter.Format(e);
+                string message = ExceptionFormatter.Format(e);
                 logger.WriteLine("ERROR: {0}", message);
                 logger.WriteLine(e);
                 return false;

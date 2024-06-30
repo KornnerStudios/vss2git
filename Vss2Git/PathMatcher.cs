@@ -59,7 +59,7 @@ namespace Hpdi.Vss2Git
         private static string ConvertPatterns(string[] globs)
         {
             var buf = new StringBuilder();
-            foreach (var glob in globs)
+            foreach (string glob in globs)
             {
                 if (buf.Length > 0)
                 {

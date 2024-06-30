@@ -33,20 +33,18 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record containing the logical names of an object in particular contexts.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class NameRecord : VssRecord
+    public sealed class NameRecord : VssRecord
     {
         public const string SIGNATURE = "SN";
-
-        int kindCount;
         NameKind[] kinds;
         string[] names;
 
-        public override string Signature { get { return SIGNATURE; } }
-        public int KindCount { get { return kindCount; } }
+        public override string Signature => SIGNATURE;
+        public int KindCount { get; private set; }
 
         public int IndexOf(NameKind kind)
         {
-            for (int i = 0; i < kindCount; ++i)
+            for (int i = 0; i < KindCount; ++i)
             {
                 if (kinds[i] == kind)
                 {
@@ -70,16 +68,17 @@ namespace Hpdi.VssPhysicalLib
         {
             base.Read(reader, header);
 
-            kindCount = reader.ReadInt16();
+            KindCount = reader.ReadInt16();
+            // #TODO figure out these two bytes
             reader.Skip(2); // unknown
-            kinds = new NameKind[kindCount];
-            names = new string[kindCount];
-            var baseOffset = reader.Offset + (kindCount * 4);
-            for (int i = 0; i < kindCount; ++i)
+            kinds = new NameKind[KindCount];
+            names = new string[KindCount];
+            int baseOffset = reader.Offset + (KindCount * 4);
+            for (int i = 0; i < KindCount; ++i)
             {
                 kinds[i] = (NameKind)reader.ReadInt16();
-                var nameOffset = reader.ReadInt16();
-                var saveOffset = reader.Offset;
+                short nameOffset = reader.ReadInt16();
+                int saveOffset = reader.Offset;
                 try
                 {
                     reader.Offset = baseOffset + nameOffset;
@@ -95,7 +94,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             string indentStr = DumpGetIndentString(indent);
-            for (int i = 0; i < kindCount; ++i)
+            for (int i = 0; i < KindCount; ++i)
             {
                 writer.Write(indentStr);
                 writer.WriteLine("{0} name: {1}", kinds[i], names[i]);

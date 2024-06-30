@@ -21,23 +21,20 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record representing a project file.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class ProjectRecord : VssRecord
+    public sealed class ProjectRecord : VssRecord
     {
         public const string SIGNATURE = "PF";
 
-        int prevProjectOffset;
-        string projectFile;
-
-        public override string Signature { get { return SIGNATURE; } }
-        public int PrevProjectOffset { get { return prevProjectOffset; } }
-        public string ProjectFile { get { return projectFile; } }
+        public override string Signature => SIGNATURE;
+        public int PrevProjectOffset { get; private set; }
+        public string ProjectFile { get; private set; }
 
         public override void Read(BufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
-            prevProjectOffset = reader.ReadInt32();
-            projectFile = reader.ReadString(12);
+            PrevProjectOffset = reader.ReadInt32();
+            ProjectFile = reader.ReadString(12);
         }
 
         public override void Dump(TextWriter writer, int indent)
@@ -45,9 +42,9 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.WriteLine("Project file: {0}", projectFile);
+            writer.WriteLine("Project file: {0}", ProjectFile);
             writer.Write(indentStr);
-            writer.WriteLine("Prev project offset: {0:X6}", prevProjectOffset);
+            writer.WriteLine("Prev project offset: {0:X6}", PrevProjectOffset);
         }
     }
 }

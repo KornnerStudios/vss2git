@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,10 +24,10 @@ namespace Hpdi.VssPhysicalLib
     /// latest revision content and a set of reverse-delta operations.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class DeltaStream : Stream
+    public sealed class DeltaStream : Stream
     {
-        private Stream baseStream;
-        private DeltaSimulator simulator;
+        private readonly Stream baseStream;
+        private readonly DeltaSimulator simulator;
         private int length = -1;
 
         public DeltaStream(Stream stream, IEnumerable<DeltaOperation> operations)
@@ -36,20 +36,11 @@ namespace Hpdi.VssPhysicalLib
             simulator = new DeltaSimulator(operations);
         }
 
-        public override bool CanRead
-        {
-            get { return true; }
-        }
+        public override bool CanRead => true;
 
-        public override bool CanSeek
-        {
-            get { return true; }
-        }
+        public override bool CanSeek => true;
 
-        public override bool CanWrite
-        {
-            get { return false; }
-        }
+        public override bool CanWrite => false;
 
         public override long Length
         {
@@ -71,7 +62,7 @@ namespace Hpdi.VssPhysicalLib
         {
             get
             {
-                return simulator.Offset;
+                return simulator.FileOffset;
             }
             set
             {
@@ -94,7 +85,7 @@ namespace Hpdi.VssPhysicalLib
                 delegate(int opOffset, int opCount)
                 {
                     baseStream.Seek(opOffset, SeekOrigin.Begin);
-                    var opBytesRead = baseStream.Read(buffer, offset, opCount);
+                    int opBytesRead = baseStream.Read(buffer, offset, opCount);
                     offset += opBytesRead;
                     count -= opBytesRead;
                     bytesRead += opBytesRead;
@@ -117,7 +108,7 @@ namespace Hpdi.VssPhysicalLib
                     simulator.Seek((int)(Length + offset));
                     break;
                 default:
-                    throw new ArgumentException("Invalid origin", "origin");
+                    throw new ArgumentException("Invalid origin", nameof(origin));
             }
             return Position;
         }

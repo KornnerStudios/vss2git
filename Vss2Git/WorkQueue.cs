@@ -128,7 +128,7 @@ namespace Hpdi.Vss2Git
             stopwatch.Stop();
             idleEvent.Set();
 
-            var handler = Idle;
+            EventHandler handler = Idle;
             if (handler != null)
             {
                 handler(this, EventArgs.Empty);
@@ -171,7 +171,7 @@ namespace Hpdi.Vss2Git
                 lastStatusWork = null;
                 lastStatus = null;
 
-                foreach (var entry in workStatuses)
+                foreach (KeyValuePair<object, string> entry in workStatuses)
                 {
                     if (!string.IsNullOrEmpty(entry.Value))
                     {

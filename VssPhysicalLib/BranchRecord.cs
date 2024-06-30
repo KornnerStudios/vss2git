@@ -21,23 +21,20 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record representing a branch file.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class BranchRecord : VssRecord
+    public sealed class BranchRecord : VssRecord
     {
         public const string SIGNATURE = "BF";
 
-        int prevBranchOffset;
-        string branchFile;
-
-        public override string Signature { get { return SIGNATURE; } }
-        public int PrevBranchOffset { get { return prevBranchOffset; } }
-        public string BranchFile { get { return branchFile; } }
+        public override string Signature => SIGNATURE;
+        public int PrevBranchOffset { get; private set; }
+        public string BranchFile { get; private set; }
 
         public override void Read(BufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
-            prevBranchOffset = reader.ReadInt32();
-            branchFile = reader.ReadString(12);
+            PrevBranchOffset = reader.ReadInt32();
+            BranchFile = reader.ReadString(12);
         }
 
         public override void Dump(TextWriter writer, int indent)
@@ -45,9 +42,9 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.WriteLine("Prev branch offset: {0:X6}", prevBranchOffset);
+            writer.WriteLine("Prev branch offset: {0:X6}", PrevBranchOffset);
             writer.Write(indentStr);
-            writer.WriteLine("Branch file: {0}", branchFile);
+            writer.WriteLine("Branch file: {0}", BranchFile);
         }
     }
 }

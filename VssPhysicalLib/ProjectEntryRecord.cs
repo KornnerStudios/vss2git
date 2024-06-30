@@ -36,32 +36,26 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record for representing an item stored in particular project.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class ProjectEntryRecord : VssRecord
+    public sealed class ProjectEntryRecord : VssRecord
     {
         public const string SIGNATURE = "JP";
 
-        protected ItemType itemType;
-        protected ProjectEntryFlags flags;
-        protected VssName name;
-        protected int pinnedVersion;
-        protected string physical;
-
-        public override string Signature { get { return SIGNATURE; } }
-        public ItemType ItemType { get { return itemType; } }
-        public ProjectEntryFlags Flags { get { return flags; } }
-        public VssName Name { get { return name; } }
-        public int PinnedVersion { get { return pinnedVersion; } }
-        public string Physical { get { return physical; } }
+        public override string Signature => SIGNATURE;
+        public ItemType ItemType { get; private set; }
+        public ProjectEntryFlags Flags { get; private set; }
+        public VssName Name { get; private set; }
+        public int PinnedVersion { get; private set; }
+        public string Physical { get; private set; }
 
         public override void Read(BufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
-            itemType = (ItemType)reader.ReadInt16();
-            flags = (ProjectEntryFlags)reader.ReadInt16();
-            name = reader.ReadName();
-            pinnedVersion = reader.ReadInt16();
-            physical = reader.ReadString(10);
+            ItemType = (ItemType)reader.ReadInt16();
+            Flags = (ProjectEntryFlags)reader.ReadInt16();
+            Name = reader.ReadName();
+            PinnedVersion = reader.ReadInt16();
+            Physical = reader.ReadString(10);
         }
 
         public override void Dump(TextWriter writer, int indent)
@@ -70,11 +64,11 @@ namespace Hpdi.VssPhysicalLib
 
             writer.Write(indentStr);
             writer.WriteLine("Item Type: {0} - Name: {1} ({2})",
-                itemType, name.ShortName, physical);
+                ItemType, Name.ShortName, Physical);
             writer.Write(indentStr);
-            writer.WriteLine("Flags: {0}", flags);
+            writer.WriteLine("Flags: {0}", Flags);
             writer.Write(indentStr);
-            writer.WriteLine("Pinned version: {0}", pinnedVersion);
+            writer.WriteLine("Pinned version: {0}", PinnedVersion);
         }
     }
 }

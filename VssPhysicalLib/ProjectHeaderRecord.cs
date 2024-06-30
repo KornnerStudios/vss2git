@@ -21,17 +21,12 @@ namespace Hpdi.VssPhysicalLib
     /// VSS header record for a project.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class ProjectHeaderRecord : ItemHeaderRecord
+    public sealed class ProjectHeaderRecord : ItemHeaderRecord
     {
-        string parentProject;
-        string parentFile;
-        int totalItems;
-        int subprojects;
-
-        public string ParentProject { get { return parentProject; } }
-        public string ParentFile { get { return parentFile; } }
-        public int TotalItems { get { return totalItems; } }
-        public int Subprojects { get { return subprojects; } }
+        public string ParentProject { get; private set; }
+        public string ParentFile { get; private set; }
+        public int TotalItems { get; private set; }
+        public int Subprojects { get; private set; }
 
         public ProjectHeaderRecord()
             : base(ItemType.Project)
@@ -42,11 +37,11 @@ namespace Hpdi.VssPhysicalLib
         {
             base.Read(reader, header);
 
-            parentProject = reader.ReadString(260);
-            parentFile = reader.ReadString(8);
+            ParentProject = reader.ReadString(260);
+            ParentFile = reader.ReadString(8);
             reader.Skip(4); // reserved; always 0
-            totalItems = reader.ReadInt16();
-            subprojects = reader.ReadInt16();
+            TotalItems = reader.ReadInt16();
+            Subprojects = reader.ReadInt16();
         }
 
         public override void Dump(TextWriter writer, int indent)
@@ -55,13 +50,13 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.WriteLine("Parent project: {0}", parentProject);
+            writer.WriteLine("Parent project: {0}", ParentProject);
             writer.Write(indentStr);
-            writer.WriteLine("Parent file: {0}", parentFile);
+            writer.WriteLine("Parent file: {0}", ParentFile);
             writer.Write(indentStr);
-            writer.WriteLine("Total items: {0}", totalItems);
+            writer.WriteLine("Total items: {0}", TotalItems);
             writer.Write(indentStr);
-            writer.WriteLine("Subprojects: {0}", subprojects);
+            writer.WriteLine("Subprojects: {0}", Subprojects);
         }
     }
 }

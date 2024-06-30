@@ -41,7 +41,7 @@ namespace Hpdi.Vss2Git
 
         protected string LogException(Exception exception)
         {
-            var message = ExceptionFormatter.Format(exception);
+            string message = ExceptionFormatter.Format(exception);
             LogException(exception, message);
             return message;
         }
@@ -54,7 +54,7 @@ namespace Hpdi.Vss2Git
 
         protected void ReportError(string message)
         {
-            var button = MessageBox.Show(message, "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+            DialogResult button = MessageBox.Show(message, "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
             if (button == DialogResult.Cancel)
             {
                 workQueue.Abort();

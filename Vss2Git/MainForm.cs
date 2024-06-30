@@ -59,7 +59,7 @@ namespace Hpdi.Vss2Git
                 AbstractGitWrapper git = new GitExeWrapper(string.Empty, null);
                 while (!git.FindExecutable())
                 {
-                    var button = MessageBox.Show("Git not found in PATH. " +
+                    DialogResult button = MessageBox.Show("Git not found in PATH. " +
                         "If you need to modify your PATH variable, please " +
                         "restart the program for the changes to take effect.",
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -90,9 +90,9 @@ namespace Hpdi.Vss2Git
 
                 var df = new VssDatabaseFactory(vssDirTextBox.Text);
                 df.Encoding = encoding;
-                var db = df.Open();
+                VssDatabase db = df.Open();
 
-                var path = VssDatabase.RootProjectName;
+                string path = VssDatabase.RootProjectName;
                 VssItem item;
                 try
                 {
@@ -209,10 +209,10 @@ namespace Hpdi.Vss2Git
                 goButton.Enabled = true;
             }
 
-            var exceptions = workQueue.FetchExceptions();
+            ICollection<Exception> exceptions = workQueue.FetchExceptions();
             if (exceptions != null)
             {
-                foreach (var exception in exceptions)
+                foreach (Exception exception in exceptions)
                 {
                     ShowException(exception);
                 }
@@ -221,7 +221,7 @@ namespace Hpdi.Vss2Git
 
         private void ShowException(Exception exception)
         {
-            var message = ExceptionFormatter.Format(exception);
+            string message = ExceptionFormatter.Format(exception);
             logger.WriteLine("ERROR: {0}", message);
             logger.WriteLine(exception);
 
@@ -233,17 +233,17 @@ namespace Hpdi.Vss2Git
         {
             this.Text += " " + Assembly.GetExecutingAssembly().GetName().Version;
 
-            var defaultCodePage = Encoding.Default.CodePage;
-            var description = string.Format("System default - {0}", Encoding.Default.EncodingName);
-            var defaultIndex = encodingComboBox.Items.Add(description);
+            int defaultCodePage = Encoding.Default.CodePage;
+            string description = string.Format("System default - {0}", Encoding.Default.EncodingName);
+            int defaultIndex = encodingComboBox.Items.Add(description);
             encodingComboBox.SelectedIndex = defaultIndex;
 
-            var encodings = Encoding.GetEncodings();
-            foreach (var encoding in encodings)
+            EncodingInfo[] encodings = Encoding.GetEncodings();
+            foreach (EncodingInfo encoding in encodings)
             {
                 description = FormatCodePageDescription(encoding);
-                var codePage = encoding.CodePage;
-                var index = encodingComboBox.Items.Add(description);
+                int codePage = encoding.CodePage;
+                int index = encodingComboBox.Items.Add(description);
                 codePages[index] = encoding;
                 if (codePage == defaultCodePage)
                 {
@@ -264,7 +264,7 @@ namespace Hpdi.Vss2Git
 
         private void ReadSettings()
         {
-            var settings = Properties.Settings.Default;
+            Properties.Settings settings = Properties.Settings.Default;
             vssDirTextBox.Text = settings.VssDirectory;
             vssProjectTextBox.Text = settings.VssProject;
             excludeTextBox.Text = settings.VssExcludePaths;
@@ -286,7 +286,7 @@ namespace Hpdi.Vss2Git
 
         private void WriteSettings()
         {
-            var settings = Properties.Settings.Default;
+            Properties.Settings settings = Properties.Settings.Default;
             settings.VssDirectory = vssDirTextBox.Text;
             settings.VssProject = vssProjectTextBox.Text;
             settings.VssExcludePaths = excludeTextBox.Text;
@@ -302,10 +302,10 @@ namespace Hpdi.Vss2Git
 
             string encodingName = "";
 
-            var encodings = Encoding.GetEncodings();
-            foreach (var encoding in encodings)
+            EncodingInfo[] encodings = Encoding.GetEncodings();
+            foreach (EncodingInfo encoding in encodings)
             {
-                var description = FormatCodePageDescription(encoding);
+                string description = FormatCodePageDescription(encoding);
 
                 if (encodingComboBox.SelectedItem.ToString() == description)
                 {

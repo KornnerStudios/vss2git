@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,14 +21,11 @@ namespace Hpdi.VssLogicalLib
     /// Represents a revision of a VSS project.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssProjectRevision : VssRevision
+    public sealed class VssProjectRevision : VssRevision
     {
-        public VssProject Project
-        {
-            get { return (VssProject)Item; }
-        }
+        public VssProject Project => (VssProject)Item;
 
-        internal VssProjectRevision(VssItem item, RevisionRecord revision, CommentRecord comment)
+        internal VssProjectRevision(VssProject item, RevisionRecord revision, CommentRecord comment)
             : base(item, revision, comment)
         {
         }

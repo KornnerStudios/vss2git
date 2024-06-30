@@ -47,7 +47,7 @@ namespace Hpdi.HashLib
 
         public uint Compute(byte[] bytes, int offset, int limit)
         {
-            var crc = initial;
+            uint crc = initial;
             while (offset < limit)
             {
                 crc = (uint)((crc >> 8) ^ table[(byte)(crc ^ bytes[offset++])]);
@@ -57,13 +57,13 @@ namespace Hpdi.HashLib
 
         protected static uint[] GenerateTable(uint poly)
         {
-            var table = new uint[256];
+            uint[] table = new uint[256];
             for (int i = 0; i < table.Length; ++i)
             {
-                var value = (uint)i;
+                uint value = (uint)i;
                 for (int j = 0; j < 8; ++j)
                 {
-                    var xor = (value & 1) != 0;
+                    bool xor = (value & 1) != 0;
                     value >>= 1;
                     if (xor) value ^= poly;
                 }
@@ -104,7 +104,7 @@ namespace Hpdi.HashLib
         {
             int len = limit - offset;
 
-            var crc = initial;
+            uint crc = initial;
 
             while (len >= sizeof(long))
             {
@@ -134,7 +134,7 @@ namespace Hpdi.HashLib
 
         protected static uint[][] GenerateTable(uint poly)
         {
-            var table = new uint[8][];
+            uint[][] table = new uint[8][];
             for (int x = 0; x < table.Length; x++)
             {
                 table[x] = new uint[256];
@@ -143,10 +143,10 @@ namespace Hpdi.HashLib
             // generate CRCs for all single byte sequences
             for (int i = 0; i < table[0].Length; ++i)
             {
-                var value = (uint)i;
+                uint value = (uint)i;
                 for (int j = 0; j < 8; ++j)
                 {
-                    var xor = (value & 1) != 0;
+                    bool xor = (value & 1) != 0;
                     value >>= 1;
                     if (xor) value ^= poly;
                 }

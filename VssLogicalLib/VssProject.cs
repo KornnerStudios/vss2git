@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,29 +24,18 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssProject : VssItem
+    public sealed class VssProject : VssItem
     {
-        private readonly string logicalPath;
+        public string LogicalPath { get; init; }
 
-        public string Path
-        {
-            get { return logicalPath; }
-        }
+        public IEnumerable<VssProject> Projects =>
+            new VssProjects(this);
 
-        public IEnumerable<VssProject> Projects
-        {
-            get { return new VssProjects(this); }
-        }
+        public IEnumerable<VssFile> Files =>
+            new VssFiles(this);
 
-        public IEnumerable<VssFile> Files
-        {
-            get { return new VssFiles(this); }
-        }
-
-        public new IEnumerable<VssProjectRevision> Revisions
-        {
-            get { return new VssRevisions<VssProject, VssProjectRevision>(this); }
-        }
+        public new IEnumerable<VssProjectRevision> Revisions =>
+            new VssRevisions<VssProject, VssProjectRevision>(this);
 
         public new VssProjectRevision GetRevision(int version)
         {
@@ -79,7 +68,7 @@ namespace Hpdi.VssLogicalLib
 
         public VssItem FindItem(string name)
         {
-            var project = FindProject(name);
+            VssProject project = FindProject(name);
             if (project != null)
             {
                 return project;
@@ -91,7 +80,7 @@ namespace Hpdi.VssLogicalLib
             string physicalPath, string logicalPath)
             : base(database, itemName, physicalPath)
         {
-            this.logicalPath = logicalPath;
+            LogicalPath = logicalPath;
         }
 
         protected override VssRevision CreateRevision(RevisionRecord revision, CommentRecord comment)
@@ -99,7 +88,7 @@ namespace Hpdi.VssLogicalLib
             return new VssProjectRevision(this, revision, comment);
         }
 
-        private class VssProjects : IEnumerable<VssProject>
+        private sealed class VssProjects : IEnumerable<VssProject>
         {
             private readonly VssProject project;
 
@@ -119,7 +108,7 @@ namespace Hpdi.VssLogicalLib
             }
         }
 
-        private class VssFiles : IEnumerable<VssFile>
+        private sealed class VssFiles : IEnumerable<VssFile>
         {
             private readonly VssProject project;
 
@@ -148,7 +137,7 @@ namespace Hpdi.VssLogicalLib
             Any = Project | File
         }
 
-        private class VssItemEnumerator<T> : IEnumerator<T>
+        private sealed class VssItemEnumerator<T> : IEnumerator<T>
             where T : VssItem
         {
             private readonly VssProject project;
@@ -197,15 +186,15 @@ namespace Hpdi.VssLogicalLib
 
                     if (entryItem == null)
                     {
-                        var physicalName = entryRecord.Physical.ToUpper();
-                        var logicalName = project.database.GetFullName(entryRecord.Name);
+                        string physicalName = entryRecord.Physical.ToUpper();
+                        string logicalName = project.Database.GetFullName(entryRecord.Name);
                         if (entryRecord.ItemType == ItemType.Project)
                         {
-                            entryItem = project.database.OpenProject(project, physicalName, logicalName);
+                            entryItem = project.Database.OpenProject(project, physicalName, logicalName);
                         }
                         else
                         {
-                            entryItem = project.database.OpenFile(physicalName, logicalName);
+                            entryItem = project.Database.OpenFile(physicalName, logicalName);
                         }
                     }
 

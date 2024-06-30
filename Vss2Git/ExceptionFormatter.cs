@@ -25,7 +25,7 @@ namespace Hpdi.Vss2Git
     {
         public static string Format(Exception e)
         {
-            var message = e.Message;
+            string message = e.Message;
 
             var processExit = e as ProcessExitException;
             if (processExit != null)

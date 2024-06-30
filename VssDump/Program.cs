@@ -35,11 +35,11 @@ namespace Hpdi.VssDump
         {
             Console.OutputEncoding = Encoding.Default;
 
-            var invalidArg = false;
-            var argIndex = 0;
+            bool invalidArg = false;
+            int argIndex = 0;
             while (argIndex < args.Length && args[argIndex].StartsWith("/"))
             {
-                var option = args[argIndex].Substring(1).Split(':');
+                string[] option = args[argIndex].Substring(1).Split(':');
                 switch (option[0])
                 {
                     case "encoding":
@@ -85,11 +85,11 @@ namespace Hpdi.VssDump
 
                     case "encodings":
                         {
-                            var encodings = Encoding.GetEncodings();
+                        EncodingInfo[] encodings = Encoding.GetEncodings();
                             Console.WriteLine("{0,-6} {1,-25} {2}", "CP", "IANA", "Description");
-                            foreach (var encoding in encodings)
+                            foreach (EncodingInfo encoding in encodings)
                             {
-                                var codePage = encoding.CodePage;
+                            int codePage = encoding.CodePage;
                                 switch (codePage)
                                 {
                                     case 1200:
@@ -117,9 +117,9 @@ namespace Hpdi.VssDump
                 return;
             }
 
-            var repoPath = args[argIndex];
+            string repoPath = args[argIndex];
             var df = new VssDatabaseFactory(repoPath);
-            var db = df.Open();
+            VssDatabase db = df.Open();
 
             Console.WriteLine("File hierarchy:");
             Console.WriteLine(Separator);
@@ -134,8 +134,8 @@ namespace Hpdi.VssDump
                     Path.Combine(db.DataPath, c.ToString()), "*.");
                 foreach (string dataPath in dataPaths)
                 {
-                    var dataFile = Path.GetFileName(dataPath).ToUpper();
-                    var orphaned = !tree.PhysicalNames.Contains(dataFile);
+                    string dataFile = Path.GetFileName(dataPath).ToUpper();
+                    bool orphaned = !tree.PhysicalNames.Contains(dataFile);
                     Console.WriteLine(Separator);
                     Console.WriteLine("{0}{1}", dataPath, orphaned ? " (orphaned)" : "");
                     DumpLogFile(dataPath);
@@ -145,7 +145,7 @@ namespace Hpdi.VssDump
 
             Console.WriteLine("Name file contents:");
             Console.WriteLine(Separator);
-            var namePath = Path.Combine(db.DataPath, "names.dat");
+            string namePath = Path.Combine(db.DataPath, "names.dat");
             DumpNameFile(namePath);
             Console.WriteLine();
 
@@ -160,7 +160,7 @@ namespace Hpdi.VssDump
         private static string FormatCollection(IEnumerable collection)
         {
             StringBuilder buf = new StringBuilder();
-            foreach (var item in collection)
+            foreach (object item in collection)
             {
                 if (buf.Length > 0)
                 {
@@ -180,7 +180,7 @@ namespace Hpdi.VssDump
                 var itemFile = new ItemFile(filename, Encoding.Default);
                 itemFile.Header.Header.Dump(Console.Out, kDumpIndent);
                 itemFile.Header.Dump(Console.Out, kDumpIndent);
-                var record = itemFile.GetNextRecord(true);
+                VssRecord record = itemFile.GetNextRecord(true);
                 while (record != null)
                 {
                     record.Header.Dump(Console.Out, kDumpIndent + 1);
@@ -215,7 +215,7 @@ namespace Hpdi.VssDump
                 var nameFile = new NameFile(filename, Encoding.Default);
                 nameFile.Header.Header.Dump(Console.Out, kDumpIndent);
                 nameFile.Header.Dump(Console.Out, kDumpIndent);
-                var name = nameFile.GetNextName();
+                NameRecord name = nameFile.GetNextName();
                 while (name != null)
                 {
                     name.Header.Dump(Console.Out, kDumpIndent + 1);

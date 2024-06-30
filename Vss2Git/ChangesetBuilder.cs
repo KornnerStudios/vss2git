@@ -69,18 +69,18 @@ namespace Hpdi.Vss2Git
 
                 var stopwatch = Stopwatch.StartNew();
                 var pendingChangesByUser = new Dictionary<string, Changeset>();
-                var hasDelete = false;
-                var hasRename = false;
-                var changesetReason = "";
+                bool hasDelete = false;
+                bool hasRename = false;
+                string changesetReason = "";
 
-                foreach (var dateEntry in revisionAnalyzer.SortedRevisions)
+                foreach (KeyValuePair<DateTime, ICollection<Revision>> dateEntry in revisionAnalyzer.SortedRevisions)
                 {
                     foreach (Revision revision in dateEntry.Value)
                     {
                         // determine target of project revisions
-                        var actionType = revision.Action.Type;
+                        VssActionType actionType = revision.Action.Type;
                         var namedAction = revision.Action as VssNamedAction;
-                        var targetFile = revision.Item.PhysicalName;
+                        string targetFile = revision.Item.PhysicalName;
                         if (namedAction != null)
                         {
                             targetFile = namedAction.Name.PhysicalName;
@@ -88,26 +88,26 @@ namespace Hpdi.Vss2Git
 
                         // Create actions are only used to obtain initial item comments;
                         // items are actually created when added to a project
-                        var creating = (actionType == VssActionType.Create ||
+                        bool creating = (actionType == VssActionType.Create ||
                             (actionType == VssActionType.Branch && !revision.Item.IsProject));
 
                         // Share actions are never conflict (which is important,
                         // since Share always precedes Branch)
-                        var nonconflicting = creating || (actionType == VssActionType.Share) || (actionType == VssActionType.MoveFrom) || (actionType == VssActionType.MoveTo);
+                        bool nonconflicting = creating || (actionType == VssActionType.Share) || (actionType == VssActionType.MoveFrom) || (actionType == VssActionType.MoveTo);
 
                         // look up the pending change for user of this revision
                         // and flush changes past time threshold
-                        var pendingUser = revision.User;
+                        string pendingUser = revision.User;
                         Changeset pendingChange = null;
                         LinkedList<string> flushedUsers = null;
-                        foreach (var userEntry in pendingChangesByUser)
+                        foreach (KeyValuePair<string, Changeset> userEntry in pendingChangesByUser)
                         {
-                            var user = userEntry.Key;
-                            var change = userEntry.Value;
+                            string user = userEntry.Key;
+                            Changeset change = userEntry.Value;
 
                             // flush change if file conflict or past time threshold
-                            var flush = false;
-                            var timeDiff = revision.DateTime - change.DateTime;
+                            bool flush = false;
+                            TimeSpan timeDiff = revision.DateTime - change.DateTime;
                             if (timeDiff > anyCommentThreshold)
                             {
                                 if (HasSameComment(revision, change.Revisions.Last()))
@@ -209,7 +209,7 @@ namespace Hpdi.Vss2Git
                         }
 
                         // build up a concatenation of unique revision comments
-                        var revComment = revision.Comment;
+                        string revComment = revision.Comment;
                         if (revComment != null)
                         {
                             revComment = revComment.Trim();
@@ -223,7 +223,7 @@ namespace Hpdi.Vss2Git
                 }
 
                 // flush all remaining changes
-                foreach (var change in pendingChangesByUser.Values)
+                foreach (Changeset change in pendingChangesByUser.Values)
                 {
                     AddChangeset(change, "Remaining revisions");
                 }
@@ -249,22 +249,22 @@ namespace Hpdi.Vss2Git
 
         private void DumpChangeset(Changeset changeset, int changesetId, int indent, string reason)
         {
-            var indentStr = new string(' ', indent);
+            string indentStr = new string(' ', indent);
 
-            var firstRevTime = changeset.Revisions.First().DateTime;
-            var changeDuration = changeset.DateTime - firstRevTime;
+            DateTime firstRevTime = changeset.Revisions.First().DateTime;
+            TimeSpan changeDuration = changeset.DateTime - firstRevTime;
 
             logger.WriteLine("{0}Changeset {1} - {2} ({3} secs) {4} {5} file(s)",
                 indentStr, changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime), changeDuration.TotalSeconds,
                 changeset.User, changeset.Revisions.Count);
 
-            foreach (var line in changeset.Comment)
+            foreach (string line in changeset.Comment)
             {
                 logger.WriteLine("{0}{1}", indentStr, line);
             }
 
             logger.WriteLine();
-            foreach (var revision in changeset.Revisions)
+            foreach (Revision revision in changeset.Revisions)
             {
                 logger.WriteLine("{0}  {1} {2}@{3} {4}", indentStr, VssDatabase.FormatISOTimestamp(revision.DateTime), revision.Item, revision.Version, revision.Action);
             }

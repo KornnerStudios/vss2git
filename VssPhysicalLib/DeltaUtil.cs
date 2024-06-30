@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,22 +36,26 @@ namespace Hpdi.VssPhysicalLib
                     switch (operation.Command)
                     {
                         case DeltaCommand.WriteLog:
+                        {
                             result.AddLast(operation);
                             break;
+                        }
                         case DeltaCommand.WriteSuccessor:
+                        {
                             merger.Seek(operation.Offset);
                             merger.Read(operation.Length,
-                                delegate(byte[] data, int offset, int count)
+                                delegate (byte[] data, int offset, int count)
                                 {
                                     result.AddLast(DeltaOperation.WriteLog(data, offset, count));
                                     return count;
                                 },
-                                delegate(int offset, int count)
+                                delegate (int offset, int count)
                                 {
                                     result.AddLast(DeltaOperation.WriteSuccessor(offset, count));
                                     return count;
                                 });
                             break;
+                        }
                     }
                 }
             }
@@ -70,10 +74,13 @@ namespace Hpdi.VssPhysicalLib
                 switch (operation.Command)
                 {
                     case DeltaCommand.WriteLog:
+                    {
                         output.Write(operation.Data.Array,
                             operation.Data.Offset, operation.Data.Count);
                         break;
+                    }
                     case DeltaCommand.WriteSuccessor:
+                    {
                         input.Seek(operation.Offset, SeekOrigin.Begin);
                         if (copyBuffer == null)
                         {
@@ -93,6 +100,7 @@ namespace Hpdi.VssPhysicalLib
                         }
                         output.Write(copyBuffer, 0, offset);
                         break;
+                    }
                 }
             }
             output.Flush();

@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,35 +24,31 @@ namespace Hpdi.VssLogicalLib
     /// <author>Trevor Robinson</author>
     class SimpleIniReader
     {
-        private readonly string filename;
-        private readonly Dictionary<string, string> entries = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> entries = [];
 
         public SimpleIniReader(string filename)
         {
-            this.filename = filename;
+            Filename = filename;
         }
 
-        public string Filename
-        {
-            get { return filename; }
-        }
+        public string Filename { get; }
 
         public void Parse()
         {
             entries.Clear();
-            using (var reader = new StreamReader(filename))
+            using (var reader = new StreamReader(Filename))
             {
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
                     line = line.Trim();
-                    if (line.Length > 0 && !line.StartsWith(";"))
+                    if (line.Length > 0 && !line.StartsWith(';'))
                     {
-                        var separator = line.IndexOf('=');
+                        int separator = line.IndexOf('=');
                         if (separator > 0)
                         {
-                            var key = line.Substring(0, separator).Trim();
-                            var value = line.Substring(separator + 1).Trim();
+                            string key = line.Substring(0, separator).Trim();
+                            string value = line.Substring(separator + 1).Trim();
                             entries[key] = value;
                         }
                     }
@@ -60,10 +56,7 @@ namespace Hpdi.VssLogicalLib
             }
         }
 
-        public IEnumerable<string> Keys
-        {
-            get { return entries.Keys; }
-        }
+        public IEnumerable<string> Keys => entries.Keys;
 
         public string GetValue(string key)
         {

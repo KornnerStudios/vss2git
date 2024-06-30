@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,28 +25,24 @@ namespace Hpdi.VssLogicalLib
     /// <author>Trevor Robinson</author>
     public class VssFileRevision : VssRevision
     {
-        public VssFile File
-        {
-            get { return (VssFile)Item; }
-        }
+        public VssFile File => (VssFile)Item;
 
         public Stream GetContents()
         {
             Stream dataFile = new FileStream(item.DataPath,
                 FileMode.Open, FileAccess.Read, FileShare.Read);
 
-            var itemFile = item.ItemFile;
-            var lastRev = itemFile.GetLastRevision();
+            ItemFile itemFile = item.ItemFile;
+            RevisionRecord lastRev = itemFile.GetLastRevision();
             if (lastRev != null)
             {
                 IEnumerable<DeltaOperation> deltaOps = null;
                 while (lastRev != null && lastRev.Revision > this.Version)
                 {
-                    var branchRev = lastRev as BranchRevisionRecord;
-                    if (branchRev != null)
+                    if (lastRev is BranchRevisionRecord branchRev)
                     {
-                        var branchRevId = branchRev.Revision;
-                        var itemPath = item.Database.GetDataPath(branchRev.BranchFile);
+                        int branchRevId = branchRev.Revision;
+                        string itemPath = item.Database.GetDataPath(branchRev.BranchFile);
                         itemFile = new ItemFile(itemPath, item.Database.Encoding);
                         lastRev = itemFile.GetLastRevision();
                         while (lastRev != null && lastRev.Revision >= branchRevId)
@@ -56,13 +52,12 @@ namespace Hpdi.VssLogicalLib
                     }
                     else
                     {
-                        var editRev = lastRev as EditRevisionRecord;
-                        if (editRev != null)
+                        if (lastRev is EditRevisionRecord editRev)
                         {
-                            var delta = itemFile.GetPreviousDelta(editRev);
+                            DeltaRecord delta = itemFile.GetPreviousDelta(editRev);
                             if (delta != null)
                             {
-                                var curDeltaOps = delta.Operations;
+                                IEnumerable<DeltaOperation> curDeltaOps = delta.Operations;
                                 deltaOps = (deltaOps == null) ? curDeltaOps :
                                     DeltaUtil.Merge(deltaOps, curDeltaOps);
                             }

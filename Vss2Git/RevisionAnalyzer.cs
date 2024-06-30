@@ -106,7 +106,7 @@ namespace Hpdi.Vss2Git
                 logger.WriteSectionSeparator();
                 LogStatus(work, "Building revision list");
 
-                logger.WriteLine("Root project: {0}", project.Path);
+                logger.WriteLine("Root project: {0}", project.LogicalPath);
 
                 var stopwatch = Stopwatch.StartNew();
                 VssUtil.RecurseItems(project,
@@ -151,7 +151,7 @@ namespace Hpdi.Vss2Git
             {
                 foreach (VssRevision vssRevision in item.Revisions)
                 {
-                    var actionType = vssRevision.Action.Type;
+                    VssActionType actionType = vssRevision.Action.Type;
                     var namedAction = vssRevision.Action as VssNamedAction;
                     if (namedAction != null)
                     {
@@ -197,7 +197,7 @@ namespace Hpdi.Vss2Git
             }
             catch (RecordException e)
             {
-                var message = string.Format("Failed to read revisions for ({0}): {1}", item.PhysicalName, ExceptionFormatter.Format(e));
+                string message = string.Format("Failed to read revisions for ({0}): {1}", item.PhysicalName, ExceptionFormatter.Format(e));
                 LogException(e, message);
                 ReportError(message);
             }

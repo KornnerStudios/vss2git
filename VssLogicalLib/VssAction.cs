@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,25 +54,18 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS label action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssLabelAction : VssAction
+    public sealed class VssLabelAction : VssAction
     {
-        public override VssActionType Type { get { return VssActionType.Label; } }
+        public override VssActionType Type => VssActionType.Label;
 
-        private readonly string label;
-        public string Label
-        {
-            get { return label; }
-        }
+        public string Label { get; init; }
 
         public VssLabelAction(string label)
         {
-            this.label = label;
+            Label = label;
         }
 
-        public override string ToString()
-        {
-            return "Label " + label;
-        }
+        public override string ToString() => $"Label {Label}";
     }
 
     /// <summary>
@@ -81,15 +74,11 @@ namespace Hpdi.VssLogicalLib
     /// <author>Trevor Robinson</author>
     public abstract class VssNamedAction : VssAction
     {
-        protected readonly VssItemName name;
-        public VssItemName Name
-        {
-            get { return name; }
-        }
+        public VssItemName Name { get; init; }
 
         public VssNamedAction(VssItemName name)
         {
-            this.name = name;
+            Name = name;
         }
     }
 
@@ -97,348 +86,258 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project/file destroy action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssDestroyAction : VssNamedAction
+    public sealed class VssDestroyAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Destroy; } }
+        public override VssActionType Type => VssActionType.Destroy;
 
         public VssDestroyAction(VssItemName name)
             : base(name)
         {
         }
 
-        public override string ToString()
-        {
-            return string.Format("Destroy {0}", name);
-        }
+        public override string ToString() => $"Destroy {Name}";
     }
 
     /// <summary>
     /// Represents a VSS project/file create action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssCreateAction : VssNamedAction
+    public sealed class VssCreateAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Create; } }
+        public override VssActionType Type => VssActionType.Create;
 
         public VssCreateAction(VssItemName name)
             : base(name)
         {
         }
 
-        public override string ToString()
-        {
-            return string.Format("Create {0}", name);
-        }
+        public override string ToString() => $"Create {Name}";
     }
 
     /// <summary>
     /// Represents a VSS project/file add action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssAddAction : VssNamedAction
+    public sealed class VssAddAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Add; } }
+        public override VssActionType Type => VssActionType.Add;
 
         public VssAddAction(VssItemName name)
             : base(name)
         {
         }
 
-        public override string ToString()
-        {
-            return string.Format("Add {0}", name);
-        }
+        public override string ToString() => $"Add {Name}";
     }
 
     /// <summary>
     /// Represents a VSS project/file delete action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssDeleteAction : VssNamedAction
+    public sealed class VssDeleteAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Delete; } }
+        public override VssActionType Type => VssActionType.Delete;
 
         public VssDeleteAction(VssItemName name)
             : base(name)
         {
         }
 
-        public override string ToString()
-        {
-            return string.Format("Delete {0}", name);
-        }
+        public override string ToString() => $"Delete {Name}";
     }
 
     /// <summary>
     /// Represents a VSS project/file recover action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssRecoverAction : VssNamedAction
+    public sealed class VssRecoverAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Recover; } }
+        public override VssActionType Type => VssActionType.Recover;
 
         public VssRecoverAction(VssItemName name)
             : base(name)
         {
         }
 
-        public override string ToString()
-        {
-            return string.Format("Recover {0}", name);
-        }
+        public override string ToString() => $"Recover {Name}";
     }
 
     /// <summary>
     /// Represents a VSS project/file rename action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssRenameAction : VssNamedAction
+    public sealed class VssRenameAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Rename; } }
+        public override VssActionType Type => VssActionType.Rename;
 
-        private readonly string originalName;
-        public string OriginalName
-        {
-            get { return originalName; }
-        }
+        public string OriginalName { get; init; }
 
         public VssRenameAction(VssItemName name, string originalName)
             : base(name)
         {
-            this.originalName = originalName;
+            OriginalName = originalName;
         }
 
-        public override string ToString()
-        {
-            return string.Format("Rename {0} to {1}", originalName, Name);
-        }
+        public override string ToString() => $"Rename {OriginalName} to {Name}";
     }
 
     /// <summary>
     /// Represents a VSS project move-from action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssMoveFromAction : VssNamedAction
+    public sealed class VssMoveFromAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.MoveFrom; } }
+        public override VssActionType Type => VssActionType.MoveFrom;
 
-        private readonly string originalProject;
-        public string OriginalProject
-        {
-            get { return originalProject; }
-        }
+        public string OriginalProject { get; }
 
         public VssMoveFromAction(VssItemName name, string originalProject)
             : base(name)
         {
-            this.originalProject = originalProject;
+            OriginalProject = originalProject;
         }
 
-        public override string ToString()
-        {
-            return string.Format("Move {0} from {1}", Name, originalProject);
-        }
+        public override string ToString() => $"Move {Name} from {OriginalProject}";
     }
 
     /// <summary>
     /// Represents a VSS project move-to action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssMoveToAction : VssNamedAction
+    public sealed class VssMoveToAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.MoveTo; } }
+        public override VssActionType Type => VssActionType.MoveTo;
 
-        private readonly string newProject;
-        public string NewProject
-        {
-            get { return newProject; }
-        }
+        public string NewProject { get; }
 
         public VssMoveToAction(VssItemName name, string newProject)
             : base(name)
         {
-            this.newProject = newProject;
+            NewProject = newProject;
         }
 
-        public override string ToString()
-        {
-            return string.Format("Move {0} to {1}", Name, newProject);
-        }
+        public override string ToString() => $"Move {Name} to {NewProject}";
     }
 
     /// <summary>
     /// Represents a VSS file share action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssShareAction : VssNamedAction
+    public sealed class VssShareAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Share; } }
+        public override VssActionType Type => VssActionType.Share;
 
-        private readonly string originalProject;
-        public string OriginalProject
-        {
-            get { return originalProject; }
-        }
+        public string OriginalProject { get; }
 
-        private readonly bool pinned;
-        public bool Pinned
-        {
-          get { return pinned; }
-        }
-
-        private readonly int revision;
-        public int Revision
-        {
-          get { return revision; }
-        }
+        public bool Pinned { get; }
+        public int Revision { get; }
 
         public VssShareAction(VssItemName name, string originalProject, bool pinned, int revision)
             : base(name)
         {
-            this.originalProject = originalProject;
-            this.pinned = pinned;
-            this.revision = revision;
+            OriginalProject = originalProject;
+            Pinned = pinned;
+            Revision = revision;
         }
 
-        public override string ToString()
-        {
-          return string.Format("Share {0} from {1}, {2} at revision {3}", Name, originalProject, pinned ? "Pin" : "Unpin", revision);
-        }
+        public override string ToString() =>
+            $"Share {Name} from {OriginalProject}, {(Pinned ? "Pin" : "Unpin")} at revision {Revision}";
     }
 
     /// <summary>
     /// Represents a VSS file pin/unpin action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssPinAction : VssNamedAction
+    public sealed class VssPinAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Pin; } }
+        public override VssActionType Type => VssActionType.Pin;
 
-        private readonly bool pinned;
-        public bool Pinned
-        {
-            get { return pinned; }
-        }
-
-        private readonly int revision;
-        public int Revision
-        {
-            get { return revision; }
-        }
+        public bool Pinned { get; }
+        public int Revision { get; }
 
         public VssPinAction(VssItemName name, bool pinned, int revision)
             : base(name)
         {
-            this.pinned = pinned;
-            this.revision = revision;
+            Pinned = pinned;
+            Revision = revision;
         }
 
-        public override string ToString()
-        {
-            return string.Format("{0} {1} at revision {2}", pinned ? "Pin" : "Unpin", Name, revision);
-        }
+        public override string ToString() =>
+            $"{(Pinned ? "Pin" : "Unpin")} {Name} at revision {Revision}";
     }
 
     /// <summary>
     /// Represents a VSS file branch action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssBranchAction : VssNamedAction
+    public sealed class VssBranchAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Branch; } }
+        public override VssActionType Type => VssActionType.Branch;
 
-        private readonly VssItemName source;
-        public VssItemName Source
-        {
-            get { return source; }
-        }
+        public VssItemName Source { get; }
 
         public VssBranchAction(VssItemName name, VssItemName source)
             : base(name)
         {
-            this.source = source;
+            Source = source;
         }
 
-        public override string ToString()
-        {
-            return string.Format("Branch {0} from {1}", Name, source.PhysicalName);
-        }
+        public override string ToString() => $"Branch {Name} from {Source.PhysicalName}";
     }
 
     /// <summary>
     /// Represents a VSS file edit action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssEditAction : VssAction
+    public sealed class VssEditAction : VssAction
     {
-        public override VssActionType Type { get { return VssActionType.Edit; } }
+        public override VssActionType Type => VssActionType.Edit;
 
-        private readonly string physicalName;
-        public string PhysicalName
-        {
-            get { return physicalName; }
-        }
+        public string PhysicalName { get; }
 
         public VssEditAction(string physicalName)
         {
-            this.physicalName = physicalName;
+            PhysicalName = physicalName;
         }
 
-        public override string ToString()
-        {
-            return "Edit " + physicalName;
-        }
+        public override string ToString() => $"Edit {PhysicalName}";
     }
 
     /// <summary>
     /// Represents a VSS archive action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssArchiveAction : VssNamedAction
+    public sealed class VssArchiveAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Archive; } }
+        public override VssActionType Type => VssActionType.Archive;
 
-        private readonly string archivePath;
-        public string ArchivePath
-        {
-            get { return archivePath; }
-        }
+        public string ArchivePath { get; }
 
         public VssArchiveAction(VssItemName name, string archivePath)
             : base(name)
         {
-            this.archivePath = archivePath;
+            ArchivePath = archivePath;
         }
 
-        public override string ToString()
-        {
-            return string.Format("Archive {0} to {1}", Name, archivePath);
-        }
+        public override string ToString() => $"Archive {Name} to {ArchivePath}";
     }
 
     /// <summary>
     /// Represents a VSS restore from archive action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssRestoreAction : VssNamedAction
+    public sealed class VssRestoreAction : VssNamedAction
     {
-        public override VssActionType Type { get { return VssActionType.Restore; } }
+        public override VssActionType Type => VssActionType.Restore;
 
-        private readonly string archivePath;
-        public string ArchivePath
-        {
-            get { return archivePath; }
-        }
+        public string ArchivePath { get; }
 
         public VssRestoreAction(VssItemName name, string archivePath)
             : base(name)
         {
-            this.archivePath = archivePath;
+            this.ArchivePath = archivePath;
         }
 
-        public override string ToString()
-        {
-            return string.Format("Restore {0} from archive {1}", Name, archivePath);
-        }
+        public override string ToString() => $"Restore {Name} from archive {ArchivePath}";
     }
 }

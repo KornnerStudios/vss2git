@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,47 +19,33 @@ namespace Hpdi.VssLogicalLib
     /// Represents the name of a VSS item.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class VssItemName
+    public sealed class VssItemName
     {
-        private readonly string logicalName;
-        private readonly string physicalName;
-        private readonly bool isProject;
 
         /// <summary>
         /// The current logical name of the item.
         /// Note that the logical name can change over the history of the item.
         /// </summary>
-        public string LogicalName
-        {
-            get { return logicalName; }
-        }
+        public string LogicalName { get; }
 
         /// <summary>
         /// The physical name of the item (e.g. AAAAAAAA). This name never changes.
         /// </summary>
-        public string PhysicalName
-        {
-            get { return physicalName; }
-        }
+        public string PhysicalName { get; }
 
         /// <summary>
         /// Indicates whether this item is a project or a file.
         /// </summary>
-        public bool IsProject
-        {
-            get { return isProject; }
-        }
+        public bool IsProject { get; }
 
         internal VssItemName(string logicalName, string physicalName, bool isProject)
         {
-            this.logicalName = logicalName;
-            this.physicalName = physicalName;
-            this.isProject = isProject;
+            LogicalName = logicalName;
+            PhysicalName = physicalName;
+            IsProject = isProject;
         }
 
-        public override string ToString()
-        {
-            return (isProject ? "$" : "") + logicalName + "(" + physicalName + ")";
-        }
+        public override string ToString() =>
+            $"{(IsProject ? "$" : "")}{LogicalName}({PhysicalName})";
     }
 }

@@ -24,22 +24,17 @@ namespace Hpdi.VssPhysicalLib
     public abstract class VssRecord
     {
         public abstract string Signature { get; }
-
-        protected RecordHeader header;
-        public RecordHeader Header
-        {
-            get { return header; }
-        }
+        public RecordHeader Header { get; private set; }
 
         public virtual void Read(BufferReader reader, RecordHeader header)
         {
-            this.header = header;
+            Header = header;
         }
 
         public abstract void Dump(TextWriter writer, int indent);
 
-        private static string[] CommonIndentStrings = new string[]
-        {
+        private static readonly string[] CommonIndentStrings =
+        [
             "",
             new string('\t', 1),
             new string('\t', 2),
@@ -51,7 +46,7 @@ namespace Hpdi.VssPhysicalLib
             new string('\t', 8),
             new string('\t', 9),
             new string('\t', 10),
-        };
+        ];
         public static string DumpGetIndentString(int indent)
         {
             if (indent < CommonIndentStrings.Length)

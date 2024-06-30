@@ -319,13 +319,13 @@ namespace Hpdi.Vss2Git
 
         private void WriteInternal(string value)
         {
-            var bytes = encoding.GetBytes(value);
+            byte[] bytes = encoding.GetBytes(value);
             baseStream.Write(bytes, 0, bytes.Length);
         }
 
         private void WriteInternal(char[] buffer, int index, int count)
         {
-            var bytes = encoding.GetBytes(buffer, index, count);
+            byte[] bytes = encoding.GetBytes(buffer, index, count);
             baseStream.Write(bytes, 0, bytes.Length);
         }
     }

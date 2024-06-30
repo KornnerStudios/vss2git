@@ -48,7 +48,7 @@ namespace Hpdi.Vss2Git
             else
             {
                 int count = 0;
-                foreach (var item in items)
+                foreach (object item in items)
                 {
                     ++count;
                 }
@@ -60,7 +60,7 @@ namespace Hpdi.Vss2Git
 
         public static IEnumerable<T> Transform<F, T>(IEnumerable<F> items, TransformFunction<F, T> func)
         {
-            foreach (var item in items)
+            foreach (F item in items)
             {
                 yield return func(item);
             }
@@ -75,8 +75,8 @@ namespace Hpdi.Vss2Git
 
         public static void Join(StringBuilder buf, string separator, IEnumerable items)
         {
-            var first = true;
-            foreach (var item in items)
+            bool first = true;
+            foreach (object item in items)
             {
                 if (!first)
                 {

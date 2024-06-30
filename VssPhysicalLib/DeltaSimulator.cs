@@ -1,11 +1,11 @@
 ﻿/* Copyright 2009 HPDI, LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,27 +25,19 @@ namespace Hpdi.VssPhysicalLib
     /// Simulates stream-like traversal over a set of revision delta operations.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    class DeltaSimulator : IDisposable
+    sealed class DeltaSimulator : IDisposable
     {
-        private readonly IEnumerable<DeltaOperation> operations;
         private IEnumerator<DeltaOperation> enumerator;
         private int operationOffset;
-        private int fileOffset;
         private bool eof;
 
-        public IEnumerable<DeltaOperation> Operations
-        {
-            get { return operations; }
-        } 
+        public IEnumerable<DeltaOperation> Operations { get; }
 
-        public int Offset
-        {
-            get { return fileOffset; }
-        }
+        public int FileOffset { get; private set; }
 
         public DeltaSimulator(IEnumerable<DeltaOperation> operations)
         {
-            this.operations = operations;
+            this.Operations = operations;
             Reset();
         }
 
@@ -60,24 +52,24 @@ namespace Hpdi.VssPhysicalLib
 
         public void Seek(int offset)
         {
-            if (offset != fileOffset)
+            if (offset != FileOffset)
             {
-                if (offset < fileOffset)
+                if (offset < FileOffset)
                 {
                     Reset();
                 }
-                while (fileOffset < offset && !eof)
+                while (FileOffset < offset && !eof)
                 {
-                    var seekRemaining = offset - fileOffset;
-                    var operationRemaining = enumerator.Current.Length - operationOffset;
+                    int seekRemaining = offset - FileOffset;
+                    int operationRemaining = enumerator.Current.Length - operationOffset;
                     if (seekRemaining < operationRemaining)
                     {
                         operationOffset += seekRemaining;
-                        fileOffset += seekRemaining;
+                        FileOffset += seekRemaining;
                     }
                     else
                     {
-                        fileOffset += operationRemaining;
+                        FileOffset += operationRemaining;
                         eof = !enumerator.MoveNext();
                         operationOffset = 0;
                     }
@@ -89,9 +81,9 @@ namespace Hpdi.VssPhysicalLib
         {
             while (length > 0 && !eof)
             {
-                var operation = enumerator.Current;
-                var operationRemaining = operation.Length - operationOffset;
-                var count = Math.Min(length, operationRemaining);
+                DeltaOperation operation = enumerator.Current;
+                int operationRemaining = operation.Length - operationOffset;
+                int count = Math.Min(length, operationRemaining);
                 int bytesRead;
                 if (operation.Command == DeltaCommand.WriteLog)
                 {
@@ -106,7 +98,7 @@ namespace Hpdi.VssPhysicalLib
                     break;
                 }
                 operationOffset += bytesRead;
-                fileOffset += bytesRead;
+                FileOffset += bytesRead;
                 if (length >= operationRemaining)
                 {
                     eof = !enumerator.MoveNext();
@@ -118,14 +110,11 @@ namespace Hpdi.VssPhysicalLib
 
         private void Reset()
         {
-            if (enumerator != null)
-            {
-                enumerator.Dispose();
-            }
-            enumerator = operations.GetEnumerator();
+            enumerator?.Dispose();
+            enumerator = Operations.GetEnumerator();
             eof = !enumerator.MoveNext();
             operationOffset = 0;
-            fileOffset = 0;
+            FileOffset = 0;
         }
     }
 }

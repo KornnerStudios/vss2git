@@ -45,10 +45,10 @@ namespace Hpdi.Vss2Git.GitActions
             {
                 // workaround for case-only renames on case-insensitive file systems:
 
-                var sourceDir = Path.GetDirectoryName(sourcePath);
-                var sourceFile = Path.GetFileName(sourcePath);
-                var destDir = Path.GetDirectoryName(destPath);
-                var destFile = Path.GetFileName(destPath);
+                string sourceDir = Path.GetDirectoryName(sourcePath);
+                string sourceFile = Path.GetFileName(sourcePath);
+                string destDir = Path.GetDirectoryName(destPath);
+                string destFile = Path.GetFileName(destPath);
 
                 if (sourceDir != destDir)
                 {
@@ -62,7 +62,7 @@ namespace Hpdi.Vss2Git.GitActions
                 if (sourceFile != destFile)
                 {
                     // use temporary filename to rename files that differ in case
-                    var tempPath = sourcePath + ".mvtmp";
+                    string tempPath = sourcePath + ".mvtmp";
                     CaseSensitiveRename(sourcePath, tempPath, renamer);
                     CaseSensitiveRename(tempPath, destPath, renamer);
                 }

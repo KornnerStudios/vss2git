@@ -24,17 +24,13 @@ namespace Hpdi.VssPhysicalLib
     /// <author>Trevor Robinson</author>
     public class VssRecordFile
     {
-        private readonly string filename;
         protected readonly BufferReader reader;
 
-        public string Filename
-        {
-            get { return filename; }
-        }
+        public string Filename { get; }
 
         public VssRecordFile(string filename, Encoding encoding)
         {
-            this.filename = filename;
+            Filename = filename;
             reader = new BufferReader(encoding, ReadFile(filename), filename);
         }
 
@@ -42,7 +38,7 @@ namespace Hpdi.VssPhysicalLib
         {
             try
             {
-                RecordHeader recordHeader = new RecordHeader();
+                RecordHeader recordHeader = new();
                 recordHeader.Read(reader);
 
                 BufferReader recordReader = reader.Extract(recordHeader.Length);
@@ -75,7 +71,7 @@ namespace Hpdi.VssPhysicalLib
             {
                 try
                 {
-                    RecordHeader recordHeader = new RecordHeader();
+                    RecordHeader recordHeader = new();
                     recordHeader.Read(reader);
 
                     BufferReader recordReader = reader.Extract(recordHeader.Length);
@@ -108,7 +104,7 @@ namespace Hpdi.VssPhysicalLib
             bool ignoreUnknown)
             where T : VssRecord
         {
-            RecordHeader recordHeader = new RecordHeader();
+            RecordHeader recordHeader = new();
             recordHeader.Read(reader);
 
             BufferReader recordReader = reader.Extract(recordHeader.Length);
