@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <PlatformName>windows</PlatformName>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>Hpdi.Vss2Git</RootNamespace>
     <ApplicationIcon>Vss2Git.ico</ApplicationIcon>
     <PublishUrl>publish\</PublishUrl>
