@@ -23,15 +23,15 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using Hpdi.VssLogicalLib;
+using Hpdi.VssPhysicalLib;
 
 namespace Hpdi.Vss2Git
 {
-    partial
-        /// <summary>
-        /// Replays and commits changesets into a new repository.
-        /// </summary>
-        /// <author>Trevor Robinson</author>
-        class GitExporter : Worker, IGitStatistic
+    /// <summary>
+    /// Replays and commits changesets into a new repository.
+    /// </summary>
+    /// <author>Trevor Robinson</author>
+    sealed partial class GitExporter : Worker, IGitStatistic
     {
         private readonly VssDatabase database;
         private readonly RevisionAnalyzer revisionAnalyzer;
@@ -117,6 +117,7 @@ namespace Hpdi.Vss2Git
                 {
                     while (!git.FindExecutable())
                     {
+                        // #TODO WinForms - this isn't CLI-ready
                         DialogResult button = MessageBox.Show("Git not found in PATH. " +
                             "If you need to modify your PATH variable, please " +
                             "restart the program for the changes to take effect.",
@@ -147,6 +148,23 @@ namespace Hpdi.Vss2Git
                     // root must be repo path here - the path mapper uses paths relative to this one
                     string rootPath = git.GetRepoPath();
                     pathMapper.SetProjectPath(rootProject.PhysicalName, rootPath, rootProject.LogicalPath);
+                }
+
+                if (DryRun)
+                {
+                    float meaningfulCommentPercentage = changesetBuilder.ChangesetsWithMeaningfulComments.Count / (float)changesetBuilder.Changesets.Count;
+                    meaningfulCommentPercentage *= 100.0f;
+
+                    logger.WriteLine($"Changesets with meaningful comments ({meaningfulCommentPercentage}%):");
+                    foreach (Changeset changeset in changesetBuilder.ChangesetsWithMeaningfulComments)
+                    {
+                        logger.WriteLine($"\tChangeset {changeset.Id} {changeset.DateTime} {changeset.User}");
+                        foreach (string commentLine in changeset.Comment)
+                        {
+                            logger.WriteLine($"\t\t{commentLine}");
+                        }
+                    }
+                    logger.Flush();
                 }
 
                 // replay each changeset
@@ -250,6 +268,8 @@ namespace Hpdi.Vss2Git
 
         private void ReplayRevision(VssPathMapper pathMapper, Changeset changeset, Revision revision, ref Dictionary<string, GitActions.Commit> pendingCommits)
         {
+            string indentStr = VssRecord.DumpGetIndentString(1);
+
             VssActionType actionType = revision.Action.Type;
             if (revision.Item.IsProject)
             {
@@ -276,6 +296,7 @@ namespace Hpdi.Vss2Git
 
                     if (null != target)
                     {
+                        logger.Write(indentStr);
                         logger.WriteLine("{0}: {1} {2}", revision.Item.ToString(), actionType, target.LogicalName);
                         pathMapper.CreateItem(project);
                         projectLogicalPath = pathMapper.GetProjectLogicalPath(project.PhysicalName);
@@ -317,6 +338,7 @@ namespace Hpdi.Vss2Git
 
                         if (string.IsNullOrEmpty(labelName))
                         {
+                            logger.Write(indentStr);
                             logger.WriteLine("NOTE: Ignoring empty label");
                         }
                         else if (ShouldLogicalPathBeIncluded(pathMapper, true, projectLogicalPath))
@@ -343,6 +365,7 @@ namespace Hpdi.Vss2Git
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
+                        logger.Write(indentStr);
                         logger.WriteLine("{0}: {1} {2}", projectDesc, actionType, target.LogicalName);
 
                         itemInfo = pathMapper.AddItem(project, target, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
@@ -361,6 +384,7 @@ namespace Hpdi.Vss2Git
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
+                        logger.Write(indentStr);
                         if (shareAction.Pinned)
                         {
                             logger.WriteLine($"{projectDesc}: {actionType} {target.LogicalName}, Pin {shareAction.Revision}");
@@ -384,6 +408,7 @@ namespace Hpdi.Vss2Git
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
+                        logger.Write(indentStr);
                         logger.WriteLine($"{projectDesc}: {actionType} {target.LogicalName}");
 
                         itemInfo = pathMapper.RecoverItem(project, target, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
@@ -400,6 +425,7 @@ namespace Hpdi.Vss2Git
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
+                        logger.Write(indentStr);
                         logger.WriteLine($"{projectDesc}: {actionType} {target.LogicalName}");
 
                         itemInfo = pathMapper.DeleteItem(project, target, (VssActionType.Destroy == actionType));
@@ -422,6 +448,7 @@ namespace Hpdi.Vss2Git
                                     }
                                     else
                                     {
+                                        logger.Write(indentStr);
                                         logger.WriteLine("NOTE: Skipping move to because {0} in project {1} is destroyed",
                                             target.LogicalName, VssPathMapper.LogicalPathToString(projectLogicalPath));
                                     }
@@ -437,6 +464,7 @@ namespace Hpdi.Vss2Git
                                         // that this is not the case before deleting the file
                                         if (VssActionType.Destroy != actionType && pathMapper.ProjectContainsLogicalName(project, target))
                                         {
+                                            logger.Write(indentStr);
                                             logger.WriteLine("NOTE: {0} contains another file named {1}; not deleting file",
                                                 projectDesc, target.LogicalName);
                                         }
@@ -449,6 +477,7 @@ namespace Hpdi.Vss2Git
                                     }
                                     else
                                     {
+                                        logger.Write(indentStr);
                                         logger.WriteLine("NOTE: Skipping move to because {0} in project {1} is destroyed",
                                             target.LogicalName, VssPathMapper.LogicalPathToString(projectLogicalPath));
                                     }
@@ -467,6 +496,7 @@ namespace Hpdi.Vss2Git
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
+                        logger.Write(indentStr);
                         logger.WriteLine($"{projectDesc}: {actionType} {renameAction.OriginalName} to {target.LogicalName}");
 
                         itemInfo = pathMapper.RenameItem(target);
@@ -520,6 +550,7 @@ namespace Hpdi.Vss2Git
                                 }
                                 else
                                 {
+                                    logger.Write(indentStr);
                                     logger.WriteLine("NOTE: Skipping move to because {0} in project {1} is destroyed",
                                         target.LogicalName, VssPathMapper.LogicalPathToString(projectLogicalPath));
                                 }
@@ -543,6 +574,7 @@ namespace Hpdi.Vss2Git
 
                         string targetLogicalPathAsString = VssPathMapper.LogicalPathToString(targetLogicalPath);
 
+                        logger.Write(indentStr);
                         logger.WriteLine($"{projectDesc}: Move from {moveFromAction.OriginalProject} to {targetLogicalPathAsString}");
 
                         if (pathMapper.IsProjectRooted(moveFromAction.Name.PhysicalName))
@@ -592,6 +624,7 @@ namespace Hpdi.Vss2Git
                             }
                             else if (null != projectLogicalPath && projectInfo.Destroyed)
                             {
+                                logger.Write(indentStr);
                                 logger.WriteLine("NOTE: Skipping move to because {0} is destroyed",
                                     VssPathMapper.LogicalPathToString(projectLogicalPath));
                             }
@@ -604,6 +637,7 @@ namespace Hpdi.Vss2Git
 
                             if (!destroyed)
                             {
+                                logger.Write(indentStr);
                                 logger.WriteLine("NOTE: Moving unmapped project {0} from {1} to {2}",
                                     target.LogicalName, moveFromAction.OriginalProject, VssPathMapper.LogicalPathToString(projectLogicalPath));
 
@@ -614,6 +648,7 @@ namespace Hpdi.Vss2Git
                             }
                             else
                             {
+                                logger.Write(indentStr);
                                 logger.WriteLine("NOTE: Skipping move to because {0} in project {1} is destroyed",
                                     target.LogicalName, VssPathMapper.LogicalPathToString(projectLogicalPath));
                             }
@@ -660,6 +695,8 @@ namespace Hpdi.Vss2Git
 
                         bool destroyed = revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName);
                         var pinAction = (VssPinAction)revision.Action;
+
+                        logger.Write(indentStr);
                         if (pinAction.Pinned)
                         {
                             logger.WriteLine($"{projectDesc}: Pin {target.LogicalName}");
@@ -684,6 +721,7 @@ namespace Hpdi.Vss2Git
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
                         var branchAction = (VssBranchAction)revision.Action;
+                        logger.Write(indentStr);
                         logger.WriteLine($"{projectDesc}: {actionType} {target.LogicalName}");
 
                         itemInfo = pathMapper.BranchFile(project, target, branchAction.Source, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
@@ -700,6 +738,7 @@ namespace Hpdi.Vss2Git
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
                         var archiveAction = (VssArchiveAction)revision.Action;
+                        logger.Write(indentStr);
                         logger.WriteLine($"{projectDesc}: Archive {target.LogicalName} to {archiveAction.ArchivePath} (ignored)");
 
                         break;
@@ -713,6 +752,7 @@ namespace Hpdi.Vss2Git
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
                         var restoreAction = (VssRestoreAction)revision.Action;
+                        logger.Write(indentStr);
                         logger.WriteLine($"{projectDesc}: Restore {target.LogicalName} from archive {restoreAction.ArchivePath}");
 
                         itemInfo = pathMapper.AddItem(project, target, revisionAnalyzer.IsDestroyed(project.PhysicalName, target.PhysicalName));
@@ -743,6 +783,7 @@ namespace Hpdi.Vss2Git
                                 else
                                 {
                                     string targetLogicalPathAsString = VssPathMapper.WorkDirPathToString(targetLogicalPath);
+                                    logger.Write(indentStr);
                                     logger.WriteLine($"NOTE: Skipping destroyed project: {targetLogicalPathAsString}");
                                 }
                             }
@@ -769,6 +810,7 @@ namespace Hpdi.Vss2Git
 
                             if (DryRun)
                             {
+                                logger.Write(indentStr);
                                 logger.WriteLine($"{projectDesc}: Creating subdirectory {projectInfo.LogicalName}");
                             }
 
@@ -795,6 +837,7 @@ namespace Hpdi.Vss2Git
 
                                 if (DryRun)
                                 {
+                                    logger.Write(indentStr);
                                     logger.WriteLine($"{targetWorkDirPathAsString}: {actionType} revision {fileInfo.Version}");
                                 }
 
@@ -821,6 +864,7 @@ namespace Hpdi.Vss2Git
 
                                 if (DryRun)
                                 {
+                                    logger.Write(indentStr);
                                     logger.WriteLine($"{targetWorkDirPathAsString}: {actionType} revision {version}");
                                 }
 
@@ -828,6 +872,7 @@ namespace Hpdi.Vss2Git
                             }
                             else
                             {
+                                logger.Write(indentStr);
                                 logger.WriteLine($"NOTE: Skipping destroyed file: {targetLogicalPathAsString}");
                             }
                         }
@@ -862,6 +907,7 @@ namespace Hpdi.Vss2Git
 
                     if (DryRun)
                     {
+                        logger.Write(indentStr);
                         logger.WriteLine($"{targetWorkDirPathAsString}: {actionType} revision {revision.Version}");
                     }
 
@@ -899,6 +945,7 @@ namespace Hpdi.Vss2Git
                     {
                         if (DryRun)
                         {
+                            logger.Write(VssRecord.DumpGetIndentString(1));
                             logger.WriteLine($"Excluding project {path}");
                         }
                         excludedProjects.Add(path);
@@ -907,6 +954,7 @@ namespace Hpdi.Vss2Git
                     {
                         if (DryRun)
                         {
+                            logger.Write(VssRecord.DumpGetIndentString(1));
                             logger.WriteLine($"Excluding file {path}");
                         }
                         excludedFiles.Add(path);
@@ -933,6 +981,7 @@ namespace Hpdi.Vss2Git
             {
                 projectDesc = revision.Item.ToString();
 
+                logger.Write(VssRecord.DumpGetIndentString(1));
                 logger.WriteLine($"NOTE: {project.LogicalName} is currently unmapped");
             }
 
@@ -1000,14 +1049,17 @@ namespace Hpdi.Vss2Git
 
         private bool RetryCancel(ThreadStart work)
         {
+            // #TODO WinForms - this isn't CLI-ready
             return AbortRetryIgnore(work, MessageBoxButtons.RetryCancel);
         }
 
         private bool AbortRetryIgnore(ThreadStart work)
         {
+            // #TODO WinForms - this isn't CLI-ready
             return AbortRetryIgnore(work, MessageBoxButtons.AbortRetryIgnore);
         }
 
+        // #TODO WinForms - this isn't CLI-ready
         private bool AbortRetryIgnore(ThreadStart work, MessageBoxButtons buttons)
         {
             bool retry;
@@ -1030,6 +1082,7 @@ namespace Hpdi.Vss2Git
                         continue;
                     }
 
+                    // #TODO WinForms - this isn't CLI-ready
                     DialogResult button = MessageBox.Show(message, "Error", buttons, MessageBoxIcon.Error);
                     switch (button)
                     {

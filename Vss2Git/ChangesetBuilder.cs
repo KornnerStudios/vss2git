@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Hpdi.VssLogicalLib;
+using Hpdi.VssPhysicalLib;
 
 namespace Hpdi.Vss2Git
 {
@@ -29,7 +30,8 @@ namespace Hpdi.Vss2Git
     {
         private readonly RevisionAnalyzer revisionAnalyzer;
 
-        public List<Changeset> Changesets { get; } = new();
+        public List<Changeset> Changesets { get; } = [];
+        public List<Changeset> ChangesetsWithMeaningfulComments { get; } = [];
         public TimeSpan AnyCommentThreshold { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan SameCommentThreshold { get; set; } = TimeSpan.FromMinutes(10);
 
@@ -236,7 +238,7 @@ namespace Hpdi.Vss2Git
 
         private void DumpChangeset(Changeset changeset, int changesetId, int indent, string reason)
         {
-            string indentStr = new('\t', indent);
+            string indentStr = VssRecord.DumpGetIndentString(indent);
 
             DateTime firstRevTime = changeset.Revisions.First().DateTime;
             TimeSpan changeDuration = changeset.DateTime - firstRevTime;
@@ -244,6 +246,11 @@ namespace Hpdi.Vss2Git
             logger.WriteLine("{0}Changeset {1} - {2} ({3} secs) {4} {5} file(s)",
                 indentStr, changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime), changeDuration.TotalSeconds,
                 changeset.User, changeset.Revisions.Count);
+
+            if (changeset.Comment.Count > 0)
+            {
+                ChangesetsWithMeaningfulComments.Add(changeset);
+            }
 
             foreach (string line in changeset.Comment)
             {
