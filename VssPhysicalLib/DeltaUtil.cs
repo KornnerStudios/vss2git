@@ -28,7 +28,7 @@ namespace Hpdi.VssPhysicalLib
             IEnumerable<DeltaOperation> lastRevision,
             IEnumerable<DeltaOperation> priorRevision)
         {
-            var result = new LinkedList<DeltaOperation>();
+            var result = new List<DeltaOperation>();
             using (var merger = new DeltaSimulator(lastRevision))
             {
                 foreach (DeltaOperation operation in priorRevision)
@@ -37,7 +37,7 @@ namespace Hpdi.VssPhysicalLib
                     {
                         case DeltaCommand.WriteLog:
                         {
-                            result.AddLast(operation);
+                            result.Add(operation);
                             break;
                         }
                         case DeltaCommand.WriteSuccessor:
@@ -46,12 +46,12 @@ namespace Hpdi.VssPhysicalLib
                             merger.Read(operation.Length,
                                 delegate (byte[] data, int offset, int count)
                                 {
-                                    result.AddLast(DeltaOperation.WriteLog(data, offset, count));
+                                    result.Add(DeltaOperation.WriteLog(data, offset, count));
                                     return count;
                                 },
                                 delegate (int offset, int count)
                                 {
-                                    result.AddLast(DeltaOperation.WriteSuccessor(offset, count));
+                                    result.Add(DeltaOperation.WriteSuccessor(offset, count));
                                     return count;
                                 });
                             break;

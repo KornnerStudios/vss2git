@@ -141,8 +141,10 @@ namespace Hpdi.VssPhysicalLib
             return null;
         }
 
+        [System.Obsolete("Currently unused")]
         public ICollection<string> GetProjects()
         {
+            // #TODO: change this to regular List then do a reverse for the result
             var result = new LinkedList<string>();
             if (Header is FileHeaderRecord fileHeader)
             {

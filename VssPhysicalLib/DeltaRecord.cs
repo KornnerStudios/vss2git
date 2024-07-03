@@ -26,7 +26,7 @@ namespace Hpdi.VssPhysicalLib
     {
         public const string SIGNATURE = "FD";
 
-        private readonly LinkedList<DeltaOperation> operations = new();
+        private readonly List<DeltaOperation> operations = [];
 
         public override string Signature => SIGNATURE;
         public IEnumerable<DeltaOperation> Operations => operations;
@@ -38,7 +38,9 @@ namespace Hpdi.VssPhysicalLib
 
             int dataStartOffset = header.Offset + RecordHeader.LENGTH;
             int dataEndOffset = dataStartOffset + header.Length;
+#if DEBUG
             bool encounteredStop = false;
+#endif // DEBUG
 
             for (int offset = reader.Offset; offset < dataEndOffset; offset = reader.Offset)
             {
@@ -46,10 +48,12 @@ namespace Hpdi.VssPhysicalLib
                 operation.Read(reader);
                 if (operation.Command == DeltaCommand.Stop)
                 {
+#if DEBUG
                     encounteredStop = true;
+#endif // DEBUG
                     break;
                 }
-                operations.AddLast(operation);
+                operations.Add(operation);
             }
 
 #if DEBUG

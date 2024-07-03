@@ -14,7 +14,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using Hpdi.VssLogicalLib;
 
 namespace Hpdi.Vss2Git
@@ -23,6 +22,7 @@ namespace Hpdi.Vss2Git
     /// Represents a single revision to a file or directory.
     /// </summary>
     /// <author>Trevor Robinson</author>
+    [System.Diagnostics.DebuggerDisplay("{DateTime} {Action} {Item}")]
     sealed class Revision
     {
         public DateTime DateTime { get; }

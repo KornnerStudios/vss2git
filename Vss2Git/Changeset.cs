@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+using Hpdi.VssLogicalLib;
 using System;
 using System.Collections.Generic;
 
@@ -22,13 +23,37 @@ namespace Hpdi.Vss2Git
     /// Represents a set of revisions made by a particular person at a particular time.
     /// </summary>
     /// <author>Trevor Robinson</author>
+    [System.Diagnostics.DebuggerDisplay("{Id} {DateTime} {User} {Revisions.Count} {TargetFiles.Count}")]
     sealed class Changeset
     {
         public int Id { get; set; } = 0;
         public DateTime DateTime { get; set; }
         public string User { get; set; }
-        public List<string> Comment { get; set; } = new List<string>();
-        public List<Revision> Revisions { get; } = new List<Revision>();
-        public HashSet<string> TargetFiles { get; } = new HashSet<string>();
-    }
+        public List<string> Comment { get; set; } = [];
+        public List<Revision> Revisions { get; } = [];
+        public HashSet<string> TargetFiles { get; } = [];
+#if DEBUG
+        // I added this mainly for my own tracing purposes, for debugging Hpdi.Vss2Git.ChangesetBuilder.BuildChangesets
+        private Dictionary<string, List<VssActionType>> TargetFileActions { get; } = [];
+#endif // DEBUG
+
+        public void AddTargetFile(string targetFile, VssActionType actionType)
+        {
+            if (TargetFiles.Add(targetFile))
+#if DEBUG
+            {
+                TargetFileActions[targetFile] = [];
+            }
+            TargetFileActions[targetFile].Add(actionType);
+#else // !DEBUG
+            {
+            }
+#endif // DEBUG
+        }
+
+        public bool ContainsTargetFile(string targetFile)
+        {
+            return TargetFiles.Contains(targetFile);
+        }
+    };
 }

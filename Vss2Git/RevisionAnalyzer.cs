@@ -30,7 +30,7 @@ namespace Hpdi.Vss2Git
     {
         public VssDatabase Database { get; }
 
-        private readonly LinkedList<VssProject> rootProjects = [];
+        private readonly List<VssProject> rootProjects = [];
         public IEnumerable<VssProject> RootProjects => rootProjects;
 
         public SortedDictionary<DateTime, ICollection<Revision>> SortedRevisions { get; } = [];
@@ -68,7 +68,7 @@ namespace Hpdi.Vss2Git
                 throw new ArgumentException("Project database mismatch", nameof(project));
             }
 
-            rootProjects.AddLast(project);
+            rootProjects.Add(project);
 
             workQueue.AddLast(delegate(object work)
             {

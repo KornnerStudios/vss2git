@@ -37,72 +37,73 @@ namespace Hpdi.VssDump
 
             bool invalidArg = false;
             int argIndex = 0;
-            while (argIndex < args.Length && args[argIndex].StartsWith("/"))
+            while (argIndex < args.Length && args[argIndex].StartsWith('/'))
             {
                 string[] option = args[argIndex].Substring(1).Split(':');
                 switch (option[0])
                 {
                     case "encoding":
+                    {
+                        string encodingName;
+                        if (option.Length > 1)
                         {
-                            string encodingName;
-                            if (option.Length > 1)
+                            encodingName = option[1];
+                        }
+                        else if (argIndex + 1 < args.Length)
+                        {
+                            encodingName = args[++argIndex];
+                        }
+                        else
+                        {
+                            invalidArg = true;
+                            goto InvalidArg;
+                        }
+
+                        Encoding encoding;
+                        try
+                        {
+                            int codePage;
+                            if (int.TryParse(encodingName, out codePage))
                             {
-                                encodingName = option[1];
-                            }
-                            else if (argIndex + 1 < args.Length)
-                            {
-                                encodingName = args[++argIndex];
+                                encoding = Encoding.GetEncoding(codePage);
                             }
                             else
                             {
-                                invalidArg = true;
-                                goto InvalidArg;
+                                encoding = Encoding.GetEncoding(encodingName);
                             }
-
-                            Encoding encoding;
-                            try
-                            {
-                                int codePage;
-                                if (int.TryParse(encodingName, out codePage))
-                                {
-                                    encoding = Encoding.GetEncoding(codePage);
-                                }
-                                else
-                                {
-                                    encoding = Encoding.GetEncoding(encodingName);
-                                }
-                            }
-                            catch
-                            {
-                                Console.WriteLine("Invalid encoding: {0}", encodingName);
-                                invalidArg = true;
-                                goto InvalidArg;
-                            }
-
-                            Console.OutputEncoding = encoding;
-                            break;
                         }
+                        catch
+                        {
+                            Console.WriteLine("Invalid encoding: {0}", encodingName);
+                            invalidArg = true;
+                            goto InvalidArg;
+                        }
+
+                        Console.OutputEncoding = encoding;
+
+                        break;
+                    }
 
                     case "encodings":
-                        {
+                    {
                         EncodingInfo[] encodings = Encoding.GetEncodings();
-                            Console.WriteLine("{0,-6} {1,-25} {2}", "CP", "IANA", "Description");
-                            foreach (EncodingInfo encoding in encodings)
-                            {
+                        Console.WriteLine("{0,-6} {1,-25} {2}", "CP", "IANA", "Description");
+                        foreach (EncodingInfo encoding in encodings)
+                        {
                             int codePage = encoding.CodePage;
-                                switch (codePage)
-                                {
-                                    case 1200:
-                                    case 1201:
-                                    case 12000:
-                                    case 12001:
-                                        // UTF-16 and 32 are managed-only
-                                        continue;
-                                }
-                                Console.WriteLine("{0,-6} {1,-25} {2}", codePage, encoding.Name, encoding.DisplayName);
+                            switch (codePage)
+                            {
+                                case 1200:
+                                case 1201:
+                                case 12000:
+                                case 12001:
+                                    // UTF-16 and 32 are managed-only
+                                    continue;
                             }
-                            return;
+                            Console.WriteLine("{0,-6} {1,-25} {2}", codePage, encoding.Name, encoding.DisplayName);
                         }
+                        return;
+                    }
                 }
                 ++argIndex;
             }
@@ -154,12 +155,12 @@ namespace Hpdi.VssDump
             Console.WriteLine("File actions: {0}", FormatCollection(fileActions));
         }
 
-        private static HashSet<Hpdi.VssPhysicalLib.Action> projectActions = new HashSet<Hpdi.VssPhysicalLib.Action>();
-        private static HashSet<Hpdi.VssPhysicalLib.Action> fileActions = new HashSet<Hpdi.VssPhysicalLib.Action>();
+        private static HashSet<VssPhysicalLib.Action> projectActions = [];
+        private static HashSet<VssPhysicalLib.Action> fileActions = [];
 
         private static string FormatCollection(IEnumerable collection)
         {
-            StringBuilder buf = new StringBuilder();
+            StringBuilder buf = new();
             foreach (object item in collection)
             {
                 if (buf.Length > 0)

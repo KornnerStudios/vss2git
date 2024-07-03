@@ -151,7 +151,7 @@ namespace Hpdi.Vss2Git
 
                 // replay each changeset
                 int changesetId = 1;
-                LinkedList<Changeset> changesets = changesetBuilder.Changesets;
+                List<Changeset> changesets = changesetBuilder.Changesets;
                 excludedProjects.Clear();
                 excludedFiles.Clear();
                 commitCount = 0;

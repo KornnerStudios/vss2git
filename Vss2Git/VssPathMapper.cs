@@ -417,7 +417,7 @@ namespace Hpdi.Vss2Git
             int version,
             Logger logger)
         {
-            var result = new LinkedList<Tuple<List<string>, List<string>>>();
+            var result = new List<Tuple<List<string>, List<string>>>();
             if (physicalNameToFileInfo.TryGetValue(filePhysicalName, out VssFileInfo fileInfo))
             {
                 VssProjectInfo underProjectInfo = null;
@@ -451,7 +451,7 @@ namespace Hpdi.Vss2Git
                                         fileInfo.LogicalName
                                     };
 
-                                    result.AddLast(new Tuple<List<string>, List<string>>(logicalPath, workDirPath));
+                                    result.Add(new Tuple<List<string>, List<string>>(logicalPath, workDirPath));
                                 }
                             }
                             else

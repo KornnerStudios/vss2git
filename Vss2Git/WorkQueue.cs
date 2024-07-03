@@ -28,7 +28,7 @@ namespace Hpdi.Vss2Git
     {
         private readonly ManualResetEvent idleEvent = new(true);
         private readonly Stopwatch stopwatch = new();
-        private readonly LinkedList<Exception> workExceptions = [];
+        private readonly List<Exception> workExceptions = [];
         private readonly Dictionary<object, string> workStatuses = [];
         private object lastStatusWork;
 
@@ -161,7 +161,7 @@ namespace Hpdi.Vss2Git
 
             lock (workExceptions)
             {
-                workExceptions.AddLast(e);
+                workExceptions.Add(e);
             }
         }
 
