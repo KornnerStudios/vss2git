@@ -60,9 +60,9 @@ enum <ushort> eVssType
 
 struct VssName
 {
-	uint16 Flags;
+	uint16 Flags <format=binary>;
 	char ShortName[34];
-	uint32 NameFileOffset;
+	uint32 NameFileOffset <format=hex>;
 };
 
 struct VssHeader
@@ -76,9 +76,9 @@ struct VssHeader
 
 struct VssChunkHeader
 {
-	uint32 Size;
+	uint32 Size <format=hex>;
 	uint16 Signature;
-	uint16 Crc;
+	uint16 Crc <format=hex>;
 };
 
 struct VssDataHeader // 0x164
@@ -88,10 +88,10 @@ struct VssDataHeader // 0x164
 	VssName Name;
 	uint16 FirstRevision;
 	char DataExtension[2];
-	uint32 FirstLogEntryOffset;
-	uint32 LastLogEntryOffset;
-	uint32 EofOffset;
-	uint32 RightsOffset;
+	uint32 FirstLogEntryOffset <format=hex>;
+	uint32 LastLogEntryOffset <format=hex>;
+	uint32 EofOffset <format=hex>;
+	uint32 RightsOffset <format=hex>;
 	byte Reserved[16];
 
 	byte Unknown00[260+12];
@@ -109,3 +109,16 @@ struct VssFileHeader
 };
 
 VssFileHeader FileHeader;
+
+struct VssChunk
+{
+	VssChunkHeader Header;
+	if (Header.Size > 0)
+	{
+		byte Bytes[Header.Size];
+	}
+};
+while (FTell() <= FileHeader.DataHeader.LastLogEntryOffset)
+{
+	VssChunk Chunk;
+}
