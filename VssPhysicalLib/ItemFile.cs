@@ -13,6 +13,15 @@
  * limitations under the License.
  */
 
+// https://github.com/trevorr/vss2git/pull/48#issuecomment-804139011
+//      "When you change a comment of a checkin, VSS does not change the original comment record, but appends a new comment record to the physical file,
+//      updating the EOF offset. Therefore the proposed fix let Vss2Git fail to analyse any physical file with a such edited comment, because the iterator
+//      skips all the records between the one owning the new comment and the corresponding comment record, while building the changeset list."
+// I contend that the EOF offset is valid, contrary to what this Nyk72's comment says.
+#define EOF_OFFSET_CHECK_ENABLED
+//
+#define LAST_REVISION_OFFSET_CHECK_ENABLED
+
 using System.Collections.Generic;
 using System.Text;
 
@@ -46,7 +55,7 @@ namespace Hpdi.VssPhysicalLib
                     throw new BadHeaderException($"Incorrect file version: {fileVersion}");
                 }
 
-                reader.Skip(16); // reserved; always 0
+                reader.SkipAssumedToBeAllZeros(16); // reserved; always 0
 
                 if (fileType == ItemType.Project)
                 {
@@ -71,52 +80,62 @@ namespace Hpdi.VssPhysicalLib
 
         public VssRecord GetRecord(int offset)
         {
-            return GetRecord<VssRecord>(CreateRecord, false, offset);
+            return GetRecord(CreateVssRecord, false, offset);
         }
 
         public VssRecord GetNextRecord(bool skipUnknown)
         {
-            #if false   // #REVIEW: https://github.com/trevorr/vss2git/pull/48#issuecomment-804139011
-                        // "When you change a comment of a checkin, VSS does not change the original comment record, but appends a new comment record to the physical file,
-                        // updating the EOF offset. Therefore the proposed fix let Vss2Git fail to analyse any physical file with a such edited comment, because the iterator
-                        // skips all the records between the one owning the new comment and the corresponding comment record, while building the changeset list."
+#if EOF_OFFSET_CHECK_ENABLED
             if (reader.Offset == this.Header.EofOffset)
             {
                 return null;
             }
-            #endif
-            return GetNextRecord<VssRecord>(CreateRecord, skipUnknown);
+#endif // EOF_OFFSET_CHECK_ENABLED
+
+#if LAST_REVISION_OFFSET_CHECK_ENABLED
+            if (reader.Offset > this.Header.LastRevOffset)
+            {
+                return null;
+            }
+#endif // LAST_REVISION_OFFSET_CHECK_ENABLED
+
+            return GetNextRecord(CreateVssRecord, skipUnknown);
         }
 
         public RevisionRecord GetFirstRevision()
         {
             if (Header.FirstRevOffset > 0)
             {
-                return GetRecord<RevisionRecord>(CreateRevisionRecord, false, Header.FirstRevOffset);
+                return GetRecord(CreateRevisionRecord, false, Header.FirstRevOffset);
             }
             return null;
         }
 
         public RevisionRecord GetNextRevision(RevisionRecord revision)
         {
-            #if false   // #REVIEW: https://github.com/trevorr/vss2git/pull/48#issuecomment-804139011
-                        // "When you change a comment of a checkin, VSS does not change the original comment record, but appends a new comment record to the physical file,
-                        // updating the EOF offset. Therefore the proposed fix let Vss2Git fail to analyse any physical file with a such edited comment, because the iterator
-                        // skips all the records between the one owning the new comment and the corresponding comment record, while building the changeset list."
+#if EOF_OFFSET_CHECK_ENABLED
             if (reader.Offset == this.Header.EofOffset)
             {
                 return null;
             }
-            #endif
+#endif // EOF_OFFSET_CHECK_ENABLED
+
+#if LAST_REVISION_OFFSET_CHECK_ENABLED
+            if (reader.Offset > this.Header.LastRevOffset)
+            {
+                return null;
+            }
+#endif // LAST_REVISION_OFFSET_CHECK_ENABLED
+
             reader.Offset = revision.Header.Offset + revision.Header.Length + RecordHeader.LENGTH;
-            return GetNextRecord<RevisionRecord>(CreateRevisionRecord, true);
+            return GetNextRecord(CreateRevisionRecord, true);
         }
 
         public RevisionRecord GetLastRevision()
         {
             if (Header.LastRevOffset > 0)
             {
-                return GetRecord<RevisionRecord>(CreateRevisionRecord, false, Header.LastRevOffset);
+                return GetRecord(CreateRevisionRecord, false, Header.LastRevOffset);
             }
             return null;
         }
@@ -125,7 +144,7 @@ namespace Hpdi.VssPhysicalLib
         {
             if (revision.PrevRevOffset > 0)
             {
-                return GetRecord<RevisionRecord>(CreateRevisionRecord, false, revision.PrevRevOffset);
+                return GetRecord(CreateRevisionRecord, false, revision.PrevRevOffset);
             }
             return null;
         }
@@ -163,7 +182,7 @@ namespace Hpdi.VssPhysicalLib
             return result;
         }
 
-        private static VssRecord CreateRecord(
+        private static VssRecord CreateVssRecord(
             RecordHeader recordHeader, BufferReader recordReader)
         {
             VssRecord record = null;
