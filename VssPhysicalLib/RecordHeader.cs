@@ -26,7 +26,8 @@ namespace Hpdi.VssPhysicalLib
     {
         public const int LENGTH = 8;
 
-        public static bool IgnoreCrcErrors { get; set; } = false;
+        public static bool IgnoreCrcErrors { get; set; }
+            = true;
 
         public int Offset { get; private set; }
         public int Length { get; private set; }
@@ -43,15 +44,20 @@ namespace Hpdi.VssPhysicalLib
                     $"Unexpected record signature: expected={expected}, actual={Signature}");
             }
         }
+        public void LogInvalidSignature(string expected, string fileName)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Unexpected record signature: expected={expected}, actual={Signature} at {Offset:X8} in {fileName}");
+        }
 
-        public void CheckCrc(string fileName = null)
+        public void CheckCrc(string fileName)
         {
             if (!IsCrcValid)
             {
                 if (IgnoreCrcErrors)
                 {
                     System.Diagnostics.Debug.WriteLine(
-                        $"CRC error in {Signature} record: expected={FileCrc}, actual={ActualCrc} in {fileName}");
+                        $"CRC error in {Signature} record: expected={FileCrc}, actual={ActualCrc} at {Offset:X8} in {fileName}");
                     return;
                 }
 
@@ -87,17 +93,10 @@ namespace Hpdi.VssPhysicalLib
                     writer.Write('\t');
             }
 
-            writer.Write(
-                "Signature: {0} - Length: {1} - Offset: {2}",
-                Signature,
-                Length.ToString("X8"),
-                Offset.ToString("X8"));
+            writer.Write($"Signature: {Signature} - Offset: {Offset:X8} - Length: {Length:X8}");
             if (!IsCrcValid)
             {
-                writer.Write(
-                    " - INVALID CRC: expected={0} actual={1})",
-                    FileCrc.ToString("X4"),
-                    ActualCrc.ToString("X4"));
+                writer.Write($" - INVALID CRC: expected={FileCrc:X4} actual={ActualCrc:X4})");
             }
             writer.WriteLine();
         }
