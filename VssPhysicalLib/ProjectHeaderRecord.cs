@@ -39,7 +39,7 @@ namespace Hpdi.VssPhysicalLib
 
             ParentProject = reader.ReadString(260);
             ParentFile = reader.ReadString(8);
-            reader.Skip(4); // reserved; always 0
+            reader.SkipAssumedToBeAllZeros(4); // reserved; always 0
             TotalItems = reader.ReadInt16();
             Subprojects = reader.ReadInt16();
         }

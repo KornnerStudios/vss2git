@@ -69,8 +69,7 @@ namespace Hpdi.VssPhysicalLib
             base.Read(reader, header);
 
             KindCount = reader.ReadInt16();
-            // #TODO figure out these two bytes
-            reader.Skip(2); // unknown
+            reader.SkipUnknown(2);
             kinds = new NameKind[KindCount];
             names = new string[KindCount];
             int baseOffset = reader.Offset + (KindCount * 4);
@@ -84,6 +83,12 @@ namespace Hpdi.VssPhysicalLib
                     reader.Offset = baseOffset + nameOffset;
                     names[i] = reader.ReadString(reader.Remaining);
                 }
+#if DEBUG // #REVIEW why did the original author wrap this in a try/catch block?
+                catch (System.Exception e)
+                {
+                    e.ToString();
+                }
+#endif // DEBUG
                 finally
                 {
                     reader.Offset = saveOffset;

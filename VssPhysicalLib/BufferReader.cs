@@ -25,8 +25,12 @@ namespace Hpdi.VssPhysicalLib
     /// <author>Trevor Robinson</author>
     public class BufferReader
     {
+        public static bool ValidateAssumedToBeAllZerosAreAllZeros { get; set; }
+            = true;
+
         private readonly Encoding encoding;
         private readonly byte[] data;
+        private int offset;
         private readonly int limit;
         public string FileName { get; private set; }
 
@@ -44,7 +48,19 @@ namespace Hpdi.VssPhysicalLib
             FileName = fileName;
         }
 
-        public int Offset { get; set; }
+        public int Offset
+        {
+            get => offset;
+            set
+            {
+                if (value < 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Offset cannot be negative");
+                }
+
+                offset = value;
+            }
+        }
 
         public int Remaining => limit - Offset;
 
@@ -74,6 +90,36 @@ namespace Hpdi.VssPhysicalLib
         public void Skip(int bytes)
         {
             CheckRead(bytes);
+            Offset += bytes;
+        }
+
+        public void SkipUnknown(int bytes)
+        {
+            CheckRead(bytes);
+            // #TODO: add logging
+            Offset += bytes;
+        }
+
+        public void SkipAssumedToBeAllZeros(int bytes)
+        {
+            CheckRead(bytes);
+            if (ValidateAssumedToBeAllZerosAreAllZeros)
+            {
+                int nonZeroBytesCount = 0;
+                for (int i = 0; i < bytes; ++i)
+                {
+                    if (data[Offset + i] != 0)
+                    {
+                        nonZeroBytesCount++;
+                    }
+                }
+
+                if (nonZeroBytesCount > 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Expected {bytes} bytes to be all zeros, but {nonZeroBytesCount} were not at offset {Offset:X8} in {FileName}");
+                }
+            }
             Offset += bytes;
         }
 
@@ -141,10 +187,15 @@ namespace Hpdi.VssPhysicalLib
             return result;
         }
 
-        public BufferReader Extract(int bytes)
+        public BufferReader ReadBytesIntoNewBufferReader(int bytes)
         {
             CheckRead(bytes);
-            return new BufferReader(encoding, data, Offset, Offset += bytes, (FileName??"BufferReader") + "__chunk");
+            string newFileName = FileName;
+            if (newFileName != null)
+            {
+                newFileName += $"__chunk[{Offset:X8}, {bytes:X4}]";
+            }
+            return new BufferReader(encoding, data, Offset, Offset += bytes, newFileName);
         }
 
         public ArraySegment<byte> GetBytes(int bytes)
@@ -175,9 +226,8 @@ namespace Hpdi.VssPhysicalLib
         {
             if (Offset + bytes > limit)
             {
-                throw new EndOfBufferException(string.Format(
-                    "Attempted read of {0} bytes with only {1} bytes remaining in buffer for {2}",
-                    bytes, Remaining, FileName));
+                throw new EndOfBufferException(
+                    $"Attempted read of {bytes} bytes with only {Remaining} bytes remaining in buffer for {FileName}");
             }
         }
     }

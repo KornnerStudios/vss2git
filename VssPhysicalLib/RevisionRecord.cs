@@ -364,10 +364,9 @@ namespace Hpdi.VssPhysicalLib
 
             Name = reader.ReadName();
             Physical = reader.ReadString(10);
-            // #TODO figure out these skips
-            reader.Skip(2); // 0?
+            reader.SkipUnknown(2); // 0?
             ArchivePath = reader.ReadString(260);
-            reader.Skip(4); // ?
+            reader.SkipUnknown(4); // ?
         }
 
         public override void Dump(TextWriter writer, int indent)

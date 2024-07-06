@@ -32,10 +32,9 @@ namespace Hpdi.VssPhysicalLib
         {
             base.Read(reader, header);
 
-            // #TODO : Check if these are indeed always zero
-            reader.Skip(16); // reserved; always 0
+            reader.SkipAssumedToBeAllZeros(16); // reserved; always 0
             EofOffset = reader.ReadInt32();
-            // remaining reserved; always 0
+            reader.SkipAssumedToBeAllZeros(60); // remaining reserved; always 0
         }
 
         public override void Dump(TextWriter writer, int indent)
@@ -43,7 +42,7 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.WriteLine("EOF offset: {0:X6}", EofOffset);
+            writer.WriteLine($"EOF offset: {EofOffset:X6}");
         }
     }
 }

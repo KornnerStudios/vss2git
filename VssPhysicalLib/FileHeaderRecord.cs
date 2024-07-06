@@ -68,7 +68,7 @@ namespace Hpdi.VssPhysicalLib
 
             Flags = (FileFlags)reader.ReadInt16();
             BranchFile = reader.ReadString(8);
-            reader.Skip(2); // reserved; always 0
+            reader.SkipAssumedToBeAllZeros(2); // reserved; always 0
             BranchOffset = reader.ReadInt32();
             ProjectOffset = reader.ReadInt32();
             BranchCount = reader.ReadInt16();
@@ -76,7 +76,7 @@ namespace Hpdi.VssPhysicalLib
             FirstCheckoutOffset = reader.ReadInt32();
             LastCheckoutOffset = reader.ReadInt32();
             DataCrc = (uint)reader.ReadInt32();
-            reader.Skip(8); // reserved; always 0
+            reader.SkipAssumedToBeAllZeros(8); // reserved; always 0
             LastRevDateTime = reader.ReadDateTime();
             ModificationDateTime = reader.ReadDateTime();
             CreationDateTime = reader.ReadDateTime();
