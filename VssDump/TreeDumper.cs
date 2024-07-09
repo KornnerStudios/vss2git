@@ -26,12 +26,7 @@ namespace Hpdi.VssDump
     class TreeDumper
     {
         private readonly TextWriter writer;
-
-        private readonly HashSet<string> physicalNames = new HashSet<string>();
-        public HashSet<string> PhysicalNames
-        {
-            get { return physicalNames; }
-        }
+        public HashSet<string> PhysicalNames { get; } = [];
 
         public bool IncludeRevisions { get; set; }
 
@@ -47,11 +42,11 @@ namespace Hpdi.VssDump
 
         public void DumpProject(VssProject project, int indent)
         {
-            string indentStr = Hpdi.VssPhysicalLib.VssRecord.DumpGetIndentString(indent);
+            string indentStr = VssPhysicalLib.VssRecord.DumpGetIndentString(indent);
 
-            physicalNames.Add(project.PhysicalName);
-            writer.WriteLine("{0}{1}/ ({2})",
-                indentStr, project.Name, project.PhysicalName);
+            PhysicalNames.Add(project.PhysicalName);
+            writer.Write(indentStr);
+            writer.WriteLine($"({project.PhysicalName}) {project.Name}/");
 
             foreach (VssProject subproject in project.Projects)
             {
@@ -60,16 +55,16 @@ namespace Hpdi.VssDump
 
             foreach (VssFile file in project.Files)
             {
-                physicalNames.Add(file.PhysicalName);
-                writer.WriteLine("{0}\t{1} ({2}) - {3}",
-                    indentStr, file.Name, file.PhysicalName, file.GetPath(project));
+                PhysicalNames.Add(file.PhysicalName);
+                writer.Write(indentStr);
+                writer.WriteLine($"\t({file.PhysicalName}) {file.Name} - {file.GetPath(project)}");
 
                 if (IncludeRevisions)
                 {
                     foreach (VssFileRevision version in file.Revisions)
                     {
-                        writer.WriteLine("{0}\t\t#{1} {2} {3}",
-                            indentStr, version.Version, version.User, version.DateTime);
+                        writer.Write(indentStr);
+                        writer.WriteLine($"\t\t#{version.Version} {version.User} {version.DateTime}");
                     }
                 }
             }

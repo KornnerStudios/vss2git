@@ -99,9 +99,9 @@ namespace Hpdi.VssLogicalLib
 
         internal VssItem(VssDatabase database, VssItemName itemName, string physicalPath)
         {
-            this.Database = database;
-            this.ItemName = itemName;
-            this.PhysicalPath = physicalPath;
+            Database = database;
+            ItemName = itemName;
+            PhysicalPath = physicalPath;
         }
 
         protected VssRevision CreateRevision(RevisionRecord revision)
@@ -129,20 +129,11 @@ namespace Hpdi.VssLogicalLib
         {
             private readonly ItemT item;
 
-            internal VssRevisions(ItemT item)
-            {
-                this.item = item;
-            }
+            internal VssRevisions(ItemT item) => this.item = item;
 
-            public IEnumerator<RevisionT> GetEnumerator()
-            {
-                return new VssRevisionEnumerator<ItemT, RevisionT>(item);
-            }
+            public IEnumerator<RevisionT> GetEnumerator() => new VssRevisionEnumerator<ItemT, RevisionT>(item);
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
+            IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
         }
 
         private class VssRevisionEnumerator<ItemT, RevisionT> : IEnumerator<RevisionT>
@@ -153,11 +144,9 @@ namespace Hpdi.VssLogicalLib
             private RevisionRecord revisionRecord;
             private RevisionT revision;
             private bool beforeFirst = true;
+            private int revisionIndex = -1;
 
-            internal VssRevisionEnumerator(ItemT item)
-            {
-                this.item = item;
-            }
+            internal VssRevisionEnumerator(ItemT item) => this.item = item;
 
             public void Dispose()
             {
@@ -171,6 +160,8 @@ namespace Hpdi.VssLogicalLib
             public bool MoveNext()
             {
                 revision = null;
+                int nextRevisionIndex = revisionIndex + 1;
+
                 if (beforeFirst)
                 {
                     revisionRecord = item.ItemFile.GetFirstRevision();
@@ -180,6 +171,12 @@ namespace Hpdi.VssLogicalLib
                 {
                     revisionRecord = item.ItemFile.GetNextRevision(revisionRecord);
                 }
+
+                if (revisionRecord != null)
+                {
+                    revisionIndex = nextRevisionIndex;
+                }
+
                 return revisionRecord != null;
             }
 

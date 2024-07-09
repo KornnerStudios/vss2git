@@ -14,7 +14,6 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -30,10 +29,19 @@ namespace Hpdi.VssDump
     class Program
     {
         private const string Separator = "------------------------------------------------------------";
+        private static bool DumpFileHierarchy { get; set; }
+            = false;
+        private static bool DumpNameFileContents { get; set; }
+            = false;
+        private static string OutputFileName { get; set; }
+            = @"";
+        private static readonly List<string> LimitLogFilesList =
+        [
+        ];
 
         static void Main(string[] args)
         {
-            Console.OutputEncoding = Encoding.Default;
+            Encoding outputEncoding = Encoding.Default;
 
             bool invalidArg = false;
             int argIndex = 0;
@@ -62,8 +70,7 @@ namespace Hpdi.VssDump
                         Encoding encoding;
                         try
                         {
-                            int codePage;
-                            if (int.TryParse(encodingName, out codePage))
+                            if (int.TryParse(encodingName, out int codePage))
                             {
                                 encoding = Encoding.GetEncoding(codePage);
                             }
@@ -79,7 +86,7 @@ namespace Hpdi.VssDump
                             goto InvalidArg;
                         }
 
-                        Console.OutputEncoding = encoding;
+                        outputEncoding = encoding;
 
                         break;
                     }
@@ -118,50 +125,98 @@ namespace Hpdi.VssDump
                 return;
             }
 
+            TextWriter outputWriter;
+            if (!string.IsNullOrEmpty(OutputFileName))
+            {
+                outputWriter = new StreamWriter(OutputFileName, false, outputEncoding);
+            }
+            else
+            {
+                outputWriter = Console.Out;
+                Console.OutputEncoding = outputEncoding;
+            }
+
             string repoPath = args[argIndex];
             var df = new VssDatabaseFactory(repoPath);
             VssDatabase db = df.Open();
 
-            Console.WriteLine("File hierarchy:");
-            Console.WriteLine(Separator);
-            var tree = new TreeDumper(Console.Out) { IncludeRevisions = false };
-            tree.DumpProject(db.RootProject);
-            Console.WriteLine();
-
-            Console.WriteLine("Log file contents:");
-            for (char c = 'a'; c <= 'z'; ++c)
+            TreeDumper tree = null;
+            if (DumpFileHierarchy)
             {
-                string[] dataPaths = Directory.GetFiles(
-                    Path.Combine(db.DataPath, c.ToString()), "*.");
-                foreach (string dataPath in dataPaths)
+                tree = new TreeDumper(outputWriter)
                 {
-                    string dataFile = Path.GetFileName(dataPath).ToUpper();
-                    bool orphaned = !tree.PhysicalNames.Contains(dataFile);
-                    Console.WriteLine(Separator);
-                    Console.WriteLine("{0}{1}", dataPath, orphaned ? " (orphaned)" : "");
-                    DumpLogFile(dataPath);
+                    IncludeRevisions = false,
+                };
+
+                outputWriter.WriteLine("File hierarchy:");
+                outputWriter.WriteLine(Separator);
+                tree.DumpProject(db.RootProject);
+                outputWriter.WriteLine();
+            }
+
+            outputWriter.WriteLine("Log file contents:");
+            if (LimitLogFilesList.Count == 0)
+            {
+                for (char c = 'a'; c <= 'z'; ++c)
+                {
+                    string[] dataPaths = Directory.GetFiles(
+                        Path.Combine(db.DataPath, c.ToString()), "*.");
+                    foreach (string dataPath in dataPaths)
+                    {
+                        string dataFile = Path.GetFileName(dataPath).ToUpper();
+                        outputWriter.WriteLine(Separator);
+                        if (tree != null)
+                        {
+                            bool orphaned = !tree.PhysicalNames.Contains(dataFile);
+                            outputWriter.WriteLine("{0}{1}", dataPath, orphaned ? " (orphaned)" : "");
+                        }
+                        else
+                        {
+                            outputWriter.WriteLine(dataPath);
+                        }
+                        DumpLogFile(outputWriter, dataPath);
+                    }
                 }
             }
-            Console.WriteLine();
+            else
+            {
+                foreach (string specificDataFile in LimitLogFilesList)
+                {
+                    string dataPath = Path.Combine(db.DataPath, specificDataFile[0].ToString(), specificDataFile);
 
-            Console.WriteLine("Name file contents:");
-            Console.WriteLine(Separator);
-            string namePath = Path.Combine(db.DataPath, "names.dat");
-            DumpNameFile(namePath);
-            Console.WriteLine();
+                    outputWriter.WriteLine(Separator);
+                    outputWriter.WriteLine(dataPath);
+                    DumpLogFile(outputWriter, dataPath);
+                }
+            }
+            outputWriter.WriteLine();
 
-            Console.WriteLine(Separator);
-            Console.WriteLine("Project actions: {0}", FormatCollection(projectActions));
-            Console.WriteLine("File actions: {0}", FormatCollection(fileActions));
+            if (DumpNameFileContents)
+            {
+                outputWriter.WriteLine("Name file contents:");
+                outputWriter.WriteLine(Separator);
+                string namePath = Path.Combine(db.DataPath, "names.dat");
+                DumpNameFile(outputWriter, namePath);
+                outputWriter.WriteLine();
+            }
+
+            outputWriter.WriteLine(Separator);
+            outputWriter.WriteLine("Project actions: {0}", FormatCollection(projectActions));
+            outputWriter.WriteLine("File actions: {0}", FormatCollection(fileActions));
+
+            if (outputWriter != Console.Out)
+            {
+                outputWriter.Close();
+            }
         }
 
-        private static HashSet<VssPhysicalLib.Action> projectActions = [];
-        private static HashSet<VssPhysicalLib.Action> fileActions = [];
+        private static readonly HashSet<VssPhysicalLib.Action> projectActions = [];
+        private static readonly HashSet<VssPhysicalLib.Action> fileActions = [];
 
-        private static string FormatCollection(IEnumerable collection)
+        private static string FormatCollection<T>(IEnumerable<T> collection)
         {
             StringBuilder buf = new();
-            foreach (object item in collection)
+            foreach (T item in collection)
             {
                 if (buf.Length > 0)
                 {
@@ -172,22 +227,23 @@ namespace Hpdi.VssDump
             return buf.ToString();
         }
 
-        private static void DumpLogFile(string filename)
+        private static void DumpLogFile(TextWriter outputWriter, string filename)
         {
             const int kDumpIndent = 0;
 
             try
             {
                 var itemFile = new ItemFile(filename, Encoding.Default);
-                itemFile.Header.Header.Dump(Console.Out, kDumpIndent);
-                itemFile.Header.Dump(Console.Out, kDumpIndent);
+                itemFile.Header.Header.Dump(outputWriter, kDumpIndent);
+                itemFile.Header.Dump(outputWriter, kDumpIndent);
                 VssRecord record = itemFile.GetNextRecord(true);
+                int revisionIndex = -1;
                 while (record != null)
                 {
-                    record.Header.Dump(Console.Out, kDumpIndent + 1);
-                    record.Dump(Console.Out, kDumpIndent + 2);
-                    var revision = record as RevisionRecord;
-                    if (revision != null)
+                    revisionIndex++;
+                    record.Header.Dump(outputWriter, kDumpIndent + 1);
+                    record.Dump(outputWriter, kDumpIndent + 2);
+                    if (record is RevisionRecord revision)
                     {
                         if (itemFile.Header.ItemType == ItemType.Project)
                         {
@@ -203,31 +259,42 @@ namespace Hpdi.VssDump
             }
             catch (Exception e)
             {
-                Console.WriteLine("ERROR: {0}", e.Message);
+                WriteException(outputWriter, e);
             }
         }
 
-        private static void DumpNameFile(string filename)
+        private static void DumpNameFile(TextWriter outputWriter, string filename)
         {
             const int kDumpIndent = 0;
 
             try
             {
                 var nameFile = new NameFile(filename, Encoding.Default);
-                nameFile.Header.Header.Dump(Console.Out, kDumpIndent);
-                nameFile.Header.Dump(Console.Out, kDumpIndent);
+                nameFile.Header.Header.Dump(outputWriter, kDumpIndent);
+                nameFile.Header.Dump(outputWriter, kDumpIndent);
                 NameRecord name = nameFile.GetNextName();
                 while (name != null)
                 {
-                    name.Header.Dump(Console.Out, kDumpIndent + 1);
-                    name.Dump(Console.Out, kDumpIndent + 2);
+                    name.Header.Dump(outputWriter, kDumpIndent + 1);
+                    name.Dump(outputWriter, kDumpIndent + 2);
                     name = nameFile.GetNextName();
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine("ERROR: {0}", e.Message);
+                WriteException(outputWriter, e);
             }
         }
-    }
+
+        private static void WriteException(TextWriter outputWriter, Exception e)
+        {
+            string message = $"ERROR: {e.Message}";
+            outputWriter.WriteLine(message);
+            if (outputWriter != Console.Out)
+            {
+                Console.WriteLine(message);
+                Console.WriteLine(e.StackTrace);
+            }
+        }
+    };
 }
