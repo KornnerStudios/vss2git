@@ -36,15 +36,19 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record for representing an item stored in particular project.
     /// </summary>
     /// <author>Trevor Robinson</author>
+    /// <seealso cref="VssScanChild"/>
     public sealed class ProjectEntryRecord : VssRecord
     {
         public const string SIGNATURE = "JP";
-
         public override string Signature => SIGNATURE;
+
         public ItemType ItemType { get; private set; }
         public ProjectEntryFlags Flags { get; private set; }
         public VssName Name { get; private set; }
-        public int PinnedVersion { get; private set; }
+        public short PinnedVersion { get; private set; }
+        /// <summary>
+        /// Name of the database file name, in "aaaaaaaa" format.
+        /// </summary>
         public string Physical { get; private set; }
 
         public override void Read(BufferReader reader, RecordHeader header)
@@ -63,12 +67,11 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.WriteLine("Item Type: {0} - Name: {1} ({2})",
-                ItemType, Name.ShortName, Physical);
+            writer.WriteLine($"Item Type: {ItemType} - Name: {Name.ShortName} ({Physical})");
             writer.Write(indentStr);
-            writer.WriteLine("Flags: {0}", Flags);
+            writer.WriteLine($"Flags: {Flags}");
             writer.Write(indentStr);
-            writer.WriteLine("Pinned version: {0}", PinnedVersion);
+            writer.WriteLine($"Pinned version: {PinnedVersion}");
         }
     }
 }

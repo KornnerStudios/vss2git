@@ -25,7 +25,9 @@ namespace Hpdi.VssPhysicalLib
     /// <author>Trevor Robinson</author>
     public enum DeltaCommand
     {
+        // Insert <count> bytes from the data stream.
         WriteLog = 0, // write data from the log file
+        // Copy <count> bytes from the <pNewFile> array.
         WriteSuccessor = 1, // write data from the subsequent revision
         Stop = 2 // indicates the last operation
     }
@@ -68,7 +70,8 @@ namespace Hpdi.VssPhysicalLib
         public void Read(BufferReader reader)
         {
             Command = (DeltaCommand)reader.ReadInt16();
-            reader.Skip(2); // unknown
+            // Note in ApplyDifferenceData: "Next 16 bits is junk.  Ignore it."
+            reader.SkipUnknown(2);
             Offset = reader.ReadInt32();
             Length = reader.ReadInt32();
             if (Command == DeltaCommand.WriteLog)

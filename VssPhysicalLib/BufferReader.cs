@@ -93,6 +93,8 @@ namespace Hpdi.VssPhysicalLib
             Offset += bytes;
         }
 
+        public void SkipKnownJunk(int bytes) => Skip(bytes);
+
         public void SkipUnknown(int bytes)
         {
             CheckRead(bytes);

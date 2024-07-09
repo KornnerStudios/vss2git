@@ -34,12 +34,33 @@ namespace Hpdi.VssPhysicalLib
     public abstract class ItemHeaderRecord : VssRecord
     {
         public const string SIGNATURE = "DH";
-
         public override string Signature => SIGNATURE;
+
         public ItemType ItemType { get; private set; }
+        /// <summary>
+        /// Stores the number of log entry ("EL") chunks stored in the file.
+        /// </summary>
         public int Revisions { get; private set; }
         public VssName Name { get; private set; }
+        /// <summary>
+        /// If the file has been branched, this field will contain the version
+        /// number at which it was branched.
+        ///
+        /// If the branch number is 1, the file has never been branched.
+        /// </summary>
         public int FirstRevision { get; private set; }
+        /// <remarks>
+        /// VssScanHeader notes:
+        ///     This is the file extension of the associated data file, which will
+        ///     always be ".A" or ".B". This is ignored here, since this code will
+        ///     grab whichever file it finds, regardless of extension. VSS will
+        ///     alternate extensions whenever it rewrites files, and this field
+        ///     indicates which it used last. It would be safer to pay attention
+        ///     to this field, since some online sources indicate that VSS sometimes
+        ///     glitches and leaves both files behind after a merge. This was never
+        ///     observed to be the case with the test DB, so that test was never
+        ///     needed with this code.
+        /// </remarks>
         public string DataExt { get; private set; }
         public int FirstRevOffset { get; private set; }
         /// <summary>
@@ -72,7 +93,7 @@ namespace Hpdi.VssPhysicalLib
             LastRevOffset = reader.ReadInt32();
             EofOffset = reader.ReadInt32();
             RightsOffset = reader.ReadInt32();
-            reader.Skip(16); // reserved; always 0
+            reader.SkipAssumedToBeAllZeros(16);
         }
 
         public override void Dump(TextWriter writer, int indent)
@@ -80,21 +101,19 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.WriteLine("Item Type: {0} - Revisions: {1} - Name: {2}",
-                ItemType, Revisions, Name.ShortName);
+            writer.WriteLine($"Item Type: {ItemType} - Revisions: {Revisions} - Name: {Name.ShortName}");
             writer.Write(indentStr);
-            writer.WriteLine("Name offset: {0:X6}", Name.NameFileOffset);
+            writer.WriteLine($"Name offset: {Name.NameFileOffset:X6}");
             writer.Write(indentStr);
-            writer.WriteLine("First revision: #{0:D3}", FirstRevision);
+            writer.WriteLine($"First revision: #{FirstRevision:D3}");
             writer.Write(indentStr);
-            writer.WriteLine("Data extension: {0}", DataExt);
+            writer.WriteLine($"Data extension: {DataExt}");
             writer.Write(indentStr);
-            writer.WriteLine("First/last rev offset: {0:X6}/{1:X6}",
-                FirstRevOffset, LastRevOffset);
+            writer.WriteLine($"First/last rev offset: {FirstRevOffset:X6}/{LastRevOffset:X6}");
             writer.Write(indentStr);
-            writer.WriteLine("EOF offset: {0:X6}", EofOffset);
+            writer.WriteLine($"EOF offset: {EofOffset:X6}");
             writer.Write(indentStr);
-            writer.WriteLine("Rights offset: {0:X8}", RightsOffset);
+            writer.WriteLine($"Rights offset: {RightsOffset:X8}");
         }
     }
 }
