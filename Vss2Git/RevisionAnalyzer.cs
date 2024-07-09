@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Hpdi.VssLogicalLib;
 using Hpdi.VssPhysicalLib;
@@ -26,8 +27,13 @@ namespace Hpdi.Vss2Git
     /// Enumerates revisions in a VSS database.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    class RevisionAnalyzer : Worker
+    sealed class RevisionAnalyzer : Worker
     {
+        public readonly record struct DeletedFileData(
+            string ParentPhysicalName,
+            string ItemPhysicalName
+            );
+
         public VssDatabase Database { get; }
 
         private readonly List<VssProject> rootProjects = [];
@@ -35,7 +41,7 @@ namespace Hpdi.Vss2Git
 
         public SortedDictionary<DateTime, ICollection<Revision>> SortedRevisions { get; } = [];
         public HashSet<string> ProcessedFiles { get; } = [];
-        public HashSet<Tuple<string, string>> DestroyedFiles { get; } = [];
+        public HashSet<DeletedFileData> DestroyedFiles { get; } = [];
 
         private int projectCount;
         public int ProjectCount => Thread.VolatileRead(ref projectCount);
@@ -54,7 +60,7 @@ namespace Hpdi.Vss2Git
 
         public bool IsDestroyed(string parentPhysicalName, string itemPhysicalName)
         {
-            return DestroyedFiles.Contains(new Tuple<string, string>(parentPhysicalName, itemPhysicalName));
+            return DestroyedFiles.Contains(new DeletedFileData(parentPhysicalName, itemPhysicalName));
         }
 
         public void AddItem(VssProject project)
@@ -70,48 +76,51 @@ namespace Hpdi.Vss2Git
 
             rootProjects.Add(project);
 
-            workQueue.AddLast(delegate(object work)
-            {
-                logger.WriteSectionSeparator();
-                LogStatus(work, "Building revision list");
+            // #REVIEW: could the callback just use rootProjects.Last()?
+            workQueue.AddLast(work => AddItemWorkQueueCallback(work, project));
+        }
 
-                logger.WriteLine($"Root project: {project.LogicalPath}");
+        private void AddItemWorkQueueCallback(object work, VssProject project)
+        {
+            logger.WriteSectionSeparator();
+            LogStatus(work, "Building revision list");
 
-                var stopwatch = Stopwatch.StartNew();
-                VssUtil.RecurseItems(project,
-                    delegate(VssProject subproject)
+            logger.WriteLine($"Root project: {project.LogicalPath}");
+
+            var stopwatch = Stopwatch.StartNew();
+            VssUtil.RecurseItems(project,
+                (VssProject subproject) =>
+                {
+                    if (workQueue.IsAborting)
                     {
-                        if (workQueue.IsAborting)
-                        {
-                            return RecursionStatus.Abort;
-                        }
+                        return RecursionStatus.Abort;
+                    }
 
-                        ProcessItem(subproject);
-                        ++projectCount;
-                        return RecursionStatus.Continue;
-                    },
-                    delegate(VssProject subproject, VssFile file)
+                    ProcessItem(subproject);
+                    ++projectCount;
+                    return RecursionStatus.Continue;
+                },
+                (VssProject subproject, VssFile file) =>
+                {
+                    if (workQueue.IsAborting)
                     {
-                        if (workQueue.IsAborting)
-                        {
-                            return RecursionStatus.Abort;
-                        }
+                        return RecursionStatus.Abort;
+                    }
 
-                        // only process shared files once (projects are never shared)
-                        if (!ProcessedFiles.Contains(file.PhysicalName))
-                        {
-                            ProcessedFiles.Add(file.PhysicalName);
-                            ProcessItem(file);
-                            ++fileCount;
-                        }
-                        return RecursionStatus.Continue;
-                    });
-                stopwatch.Stop();
+                    // only process shared files once (projects are never shared)
+                    if (!ProcessedFiles.Contains(file.PhysicalName))
+                    {
+                        ProcessedFiles.Add(file.PhysicalName);
+                        ProcessItem(file);
+                        ++fileCount;
+                    }
+                    return RecursionStatus.Continue;
+                });
+            stopwatch.Stop();
 
-                logger.WriteSectionSeparator();
-                logger.WriteLine("Analysis complete in {0:HH:mm:ss}", new DateTime(stopwatch.ElapsedTicks));
-                logger.WriteLine($"Revisions: {revisionCount}");
-            });
+            logger.WriteSectionSeparator();
+            logger.WriteLine("Analysis complete in {0:HH:mm:ss}", new DateTime(stopwatch.ElapsedTicks));
+            logger.WriteLine($"Revisions: {revisionCount}");
         }
 
         private void ProcessItem(VssItem item)
@@ -123,7 +132,7 @@ namespace Hpdi.Vss2Git
                     VssActionType actionType = vssRevision.Action.Type;
                     if (vssRevision.Action is VssNamedAction namedAction)
                     {
-                        var tuple = new Tuple<string, string>(item.PhysicalName, namedAction.Name.PhysicalName);
+                        var tuple = new DeletedFileData(item.PhysicalName, namedAction.Name.PhysicalName);
 
                         if (actionType == VssActionType.Destroy)
                         {

@@ -875,5 +875,25 @@ namespace Hpdi.Vss2Git
 
             return result;
         }
+
+        public const string RelativeWorkDirPrefix = "<WorkDir>";
+        public static string RelativeWorkDirPathToString(IEnumerable<string> path)
+        {
+            string result = RelativeWorkDirPrefix;
+
+            int index = 0;
+            foreach (string p in path)
+            {
+                // index 0 should already be the literal WorkDir path, so skip it
+                if (index != 0)
+                {
+                    result = Path.Combine(result, p);
+                }
+
+                index++;
+            }
+
+            return result;
+        }
     }
 }

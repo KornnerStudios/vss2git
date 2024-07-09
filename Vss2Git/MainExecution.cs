@@ -15,7 +15,7 @@ namespace Hpdi.Vss2Git
         private static MainExecution instance = null;
         private static readonly object padlock = new();
 
-        private readonly WorkQueue workQueue = new WorkQueue(1);
+        private readonly WorkQueue workQueue = new(1);
         private Logger logger = Logger.Null;
         private RevisionAnalyzer revisionAnalyzer;
         private ChangesetBuilder changesetBuilder;
@@ -74,7 +74,7 @@ namespace Hpdi.Vss2Git
 
                 logger.WriteLine("VSS2Git version {0}", Assembly.GetExecutingAssembly().GetName().Version);
 
-                Encoding encoding = Encoding.GetEncoding(Settings.Encoding);
+                var encoding = Encoding.GetEncoding(Settings.Encoding);
 
                 logger.WriteLine("VSS encoding: {0} (CP: {1}, IANA: {2})",
                     encoding.EncodingName, encoding.CodePage, encoding.WebName);
@@ -198,10 +198,10 @@ namespace Hpdi.Vss2Git
         }
 
         public string WorkQueueLastStatus => workQueue.LastStatus;
-        public DateTime ElapsedTime => new DateTime(workQueue.ActiveTime.Ticks);
+        public DateTime ElapsedTime => new(workQueue.ActiveTime.Ticks);
         public ICollection<Exception> WorkQueueExceptions => workQueue.FetchExceptions();
         public bool IsWorkQueueIdle =>
-            workQueue != null ? workQueue.IsIdle : false;
+            workQueue == null || workQueue.IsIdle;
         public int RevisionAnalyzerFileCount =>
             revisionAnalyzer != null ? revisionAnalyzer.FileCount : 0;
         public int RevisionAnalyzerRevisionCount =>

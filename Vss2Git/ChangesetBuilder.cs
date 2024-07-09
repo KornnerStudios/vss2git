@@ -53,6 +53,9 @@ namespace Hpdi.Vss2Git
         {
             logger.WriteSectionSeparator();
             LogStatus(work, "Building changesets");
+            logger.WriteLine($"\tAnyCommentThreshold: {AnyCommentThreshold.TotalSeconds} seconds");
+            logger.WriteLine($"\tSameCommentThreshold: {SameCommentThreshold.TotalSeconds} seconds");
+            logger.WriteLine();
 
             var stopwatch = Stopwatch.StartNew();
             var pendingChangesByUser = new Dictionary<string, Changeset>();
@@ -98,7 +101,8 @@ namespace Hpdi.Vss2Git
                         if (AnyCommentThreshold > TimeSpan.Zero &&
                             timeDiff > AnyCommentThreshold)
                         {
-                            if (HasSameComment(revision, change.Revisions.Last()))
+                            if (SameCommentThreshold > TimeSpan.Zero &&
+                                HasSameComment(revision, change.Revisions.Last()))
                             {
                                 string message;
                                 if (timeDiff < SameCommentThreshold)
@@ -155,7 +159,7 @@ namespace Hpdi.Vss2Git
                             AddChangeset(change, changesetReason);
                             if (flushedUsers == null)
                             {
-                                flushedUsers = new();
+                                flushedUsers = [];
                             }
                             flushedUsers.Add(user);
                             hasDelete = false;
@@ -215,13 +219,12 @@ namespace Hpdi.Vss2Git
             // flush all remaining changes
             foreach (Changeset change in pendingChangesByUser.Values)
             {
-                AddChangeset(change, "Remaining revisions");
+                AddChangeset(change, "Remaining revision(s)");
             }
             stopwatch.Stop();
 
             logger.WriteSectionSeparator();
-            logger.WriteLine("Found {0} changesets in {1:HH:mm:ss}",
-                Changesets.Count, new DateTime(stopwatch.ElapsedTicks));
+            logger.WriteLine($"Found {Changesets.Count} changesets in {stopwatch.Elapsed}");
         }
 
         private static bool HasSameComment(Revision rev1, Revision rev2)

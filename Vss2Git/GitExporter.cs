@@ -33,6 +33,9 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     sealed partial class GitExporter : Worker, IGitStatistic
     {
+        public static bool DryRunOutputTargetWorkDirPathsAsRelative { get; set; }
+            = true;
+
         private readonly VssDatabase database;
         private readonly RevisionAnalyzer revisionAnalyzer;
         private readonly ChangesetBuilder changesetBuilder;
@@ -105,7 +108,15 @@ namespace Hpdi.Vss2Git
                 logger.WriteSectionSeparator();
                 LogStatus(work, "Initializing repository");
 
-                logger.WriteLine("Excluded projects/files: {0}", ExcludeFiles);
+                if (DryRun && DryRunOutputTargetWorkDirPathsAsRelative)
+                {
+                    logger.WriteLine($"\t{VssPathMapper.RelativeWorkDirPrefix} = {git.GetRepoPath()}");
+                }
+
+                if (!string.IsNullOrEmpty(ExcludeFiles))
+                {
+                    logger.WriteLine("\tExcluded projects/files: {0}", ExcludeFiles);
+                }
 
                 // create repository directory if it does not exist
                 if (!DryRun && !Directory.Exists(git.GetRepoPath()))
@@ -150,8 +161,10 @@ namespace Hpdi.Vss2Git
                     pathMapper.SetProjectPath(rootProject.PhysicalName, rootPath, rootProject.LogicalPath);
                 }
 
-                if (DryRun)
+                if (DryRun && changesetBuilder.ChangesetsWithMeaningfulComments.Count > 0)
                 {
+                    logger.WriteSectionSeparator();
+
                     float meaningfulCommentPercentage = changesetBuilder.ChangesetsWithMeaningfulComments.Count / (float)changesetBuilder.Changesets.Count;
                     meaningfulCommentPercentage *= 100.0f;
 
@@ -837,8 +850,12 @@ namespace Hpdi.Vss2Git
 
                                 if (DryRun)
                                 {
+                                    string targetWorkDirPathAsStringForDryRun = DryRunOutputTargetWorkDirPathsAsRelative
+                                        ? VssPathMapper.RelativeWorkDirPathToString(p.Item2)
+                                        : targetWorkDirPathAsString;
+
                                     logger.Write(indentStr);
-                                    logger.WriteLine($"{targetWorkDirPathAsString}: {actionType} revision {fileInfo.Version}");
+                                    logger.WriteLine($"{targetWorkDirPathAsStringForDryRun}: {actionType} revision {fileInfo.Version}");
                                 }
 
                                 pendingCommit.AddFile(revision, new GitActions.WriteFile(database, fileInfo.PhysicalName, fileInfo.Version, targetWorkDirPathAsString), VssPathMapper.LogicalPathToString(p.Item1));
@@ -864,8 +881,12 @@ namespace Hpdi.Vss2Git
 
                                 if (DryRun)
                                 {
+                                    string targetWorkDirPathAsStringForDryRun = DryRunOutputTargetWorkDirPathsAsRelative
+                                        ? VssPathMapper.RelativeWorkDirPathToString(targetWorkDirPath)
+                                        : targetWorkDirPathAsString;
+
                                     logger.Write(indentStr);
-                                    logger.WriteLine($"{targetWorkDirPathAsString}: {actionType} revision {version}");
+                                    logger.WriteLine($"{targetWorkDirPathAsStringForDryRun}: {actionType} revision {version}");
                                 }
 
                                 pendingCommit.AddFile(revision, new GitActions.WriteFile(database, target.PhysicalName, version, targetWorkDirPathAsString), targetLogicalPathAsString);
@@ -907,8 +928,12 @@ namespace Hpdi.Vss2Git
 
                     if (DryRun)
                     {
+                        string targetWorkDirPathAsStringForDryRun = DryRunOutputTargetWorkDirPathsAsRelative
+                            ? VssPathMapper.RelativeWorkDirPathToString(p.Item2)
+                            : targetWorkDirPathAsString;
+
                         logger.Write(indentStr);
-                        logger.WriteLine($"{targetWorkDirPathAsString}: {actionType} revision {revision.Version}");
+                        logger.WriteLine($"{targetWorkDirPathAsStringForDryRun}: {actionType} revision {revision.Version}");
                     }
 
                     pendingCommit.WriteFile(revision, new GitActions.WriteFile(database, target.PhysicalName, revision.Version, targetWorkDirPathAsString));
@@ -1014,6 +1039,7 @@ namespace Hpdi.Vss2Git
             return GetOrCreatePendingCommitForLogicalPath(ref pendingCommits, changeset, pathMapper.GetProjectLogicalPath(project.PhysicalName));
         }
 
+        [System.Obsolete("Unused")]
         private static string GetPendingBranchFromLogicalProjectPath(List<string> logicalProjectPath)
         {
             string pendingBranch = "";
