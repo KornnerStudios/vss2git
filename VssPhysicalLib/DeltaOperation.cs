@@ -85,8 +85,7 @@ namespace Hpdi.VssPhysicalLib
             string indentStr = VssRecord.DumpGetIndentString(indent);
 
             writer.Write(indentStr);
-            writer.Write("{0}: Offset={1}, Length={2}",
-                Command, Offset, Length);
+            writer.Write($"Offset={Offset:X8}, Length={Length:X4}, {Command}");
             if (IncludeDataBytesInDump && data.Array != null)
             {
                 int dumpLength = data.Count;

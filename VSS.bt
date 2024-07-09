@@ -118,7 +118,30 @@ struct VssChunk
 		byte Bytes[Header.Size];
 	}
 };
-while (FTell() <= FileHeader.DataHeader.LastLogEntryOffset)
+string VssChunkComment(VssChunk& chunk)
 {
-	VssChunk Chunk;
+	string comment;
+	SPrintf(comment, "%c%c",
+		(chunk.Header.Signature >> 8) & 0xFF,
+		(chunk.Header.Signature >> 0) & 0xFF);
+
+	if (chunk.Header.Signature == VssMarker_Comment)
+	{
+		if (chunk.Header.Size == 1)
+		{
+			comment += " (Empty)";
+		}
+		else
+		{
+			comment += " (NON-EMPTY)";
+		}
+	}
+
+	return comment;
+}
+while (FTell() <= FileHeader.DataHeader.LastLogEntryOffset)
+// This will choke on improper CM (comment) chunks
+//while (FTell() < FileHeader.DataHeader.EofOffset)
+{
+	VssChunk Chunk <comment=VssChunkComment>;
 }

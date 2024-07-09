@@ -42,7 +42,15 @@ namespace Hpdi.VssPhysicalLib
         public int FirstRevision { get; private set; }
         public string DataExt { get; private set; }
         public int FirstRevOffset { get; private set; }
+        /// <summary>
+        /// File offset of the last RecordHeader and its payload
+        /// </summary>
         public int LastRevOffset { get; private set; }
+        /// <summary>
+        /// The assumed EOF, which may not actually match the literal EOF,
+        /// and which may include now-truncated bytes starting from the
+        /// true end of LastRevOffset's payload and EofOffset.
+        /// </summary>
         public int EofOffset { get; private set; }
         public int RightsOffset { get; private set; }
 
