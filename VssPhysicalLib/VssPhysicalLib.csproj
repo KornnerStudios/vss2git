@@ -26,9 +26,6 @@
     <FileVersion>1.0.1.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HashLib\HashLib.csproj">
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\SourceSafe.Core\SourceSafe.Core.csproj">
       <Private>False</Private>
     </ProjectReference>
