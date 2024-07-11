@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -46,7 +47,7 @@ namespace Hpdi.VssPhysicalLib
             byte[] fileBytes = UseInMemoryFilePooling
                 ? ReadFileOrAccessFromPool(filename)
                 : ReadFile(filename);
-            reader = new BufferReader(encoding, fileBytes, filename);
+            reader = new BufferReader(encoding, new ArraySegment<byte>(fileBytes), filename);
         }
 
         public void ReadRecord(VssRecord record)

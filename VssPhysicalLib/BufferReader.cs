@@ -14,6 +14,7 @@
  */
 
 using System;
+using System.Buffers.Binary;
 using System.Text;
 
 namespace Hpdi.VssPhysicalLib
@@ -22,34 +23,27 @@ namespace Hpdi.VssPhysicalLib
     /// Reads VSS data types from a byte buffer.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class BufferReader
+    public sealed class BufferReader
     {
         public static bool ValidateAssumedToBeAllZerosAreAllZeros { get; set; }
             = true;
 
-        private readonly Encoding encoding;
-        private readonly byte[] data;
-        private int offset;
-        private readonly int limit;
+        private readonly Encoding mEncoding;
+        private readonly ArraySegment<byte> mDataSegment;
+        private int mOffset;
         public string FileName { get; private set; }
 
-        public BufferReader(Encoding encoding, byte[] data, string fileName)
-            : this(encoding, data, 0, data.Length, fileName)
+        public BufferReader(Encoding encoding, ArraySegment<byte> data, string fileName)
         {
-        }
+            mDataSegment = data;
 
-        public BufferReader(Encoding encoding, byte[] data, int offset, int limit, string fileName = null)
-        {
-            this.encoding = encoding;
-            this.data = data;
-            this.Offset = offset;
-            this.limit = limit;
+            mEncoding = encoding;
             FileName = fileName;
         }
 
         public int Offset
         {
-            get => offset;
+            get => mOffset;
             set
             {
                 if (value < 0)
@@ -57,22 +51,14 @@ namespace Hpdi.VssPhysicalLib
                     throw new ArgumentOutOfRangeException(nameof(value), value, "Offset cannot be negative");
                 }
 
-                offset = value;
+                mOffset = value;
             }
         }
 
-        public int Remaining => limit - Offset;
-
-        [Obsolete("Unused")]
-        public ushort Checksum16()
-        {
-            ushort sum = 0;
-            for (int i = Offset; i < limit; ++i)
-            {
-                sum += data[i];
-            }
-            return sum;
-        }
+        public int Size => mDataSegment.Count;
+        public int RemainingSize => Size - Offset;
+        // #TODO replace uses with RemainingSize
+        public int Remaining => RemainingSize;
 
         // #REVIEW This is NOT thread-safe!
         private static readonly SourceSafe.Cryptography.Crc32ToXor16BitComputer mCrc16Computer = new(
@@ -80,15 +66,17 @@ namespace Hpdi.VssPhysicalLib
 
         public ushort Crc16(int bytes)
         {
+            ArgumentOutOfRangeException.ThrowIfLessThan(bytes, 0, nameof(bytes));
+
             CheckRead(bytes);
-            ushort crc16 = mCrc16Computer.Compute(data, Offset, bytes);
+            ushort crc16 = mCrc16Computer.Compute(mDataSegment.AsSpan(Offset, bytes));
             return crc16;
         }
 
         public void Skip(int bytes)
         {
             CheckRead(bytes);
-            Offset += bytes;
+            mOffset += bytes;
         }
 
         public void SkipKnownJunk(int bytes) => Skip(bytes);
@@ -97,7 +85,7 @@ namespace Hpdi.VssPhysicalLib
         {
             CheckRead(bytes);
             // #TODO: add logging
-            Offset += bytes;
+            mOffset += bytes;
         }
 
         public void SkipAssumedToBeAllZeros(int bytes)
@@ -108,7 +96,7 @@ namespace Hpdi.VssPhysicalLib
                 int nonZeroBytesCount = 0;
                 for (int i = 0; i < bytes; ++i)
                 {
-                    if (data[Offset + i] != 0)
+                    if (mDataSegment[Offset + i] != 0)
                     {
                         nonZeroBytesCount++;
                     }
@@ -120,20 +108,23 @@ namespace Hpdi.VssPhysicalLib
                         $"Expected {bytes} bytes to be all zeros, but {nonZeroBytesCount} were not at offset {Offset:X8} in {FileName}");
                 }
             }
-            Offset += bytes;
+            mOffset += bytes;
         }
 
         public short ReadInt16()
         {
-            CheckRead(2);
-            return (short)(data[Offset++] | (data[Offset++] << 8));
+            CheckRead(sizeof(short));
+            short value = BinaryPrimitives.ReadInt16LittleEndian(mDataSegment.AsSpan(Offset));
+            mOffset += sizeof(short);
+            return value;
         }
 
         public int ReadInt32()
         {
-            CheckRead(4);
-            return data[Offset++] | (data[Offset++] << 8) |
-                (data[Offset++] << 16) | (data[Offset++] << 24);
+            CheckRead(sizeof(int));
+            int value = BinaryPrimitives.ReadInt32LittleEndian(mDataSegment.AsSpan(Offset));
+            mOffset += sizeof(int);
+            return value;
         }
 
         private static readonly DateTime EPOCH =
@@ -150,7 +141,7 @@ namespace Hpdi.VssPhysicalLib
             StringBuilder buf = new(length);
             for (int i = 0; i < length; ++i)
             {
-                buf.Append((char)data[Offset++]);
+                buf.Append((char)mDataSegment[Offset++]);
             }
             return buf.ToString();
         }
@@ -168,23 +159,18 @@ namespace Hpdi.VssPhysicalLib
             int count = 0;
             for (int i = 0; i < fieldSize; ++i)
             {
-                if (data[Offset + i] == 0) break;
+                if (mDataSegment[Offset + i] == 0)
+                {
+                    break;
+                }
                 ++count;
             }
 
-            string str = encoding.GetString(data, Offset, count);
+            string str = mEncoding.GetString(mDataSegment.AsSpan(Offset, count));
 
-            Offset += fieldSize;
+            mOffset += fieldSize;
 
             return str;
-        }
-
-        public string ReadByteString(int bytes)
-        {
-            CheckRead(bytes);
-            string result = FormatBytes(bytes);
-            Offset += bytes;
-            return result;
         }
 
         public BufferReader ReadBytesIntoNewBufferReader(int bytes)
@@ -195,36 +181,24 @@ namespace Hpdi.VssPhysicalLib
             {
                 newFileName += $"__chunk[{Offset:X8}, {bytes:X4}]";
             }
-            return new BufferReader(encoding, data, Offset, Offset += bytes, newFileName);
+            var newBuffer = new BufferReader(mEncoding, mDataSegment.Slice(Offset, bytes), newFileName);
+            mOffset += bytes;
+            return newBuffer;
         }
 
         public ArraySegment<byte> GetBytes(int bytes)
         {
             CheckRead(bytes);
-            var result = new ArraySegment<byte>(data, Offset, bytes);
-            Offset += bytes;
+            var result = mDataSegment.Slice(Offset, bytes);
+            mOffset += bytes;
             return result;
-        }
-
-        public string FormatBytes(int bytes)
-        {
-            int formatLimit = Math.Min(limit, Offset + bytes);
-            StringBuilder buf = new((formatLimit - Offset) * 3);
-            for (int i = Offset; i < formatLimit; ++i)
-            {
-                buf.AppendFormat("{0:X2} ", data[i]);
-            }
-            return buf.ToString();
-        }
-
-        public string FormatRemaining()
-        {
-            return FormatBytes(Remaining);
         }
 
         private void CheckRead(int bytes)
         {
-            if (Offset + bytes > limit)
+            ArgumentOutOfRangeException.ThrowIfLessThan(bytes, 0, nameof(bytes));
+
+            if (Offset + bytes > Size)
             {
                 throw new EndOfBufferException(
                     $"Attempted read of {bytes} bytes with only {Remaining} bytes remaining in buffer for {FileName}");
