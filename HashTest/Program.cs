@@ -40,6 +40,15 @@ namespace Hpdi.HashTest
 
             var crc32_fast = new Crc32_FAST(Crc32_FAST.IEEE, 0xFFFFFFFF, 0xFFFFFFFF);
             Console.WriteLine("CRC-32 FAST = {0:X8}", crc32_fast.Compute(data));
+
+            using (var crcHash32 = new SourceSafe.Cryptography.CrcHash32(
+                new SourceSafe.Cryptography.Crc32.Definition(xorOut: uint.MaxValue)))
+            {
+                crcHash32.Initialize();
+
+                uint hash32 = BitConverter.ToUInt32(crcHash32.ComputeHash(data));
+                Console.WriteLine($"CRC-32 SourceSafe FAST = {hash32:X8}");
+            }
         }
     }
 }

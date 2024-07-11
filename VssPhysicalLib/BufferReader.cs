@@ -15,7 +15,6 @@
 
 using System;
 using System.Text;
-using Hpdi.HashLib;
 
 namespace Hpdi.VssPhysicalLib
 {
@@ -64,6 +63,7 @@ namespace Hpdi.VssPhysicalLib
 
         public int Remaining => limit - Offset;
 
+        [Obsolete("Unused")]
         public ushort Checksum16()
         {
             ushort sum = 0;
@@ -74,17 +74,15 @@ namespace Hpdi.VssPhysicalLib
             return sum;
         }
 
-        private static readonly XorHash32To16 crc16 = new(new Crc32_FAST(Crc32_FAST.IEEE));
-
-        public ushort Crc16()
-        {
-            return crc16.Compute(data, Offset, limit);
-        }
+        // #REVIEW This is NOT thread-safe!
+        private static readonly SourceSafe.Cryptography.Crc32ToXor16BitComputer mCrc16Computer = new(
+            new SourceSafe.Cryptography.Crc32.Definition(initialValue: 0));
 
         public ushort Crc16(int bytes)
         {
             CheckRead(bytes);
-            return crc16.Compute(data, Offset, Offset + bytes);
+            ushort crc16 = mCrc16Computer.Compute(data, Offset, bytes);
+            return crc16;
         }
 
         public void Skip(int bytes)

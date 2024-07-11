@@ -28,6 +28,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\HashLib\HashLib.csproj" />
+    <ProjectReference Include="..\SourceSafe.Core\SourceSafe.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

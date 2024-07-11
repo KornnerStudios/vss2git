@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HashLib", "HashLib\HashLib.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HashTest", "HashTest\HashTest.csproj", "{917988FD-71D7-4091-9187-E310C0A6DF27}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceSafe.Core", "SourceSafe.Core\SourceSafe.Core.csproj", "{C43080E1-D710-43AC-AA4C-87C754C60EFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,10 @@ Global
 		{917988FD-71D7-4091-9187-E310C0A6DF27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{917988FD-71D7-4091-9187-E310C0A6DF27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{917988FD-71D7-4091-9187-E310C0A6DF27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C43080E1-D710-43AC-AA4C-87C754C60EFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C43080E1-D710-43AC-AA4C-87C754C60EFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C43080E1-D710-43AC-AA4C-87C754C60EFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C43080E1-D710-43AC-AA4C-87C754C60EFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
