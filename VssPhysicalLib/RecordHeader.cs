@@ -40,7 +40,7 @@ namespace Hpdi.VssPhysicalLib
         {
             if (Signature != expected)
             {
-                throw new RecordNotFoundException(
+                throw new SourceSafe.Physical.Records.RecordNotFoundException(
                     $"Unexpected record signature: expected={expected}, actual={Signature}");
             }
         }
@@ -70,7 +70,7 @@ namespace Hpdi.VssPhysicalLib
         {
             if (Length > reader.Remaining)
             {
-                throw new EndOfBufferException(
+                throw new SourceSafe.IO.EndOfBufferException(
                     $"Attempted read of {Length} bytes with only {reader.Remaining} bytes remaining in from {reader.FileName}");
             }
         }

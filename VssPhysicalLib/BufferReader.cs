@@ -197,7 +197,7 @@ namespace Hpdi.VssPhysicalLib
 
             if (Offset + bytes > Size)
             {
-                throw new EndOfBufferException(
+                throw new SourceSafe.IO.EndOfBufferException(
                     $"Attempted read of {bytes} bytes with only {Remaining} bytes remaining in buffer for {FileName}");
             }
         }

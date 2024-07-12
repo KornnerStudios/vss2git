@@ -68,7 +68,7 @@ namespace Hpdi.VssPhysicalLib
                 }
                 else if (recordHeader.Length < 0)
                 {
-                    throw new RecordTruncatedException(
+                    throw new SourceSafe.Physical.Records.RecordTruncatedException(
                         $"Record length is negative: {recordHeader.Length} at {recordHeader.Offset:X8} in {Filename}");
                 }
                 else
@@ -86,9 +86,9 @@ namespace Hpdi.VssPhysicalLib
                     record.Read(recordReader, recordHeader);
                 }
             }
-            catch (EndOfBufferException e)
+            catch (SourceSafe.IO.EndOfBufferException e)
             {
-                throw new RecordTruncatedException(e.Message);
+                throw new SourceSafe.Physical.Records.RecordTruncatedException(e.Message);
             }
         }
 
@@ -121,9 +121,9 @@ namespace Hpdi.VssPhysicalLib
                         return true;
                     }
                 }
-                catch (EndOfBufferException e)
+                catch (SourceSafe.IO.EndOfBufferException e)
                 {
-                    throw new RecordTruncatedException(e.Message);
+                    throw new SourceSafe.Physical.Records.RecordTruncatedException(e.Message);
                 }
             }
             return false;
