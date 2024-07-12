@@ -183,7 +183,8 @@ namespace Hpdi.VssPhysicalLib
         }
 
         private static VssRecord CreateVssRecord(
-            RecordHeader recordHeader, BufferReader recordReader)
+            RecordHeader recordHeader,
+            SourceSafe.IO.VssBufferReader recordReader)
         {
             VssRecord record = null;
             switch (recordHeader.Signature)
@@ -211,7 +212,8 @@ namespace Hpdi.VssPhysicalLib
         }
 
         private static RevisionRecord CreateRevisionRecord(
-            RecordHeader recordHeader, BufferReader recordReader)
+            RecordHeader recordHeader,
+            SourceSafe.IO.VssBufferReader recordReader)
         {
             if (recordHeader.Signature != RevisionRecord.SIGNATURE)
             {

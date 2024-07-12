@@ -66,7 +66,7 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        private void CheckFileLength(BufferReader reader)
+        private void CheckFileLength(SourceSafe.IO.VssBufferReader reader)
         {
             if (Length > reader.RemainingSize)
             {
@@ -75,7 +75,7 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public void Read(BufferReader reader)
+        public void Read(SourceSafe.IO.VssBufferReader reader)
         {
             Offset = reader.Offset;
             Length = reader.ReadInt32();

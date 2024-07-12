@@ -41,7 +41,7 @@ namespace Hpdi.VssPhysicalLib
         /// Stores the number of log entry ("EL") chunks stored in the file.
         /// </summary>
         public int Revisions { get; private set; }
-        public VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
         /// <summary>
         /// If the file has been branched, this field will contain the version
         /// number at which it was branched.
@@ -80,7 +80,7 @@ namespace Hpdi.VssPhysicalLib
             ItemType = itemType;
         }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 

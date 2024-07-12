@@ -28,7 +28,7 @@ namespace Hpdi.VssPhysicalLib
         public override string Signature => SIGNATURE;
         public string Comment { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 

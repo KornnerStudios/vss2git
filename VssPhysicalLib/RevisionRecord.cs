@@ -159,7 +159,7 @@ namespace Hpdi.VssPhysicalLib
         public int CommentLength { get; private set; }
         public int LabelCommentLength { get; private set; }
 
-        public static Action PeekAction(BufferReader reader)
+        public static Action PeekAction(SourceSafe.IO.VssBufferReader reader)
         {
             int saveOffset = reader.Offset;
             try
@@ -173,7 +173,7 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -209,10 +209,10 @@ namespace Hpdi.VssPhysicalLib
 
     public sealed class CommonRevisionRecord : RevisionRecord
     {
-        public VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
         public string Physical { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -234,10 +234,10 @@ namespace Hpdi.VssPhysicalLib
     {
         short unkShort;
 
-        public VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
         public string Physical { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -263,11 +263,11 @@ namespace Hpdi.VssPhysicalLib
 
     public sealed class RenameRevisionRecord : RevisionRecord
     {
-        public VssName Name { get; private set; }
-        public VssName OldName { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName OldName { get; private set; }
         public string Physical { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -289,10 +289,10 @@ namespace Hpdi.VssPhysicalLib
     public sealed class MoveRevisionRecord : RevisionRecord
     {
         public string ProjectPath { get; private set; }
-        public VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
         public string Physical { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -335,12 +335,12 @@ namespace Hpdi.VssPhysicalLib
         /// anything.
         /// </summary>
         public string ProjectPath { get; private set; }
-        public VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
         public short UnpinnedRevision { get; private set; }
         public short PinnedRevision { get; private set; }
         public string Physical { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -382,11 +382,11 @@ namespace Hpdi.VssPhysicalLib
 
     public sealed class BranchRevisionRecord : RevisionRecord
     {
-        public VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
         public string Physical { get; private set; }
         public string BranchFile { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -414,7 +414,7 @@ namespace Hpdi.VssPhysicalLib
         public string ProjectPath { get; private set; }
 
         public static bool ReadCheckForNonZeroUnknown5C { get; set; } = false;
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -448,11 +448,11 @@ namespace Hpdi.VssPhysicalLib
 
     public sealed class ArchiveRevisionRecord : RevisionRecord
     {
-        public VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
         public string Physical { get; private set; }
         public string ArchivePath { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 

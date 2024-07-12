@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+using SourceSafe.IO;
 using System.IO;
 
 namespace Hpdi.VssPhysicalLib
@@ -26,7 +27,7 @@ namespace Hpdi.VssPhysicalLib
         public abstract string Signature { get; }
         public RecordHeader Header { get; private set; }
 
-        public virtual void Read(BufferReader reader, RecordHeader header)
+        public virtual void Read(VssBufferReader reader, RecordHeader header)
         {
             Header = header;
         }

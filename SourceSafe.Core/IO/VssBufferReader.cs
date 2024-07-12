@@ -1,39 +1,30 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Text;
 
-namespace Hpdi.VssPhysicalLib
+namespace SourceSafe.IO
 {
     /// <summary>
     /// Reads VSS data types from a byte buffer.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    public sealed class BufferReader
+    public sealed class VssBufferReader
     {
-        public static bool ValidateAssumedToBeAllZerosAreAllZeros { get; set; }
+        public static bool ValidateAssumedToBeAllZerosAreAllZerosDefault { get; set; }
             = true;
+
+        private static readonly Cryptography.Crc32.Definition mCrc32Definition = new(
+            initialValue: 0);
+        [ThreadStatic]
+        private static Cryptography.Crc32ToXor16BitComputer? mCrc16Computer;
+        private static Cryptography.Crc32ToXor16BitComputer GetCrc16Computer() => mCrc16Computer ??= new(mCrc32Definition);
 
         private readonly Encoding mEncoding;
         private readonly ArraySegment<byte> mDataSegment;
         private int mOffset;
         public string FileName { get; private set; }
+        public bool ValidateAssumedToBeAllZerosAreAllZeros { get; set; }
+            = ValidateAssumedToBeAllZerosAreAllZerosDefault;
 
-        public BufferReader(Encoding encoding, ArraySegment<byte> data, string fileName)
+        public VssBufferReader(Encoding encoding, ArraySegment<byte> data, string fileName)
         {
             mDataSegment = data;
 
@@ -58,16 +49,12 @@ namespace Hpdi.VssPhysicalLib
         public int Size => mDataSegment.Count;
         public int RemainingSize => Size - Offset;
 
-        // #REVIEW This is NOT thread-safe!
-        private static readonly SourceSafe.Cryptography.Crc32ToXor16BitComputer mCrc16Computer = new(
-            new SourceSafe.Cryptography.Crc32.Definition(initialValue: 0));
-
         public ushort Crc16(int bytes)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(bytes, 0, nameof(bytes));
 
             CheckRead(bytes);
-            ushort crc16 = mCrc16Computer.Compute(mDataSegment.AsSpan(Offset, bytes));
+            ushort crc16 = GetCrc16Computer().Compute(mDataSegment.AsSpan(Offset, bytes));
             return crc16;
         }
 
@@ -127,7 +114,7 @@ namespace Hpdi.VssPhysicalLib
 
         public DateTime ReadDateTime()
         {
-            return SourceSafe.SourceSafeConstants.UnixLocalTimeEpoch + TimeSpan.FromSeconds(ReadInt32());
+            return SourceSafeConstants.UnixLocalTimeEpoch + TimeSpan.FromSeconds(ReadInt32());
         }
 
         public string ReadSignature(int length)
@@ -141,10 +128,10 @@ namespace Hpdi.VssPhysicalLib
             return buf.ToString();
         }
 
-        public VssName ReadName()
+        public Physical.VssName ReadName()
         {
-            CheckRead(2 + 34 + 4);
-            return new VssName(ReadInt16(), ReadString(34), ReadInt32());
+            CheckRead(Physical.VssName.Length);
+            return new Physical.VssName(ReadInt16(), ReadString(Physical.VssName.ShortNameLength), ReadInt32());
         }
 
         public string ReadString(int fieldSize)
@@ -168,15 +155,14 @@ namespace Hpdi.VssPhysicalLib
             return str;
         }
 
-        public BufferReader ReadBytesIntoNewBufferReader(int bytes)
+        public VssBufferReader ReadBytesIntoNewBufferReader(int bytes)
         {
             CheckRead(bytes);
+
             string newFileName = FileName;
-            if (newFileName != null)
-            {
-                newFileName += $"__chunk[{Offset:X8}, {bytes:X4}]";
-            }
-            var newBuffer = new BufferReader(mEncoding, mDataSegment.Slice(Offset, bytes), newFileName);
+            newFileName += $"__chunk[{Offset:X8}, {bytes:X4}]";
+
+            var newBuffer = new VssBufferReader(mEncoding, mDataSegment.Slice(Offset, bytes), newFileName);
             mOffset += bytes;
             return newBuffer;
         }
@@ -195,9 +181,9 @@ namespace Hpdi.VssPhysicalLib
 
             if (Offset + bytes > Size)
             {
-                throw new SourceSafe.IO.EndOfBufferException(
+                throw new EndOfBufferException(
                     $"Attempted read of {bytes} bytes with only {RemainingSize} bytes remaining in buffer for {FileName}");
             }
         }
-    }
+    };
 }

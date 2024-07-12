@@ -154,7 +154,7 @@ namespace Hpdi.VssLogicalLib
             return Path.Combine(Path.Combine(DataPath, physicalName.Substring(0, 1)), physicalName);
         }
 
-        internal string GetFullName(VssName name)
+        internal string GetFullName(SourceSafe.Physical.VssName name)
         {
             if (name.NameFileOffset != 0)
             {
@@ -168,7 +168,7 @@ namespace Hpdi.VssLogicalLib
             return name.ShortName;
         }
 
-        internal VssItemName GetItemName(VssName name, string physicalName)
+        internal VssItemName GetItemName(SourceSafe.Physical.VssName name, string physicalName)
         {
             return new VssItemName(GetFullName(name), physicalName, name.IsProject);
         }

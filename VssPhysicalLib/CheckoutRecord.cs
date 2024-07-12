@@ -95,7 +95,7 @@ namespace Hpdi.VssPhysicalLib
 
         public bool Exclusive => (Flags & 0x40) != 0;
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 

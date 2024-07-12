@@ -44,14 +44,14 @@ namespace Hpdi.VssPhysicalLib
 
         public ItemType ItemType { get; private set; }
         public ProjectEntryFlags Flags { get; private set; }
-        public VssName Name { get; private set; }
+        public SourceSafe.Physical.VssName Name { get; private set; }
         public short PinnedVersion { get; private set; }
         /// <summary>
         /// Name of the database file name, in "aaaaaaaa" format.
         /// </summary>
         public string Physical { get; private set; }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 

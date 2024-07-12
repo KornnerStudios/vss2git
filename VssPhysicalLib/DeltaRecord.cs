@@ -32,7 +32,7 @@ namespace Hpdi.VssPhysicalLib
         public IEnumerable<DeltaOperation> Operations => operations;
 
         public static bool ReadCheckForMissingStopCommands { get; set; } = false;
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 

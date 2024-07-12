@@ -67,7 +67,7 @@ namespace Hpdi.VssPhysicalLib
             return result;
         }
 
-        public void Read(BufferReader reader)
+        public void Read(SourceSafe.IO.VssBufferReader reader)
         {
             Command = (DeltaCommand)reader.ReadInt16();
             // Note in ApplyDifferenceData: "Next 16 bits is junk.  Ignore it."

@@ -77,7 +77,7 @@ namespace Hpdi.VssPhysicalLib
         {
         }
 
-        public override void Read(BufferReader reader, RecordHeader header)
+        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 

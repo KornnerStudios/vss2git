@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using SourceSafe.IO;
 
 namespace Hpdi.VssPhysicalLib
 {
@@ -37,7 +38,7 @@ namespace Hpdi.VssPhysicalLib
         public static bool UseInMemoryFilePooling { get; set; }
             = true;
 
-        protected readonly BufferReader reader;
+        protected readonly VssBufferReader reader;
 
         public string Filename { get; }
 
@@ -47,7 +48,7 @@ namespace Hpdi.VssPhysicalLib
             byte[] fileBytes = UseInMemoryFilePooling
                 ? ReadFileOrAccessFromPool(filename)
                 : ReadFile(filename);
-            reader = new BufferReader(encoding, new ArraySegment<byte>(fileBytes), filename);
+            reader = new VssBufferReader(encoding, new ArraySegment<byte>(fileBytes), filename);
         }
 
         public void ReadRecord(VssRecord record)
@@ -73,7 +74,7 @@ namespace Hpdi.VssPhysicalLib
                 }
                 else
                 {
-                    BufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+                    VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
                     // comment records always seem to have a zero CRC
                     if (recordHeader.Signature != CommentRecord.SIGNATURE)
@@ -107,7 +108,7 @@ namespace Hpdi.VssPhysicalLib
                     RecordHeader recordHeader = new();
                     recordHeader.Read(reader);
 
-                    BufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+                    VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
                     // comment records always seem to have a zero CRC
                     if (recordHeader.Signature != CommentRecord.SIGNATURE)
@@ -130,7 +131,8 @@ namespace Hpdi.VssPhysicalLib
         }
 
         protected delegate T CreateRecordCallback<T>(
-            RecordHeader recordHeader, BufferReader recordReader);
+            RecordHeader recordHeader,
+            VssBufferReader recordReader);
 
         protected T GetRecord<T>(
             CreateRecordCallback<T> creationCallback,
@@ -140,7 +142,7 @@ namespace Hpdi.VssPhysicalLib
             RecordHeader recordHeader = new();
             recordHeader.Read(reader);
 
-            BufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+            VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
             // comment records always seem to have a zero CRC
             if (recordHeader.Signature != CommentRecord.SIGNATURE)
