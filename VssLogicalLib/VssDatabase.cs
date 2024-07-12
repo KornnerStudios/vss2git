@@ -124,7 +124,7 @@ namespace Hpdi.VssLogicalLib
             this.Encoding = encoding;
 
             IniPath = Path.Combine(path, SourceSafeConstants.IniFile);
-            SimpleIniReader iniReader = new(IniPath);
+            SourceSafe.IO.SimpleIniReader iniReader = new(IniPath);
             iniReader.Parse();
 
             DataPath = Path.Combine(path, iniReader.GetValue("Data_Path", "data"));
