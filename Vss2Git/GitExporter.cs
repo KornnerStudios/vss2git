@@ -304,7 +304,7 @@ namespace Hpdi.Vss2Git
 
                 if (projectLogicalPath == null && projectWorkDirPath == null && actionType == VssActionType.Create)
                 {
-                    if (revision.Action is VssNamedAction namedAction)
+                    if (revision.Action is VssNamedActionBase namedAction)
                     {
                         target = namedAction.Name;
                     }
@@ -320,7 +320,7 @@ namespace Hpdi.Vss2Git
                 }
                 else
                 {
-                    if (revision.Action is VssNamedAction namedAction)
+                    if (revision.Action is VssNamedActionBase namedAction)
                     {
                         target = namedAction.Name;
                         if (projectLogicalPath != null)

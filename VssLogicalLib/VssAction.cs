@@ -37,24 +37,10 @@ namespace Hpdi.VssLogicalLib
     }
 
     /// <summary>
-    /// Base class for VSS project actions that target a particular item.
-    /// </summary>
-    /// <author>Trevor Robinson</author>
-    public abstract class VssNamedAction : VssActionBase
-    {
-        public VssItemName Name { get; init; }
-
-        public VssNamedAction(VssItemName name)
-        {
-            Name = name;
-        }
-    }
-
-    /// <summary>
     /// Represents a VSS project/file destroy action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssDestroyAction : VssNamedAction
+    public sealed class VssDestroyAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Destroy;
 
@@ -70,7 +56,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project/file create action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssCreateAction : VssNamedAction
+    public sealed class VssCreateAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Create;
 
@@ -86,7 +72,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project/file add action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssAddAction : VssNamedAction
+    public sealed class VssAddAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Add;
 
@@ -102,7 +88,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project/file delete action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssDeleteAction : VssNamedAction
+    public sealed class VssDeleteAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Delete;
 
@@ -118,7 +104,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project/file recover action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssRecoverAction : VssNamedAction
+    public sealed class VssRecoverAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Recover;
 
@@ -134,7 +120,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project/file rename action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssRenameAction : VssNamedAction
+    public sealed class VssRenameAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Rename;
 
@@ -153,7 +139,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project move-from action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssMoveFromAction : VssNamedAction
+    public sealed class VssMoveFromAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.MoveFrom;
 
@@ -172,7 +158,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS project move-to action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssMoveToAction : VssNamedAction
+    public sealed class VssMoveToAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.MoveTo;
 
@@ -191,7 +177,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS file share action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssShareAction : VssNamedAction
+    public sealed class VssShareAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Share;
 
@@ -216,7 +202,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS file pin/unpin action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssPinAction : VssNamedAction
+    public sealed class VssPinAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Pin;
 
@@ -238,7 +224,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS file branch action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssBranchAction : VssNamedAction
+    public sealed class VssBranchAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Branch;
 
@@ -275,7 +261,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS archive action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssArchiveAction : VssNamedAction
+    public sealed class VssArchiveAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Archive;
 
@@ -294,7 +280,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS restore from archive action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssRestoreAction : VssNamedAction
+    public sealed class VssRestoreAction : VssNamedActionBase
     {
         public override VssActionType Type => VssActionType.Restore;
 

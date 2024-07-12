@@ -70,7 +70,7 @@ namespace Hpdi.Vss2Git
                 {
                     // determine target of project revisions
                     VssActionType actionType = revision.Action.Type;
-                    var namedAction = revision.Action as VssNamedAction;
+                    var namedAction = revision.Action as VssNamedActionBase;
                     string targetFile = revision.Item.PhysicalName;
                     if (namedAction != null)
                     {

@@ -130,7 +130,7 @@ namespace Hpdi.Vss2Git
                 foreach (VssRevision vssRevision in item.Revisions)
                 {
                     VssActionType actionType = vssRevision.Action.Type;
-                    if (vssRevision.Action is VssNamedAction namedAction)
+                    if (vssRevision.Action is VssNamedActionBase namedAction)
                     {
                         var tuple = new DeletedFileData(item.PhysicalName, namedAction.Name.PhysicalName);
 
