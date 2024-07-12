@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.IO;
 using Hpdi.VssLogicalLib;
 using SourceSafe;
+using SourceSafe.Logical;
 
 namespace Hpdi.Vss2Git
 {

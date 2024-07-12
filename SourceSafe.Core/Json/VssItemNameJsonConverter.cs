@@ -3,9 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace SourceSafe.Json
 {
-    public sealed class VssItemNameJsonConverter : JsonConverter<VssItemName>
+    public sealed class VssItemNameJsonConverter : JsonConverter<Logical.VssItemName>
     {
-        public override VssItemName Read(
+        public override Logical.VssItemName Read(
             ref Utf8JsonReader reader,
             Type typeToConvert,
             JsonSerializerOptions options)
@@ -14,30 +14,30 @@ namespace SourceSafe.Json
 
             if (string.IsNullOrEmpty(jsonString))
             {
-                throw new JsonException($"Null or empty value provided for non-nullable {nameof(VssItemName)}");
+                throw new JsonException($"Null or empty value provided for non-nullable {nameof(Logical.VssItemName)}");
             }
 
-            return VssItemName.Parse(jsonString)!;
+            return Logical.VssItemName.Parse(jsonString)!;
         }
 
         public override void Write(
             Utf8JsonWriter writer,
-            VssItemName itemName,
+            Logical.VssItemName itemName,
             JsonSerializerOptions options) =>
                 writer.WriteStringValue(itemName.ToString());
     };
 
-    public sealed class VssItemNameNullableJsonConverter : JsonConverter<VssItemName?>
+    public sealed class VssItemNameNullableJsonConverter : JsonConverter<Logical.VssItemName?>
     {
-        public override VssItemName? Read(
+        public override Logical.VssItemName? Read(
             ref Utf8JsonReader reader,
             Type typeToConvert,
             JsonSerializerOptions options) =>
-                VssItemName.Parse(reader.GetString()!);
+                Logical.VssItemName.Parse(reader.GetString()!);
 
         public override void Write(
             Utf8JsonWriter writer,
-            VssItemName? itemName,
+            Logical.VssItemName? itemName,
             JsonSerializerOptions options) =>
                 writer.WriteStringValue(itemName?.ToString());
     };

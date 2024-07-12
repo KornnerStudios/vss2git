@@ -1,5 +1,5 @@
 ﻿
-namespace SourceSafe
+namespace SourceSafe.Logical
 {
     /// <summary>
     /// Represents the name of a VSS item.

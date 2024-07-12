@@ -14,7 +14,7 @@
  */
 
 using System;
-using SourceSafe;
+using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;
 
 namespace Hpdi.Vss2Git

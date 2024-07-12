@@ -18,6 +18,7 @@ using System.IO;
 using System.Text;
 using Hpdi.VssPhysicalLib;
 using SourceSafe;
+using SourceSafe.Logical;
 
 namespace Hpdi.VssLogicalLib
 {
