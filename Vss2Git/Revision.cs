@@ -15,6 +15,7 @@
 
 using System;
 using Hpdi.VssLogicalLib;
+using SourceSafe;
 
 namespace Hpdi.Vss2Git
 {

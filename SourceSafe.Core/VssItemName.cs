@@ -4,7 +4,7 @@ namespace SourceSafe
     /// <summary>
     /// Represents the name of a VSS item.
     /// </summary>
-    internal class VssItemName
+    public sealed class VssItemName
     {
         /// <summary>
         /// The current logical name of the item.
@@ -22,7 +22,7 @@ namespace SourceSafe
         /// </summary>
         public bool IsProject { get; }
 
-        internal VssItemName(string logicalName, string physicalName, bool isProject)
+        public VssItemName(string logicalName, string physicalName, bool isProject)
         {
             LogicalName = logicalName;
             PhysicalName = physicalName;

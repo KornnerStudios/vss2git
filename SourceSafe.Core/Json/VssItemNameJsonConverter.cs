@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace SourceSafe.Json
 {
-    internal class VssItemNameJsonConverter : JsonConverter<VssItemName>
+    public sealed class VssItemNameJsonConverter : JsonConverter<VssItemName>
     {
         public override VssItemName Read(
             ref Utf8JsonReader reader,
@@ -27,7 +27,7 @@ namespace SourceSafe.Json
                 writer.WriteStringValue(itemName.ToString());
     };
 
-    internal class VssItemNameNullableJsonConverter : JsonConverter<VssItemName?>
+    public sealed class VssItemNameNullableJsonConverter : JsonConverter<VssItemName?>
     {
         public override VssItemName? Read(
             ref Utf8JsonReader reader,
