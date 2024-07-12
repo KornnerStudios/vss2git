@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-using Hpdi.VssLogicalLib;
 using System;
 using System.Collections.Generic;
+using SourceSafe.Logical;
 
 namespace Hpdi.Vss2Git
 {

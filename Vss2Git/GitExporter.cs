@@ -25,6 +25,7 @@ using System.Windows.Forms;
 using Hpdi.VssLogicalLib;
 using Hpdi.VssPhysicalLib;
 using SourceSafe;
+using SourceSafe.Logical;
 
 namespace Hpdi.Vss2Git
 {

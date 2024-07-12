@@ -14,8 +14,8 @@
  */
 
 using System;
-using Hpdi.VssLogicalLib;
 using SourceSafe;
+using SourceSafe.Logical;
 
 namespace Hpdi.Vss2Git
 {
@@ -31,10 +31,10 @@ namespace Hpdi.Vss2Git
         public VssItemName Item { get; }
         public int Version { get; }
         public string Comment { get; }
-        public VssAction Action { get; }
+        public VssActionBase Action { get; }
 
         public Revision(DateTime dateTime, string user, VssItemName item,
-            int version, string comment, VssAction action)
+            int version, string comment, VssActionBase action)
         {
             DateTime = dateTime;
             User = user;

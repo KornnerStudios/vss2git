@@ -16,6 +16,7 @@
 using System;
 using Hpdi.VssPhysicalLib;
 using SourceSafe;
+using SourceSafe.Logical;
 
 namespace Hpdi.VssLogicalLib
 {
@@ -31,7 +32,7 @@ namespace Hpdi.VssLogicalLib
 
         public VssItem Item => item;
 
-        public VssAction Action { get; init; }
+        public VssActionBase Action { get; init; }
 
         public int Version => revision.Revision;
 
@@ -51,7 +52,7 @@ namespace Hpdi.VssLogicalLib
             this.comment = comment;
         }
 
-        private static VssAction CreateAction(RevisionRecord revision, VssItem item)
+        private static VssActionBase CreateAction(RevisionRecord revision, VssItem item)
         {
             VssDatabase db = item.Database;
             switch (revision.Action)

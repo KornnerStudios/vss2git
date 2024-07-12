@@ -14,46 +14,15 @@
  */
 
 using SourceSafe;
+using SourceSafe.Logical;
 
 namespace Hpdi.VssLogicalLib
 {
     /// <summary>
-    /// Enumeration of logical VSS revision actions.
-    /// </summary>
-    /// <author>Trevor Robinson</author>
-    public enum VssActionType
-    {
-        Label,
-        Create,
-        Destroy,
-        Add,
-        Delete,
-        Recover,
-        Rename,
-        MoveFrom,
-        MoveTo,
-        Share,
-        Pin,
-        Branch,
-        Edit,
-        Archive,
-        Restore
-    }
-
-    /// <summary>
-    /// Base class for VSS revision action descriptions.
-    /// </summary>
-    /// <author>Trevor Robinson</author>
-    public abstract class VssAction
-    {
-        public abstract VssActionType Type { get; }
-    }
-
-    /// <summary>
     /// Represents a VSS label action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssLabelAction : VssAction
+    public sealed class VssLabelAction : VssActionBase
     {
         public override VssActionType Type => VssActionType.Label;
 
@@ -71,7 +40,7 @@ namespace Hpdi.VssLogicalLib
     /// Base class for VSS project actions that target a particular item.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public abstract class VssNamedAction : VssAction
+    public abstract class VssNamedAction : VssActionBase
     {
         public VssItemName Name { get; init; }
 
@@ -288,7 +257,7 @@ namespace Hpdi.VssLogicalLib
     /// Represents a VSS file edit action.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class VssEditAction : VssAction
+    public sealed class VssEditAction : VssActionBase
     {
         public override VssActionType Type => VssActionType.Edit;
 

@@ -16,10 +16,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Hpdi.VssLogicalLib;
 using Hpdi.VssPhysicalLib;
+using SourceSafe.Logical;
 
 namespace Hpdi.Vss2Git
 {
