@@ -16,5 +16,11 @@ namespace SourceSafe
             return coll != null && coll.Count != 0;
         }
         #endregion
+
+        public static string ToIsoTimestamp(this DateTime time)
+        {
+            //return time.ToString(@"yyyy-MM-ddTHH\:mm\:ss.fffzzz", System.Globalization.CultureInfo.InvariantCulture);
+            return time.ToString(@"yyyy-MM-dd HH\:mm\:ss", System.Globalization.CultureInfo.InvariantCulture);
+        }
     };
 }

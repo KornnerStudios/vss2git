@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Linq;
 using Hpdi.VssLogicalLib;
 using Hpdi.VssPhysicalLib;
+using SourceSafe;
 using SourceSafe.Logical.Actions;
 
 namespace Hpdi.Vss2Git
@@ -248,7 +249,7 @@ namespace Hpdi.Vss2Git
             TimeSpan changeDuration = changeset.DateTime - firstRevTime;
 
             logger.WriteLine("{0}Changeset {1} - {2} ({3} secs) {4} {5} file(s)",
-                indentStr, changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime), changeDuration.TotalSeconds,
+                indentStr, changesetId, changeset.DateTime.ToIsoTimestamp(), changeDuration.TotalSeconds,
                 changeset.User, changeset.Revisions.Count);
 
             if (changeset.Comment.Count > 0)
@@ -265,7 +266,8 @@ namespace Hpdi.Vss2Git
             foreach (Revision revision in changeset.Revisions)
             {
                 // (target)@version format matches "File conflict..." output
-                logger.WriteLine("{0}  {1} {2}@{3} {4}", indentStr, VssDatabase.FormatISOTimestamp(revision.DateTime), revision.Item, revision.Version, revision.Action);
+                logger.WriteLine("{0}  {1} {2}@{3} {4}",
+                    indentStr, revision.DateTime.ToIsoTimestamp(), revision.Item, revision.Version, revision.Action);
             }
 
             logger.WriteLine("{0}//------------------------- {1} {2}//", indentStr, reason, 53 > reason.Length ? new string('-', 53 - reason.Length) : "");

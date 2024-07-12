@@ -200,7 +200,7 @@ namespace Hpdi.Vss2Git
                     }
 
                     string changesetDesc = string.Format(CultureInfo.InvariantCulture,
-                        "changeset {0} from {1}", changesetId, VssDatabase.FormatISOTimestamp(changeset.DateTime));
+                        "changeset {0} from {1}", changesetId, changeset.DateTime.ToIsoTimestamp());
 
                     logger.WriteLine("//-------------------------------------------------------------------------//");
 

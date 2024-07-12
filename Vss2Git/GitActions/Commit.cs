@@ -16,6 +16,7 @@
  */
 
 using Hpdi.VssLogicalLib;
+using SourceSafe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -249,13 +250,14 @@ namespace Hpdi.Vss2Git.GitActions
                 TimeSpan changeDuration = changeset.DateTime - firstRevTime;
 
                 message.Add(String.Format("{0}Changeset {1} - {2} ({3} secs){4} {5} {6} file(s)",
-                    indentStr, changeset.Id, VssDatabase.FormatISOTimestamp(changeset.DateTime), changeDuration.TotalSeconds,
+                    indentStr, changeset.Id, changeset.DateTime.ToIsoTimestamp(), changeDuration.TotalSeconds,
                     "", changeset.User, changeset.Revisions.Count));
 
                 foreach (Revision revision in revisions)
                 {
-                    message.Add(String.Format("{0}  {1} {2}@{3} {4}", indentStr, VssDatabase.FormatISOTimestamp(revision.DateTime),
-                                                                      revision.Item, revision.Version, revision.Action));
+                    message.Add(String.Format("{0}  {1} {2}@{3} {4}",
+                        indentStr, revision.DateTime.ToIsoTimestamp(),
+                        revision.Item, revision.Version, revision.Action));
                 }
             }
 

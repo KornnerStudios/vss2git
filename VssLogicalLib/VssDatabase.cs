@@ -112,12 +112,6 @@ namespace Hpdi.VssLogicalLib
             return File.Exists(physicalPath);
         }
 
-        public static string FormatISOTimestamp(DateTime time)
-        {
-            //return time.ToString(@"yyyy-MM-ddTHH\:mm\:ss.fffzzz", System.Globalization.CultureInfo.InvariantCulture);
-            return time.ToString(@"yyyy-MM-dd HH\:mm\:ss", System.Globalization.CultureInfo.InvariantCulture);
-        }
-
         internal VssDatabase(string path, Encoding encoding)
         {
             this.BasePath = path;
