@@ -184,7 +184,7 @@ namespace Hpdi.VssPhysicalLib
         public ArraySegment<byte> GetBytes(int bytes)
         {
             CheckRead(bytes);
-            var result = mDataSegment.Slice(Offset, bytes);
+            ArraySegment<byte> result = mDataSegment.Slice(Offset, bytes);
             mOffset += bytes;
             return result;
         }

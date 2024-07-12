@@ -27,7 +27,7 @@ namespace Hpdi.VssPhysicalLib
         public const int LENGTH = 8;
 
         public static bool IgnoreCrcErrors { get; set; }
-            = true;
+            = false;
 
         public int Offset { get; private set; }
         public int Length { get; private set; }

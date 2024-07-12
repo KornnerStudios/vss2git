@@ -209,19 +209,18 @@ namespace Hpdi.VssPhysicalLib
             return data;
         }
 
-        public static long FilesPoolMaxSize =
+        private const long FilesPoolMaxSize =
             //6442450944 // 6GB
             4294967296 // 4GB
             ;
-        public static int FilesPoolMaxEntries = 128;
-        public static long FilesPoolTotalSize = 0;
+        private const int FilesPoolMaxEntries = 128;
+        private static long FilesPoolTotalSize = 0;
         public static Dictionary<string, byte[]> FilesPool { get; } = [];
         public static List<string> FilesMostRecentlyAccessed { get; } = [];
 
         private static byte[] ReadFileOrAccessFromPool(string filename)
         {
-            byte[] data;
-            if (FilesPool.TryGetValue(filename, out data))
+            if (FilesPool.TryGetValue(filename, out byte[] data))
             {
                 AccessFileInFilesPool(filename);
             }
