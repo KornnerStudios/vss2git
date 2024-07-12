@@ -1,29 +1,10 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-
-namespace Hpdi.VssPhysicalLib
+﻿
+namespace SourceSafe.Physical.DeltaDiff
 {
     /// <summary>
     /// Provides a seekable input stream over a file revision based on the
     /// latest revision content and a set of reverse-delta operations.
     /// </summary>
-    /// <author>Trevor Robinson</author>
     public sealed class DeltaStream : Stream
     {
         private readonly Stream baseStream;
@@ -60,21 +41,15 @@ namespace Hpdi.VssPhysicalLib
 
         public override long Position
         {
-            get
-            {
-                return simulator.FileOffset;
-            }
-            set
-            {
-                simulator.Seek((int)value);
-            }
+            get => simulator.FileOffset;
+            set => simulator.Seek((int)value);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
             int bytesRead = 0;
             simulator.Read(count,
-                delegate(byte[] opData, int opOffset, int opCount)
+                (byte[] opData, int opOffset, int opCount) =>
                 {
                     Buffer.BlockCopy(opData, opOffset, buffer, offset, opCount);
                     offset += opCount;
@@ -82,7 +57,7 @@ namespace Hpdi.VssPhysicalLib
                     bytesRead += opCount;
                     return opCount;
                 },
-                delegate(int opOffset, int opCount)
+                (int opOffset, int opCount) =>
                 {
                     baseStream.Seek(opOffset, SeekOrigin.Begin);
                     int opBytesRead = baseStream.Read(buffer, offset, opCount);
@@ -114,14 +89,10 @@ namespace Hpdi.VssPhysicalLib
         }
 
         public override void SetLength(long value)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public override void Flush()
         {
@@ -133,5 +104,5 @@ namespace Hpdi.VssPhysicalLib
             base.Close();
             baseStream.Close();
         }
-    }
+    };
 }

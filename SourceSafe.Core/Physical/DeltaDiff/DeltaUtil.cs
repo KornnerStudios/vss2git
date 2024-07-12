@@ -1,27 +1,9 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System.Collections.Generic;
-using System.IO;
-
-namespace Hpdi.VssPhysicalLib
+﻿
+namespace SourceSafe.Physical.DeltaDiff
 {
     /// <summary>
     /// Utility methods for merging and applying reverse-delta operations.
     /// </summary>
-    /// <author>Trevor Robinson</author>
     public static class DeltaUtil
     {
         public static ICollection<DeltaOperation> Merge(
@@ -44,12 +26,12 @@ namespace Hpdi.VssPhysicalLib
                         {
                             merger.Seek(operation.Offset);
                             merger.Read(operation.Length,
-                                delegate (byte[] data, int offset, int count)
+                                (byte[] data, int offset, int count) =>
                                 {
                                     result.Add(DeltaOperation.WriteLog(data, offset, count));
                                     return count;
                                 },
-                                delegate (int offset, int count)
+                                (int offset, int count) =>
                                 {
                                     result.Add(DeltaOperation.WriteSuccessor(offset, count));
                                     return count;
@@ -68,14 +50,14 @@ namespace Hpdi.VssPhysicalLib
             Stream output)
         {
             const int COPY_BUFFER_SIZE = 4096;
-            byte[] copyBuffer = null;
+            byte[]? copyBuffer = null;
             foreach (DeltaOperation operation in operations)
             {
                 switch (operation.Command)
                 {
                     case DeltaCommand.WriteLog:
                     {
-                        output.Write(operation.Data.Array,
+                        output.Write(operation.Data.Array!,
                             operation.Data.Offset, operation.Data.Count);
                         break;
                     }
@@ -105,5 +87,5 @@ namespace Hpdi.VssPhysicalLib
             }
             output.Flush();
         }
-    }
+    };
 }

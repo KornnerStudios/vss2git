@@ -16,6 +16,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Hpdi.VssPhysicalLib;
+using SourceSafe.Physical.DeltaDiff;
 
 namespace Hpdi.VssLogicalLib
 {

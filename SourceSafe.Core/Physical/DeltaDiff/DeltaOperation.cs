@@ -1,41 +1,10 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+﻿using System.Text;
 
-using System;
-using System.IO;
-using System.Text;
-
-namespace Hpdi.VssPhysicalLib
+namespace SourceSafe.Physical.DeltaDiff
 {
-    /// <summary>
-    /// Enumeration of file revision delta commands.
-    /// </summary>
-    /// <author>Trevor Robinson</author>
-    public enum DeltaCommand
-    {
-        // Insert <count> bytes from the data stream.
-        WriteLog = 0, // write data from the log file
-        // Copy <count> bytes from the <pNewFile> array.
-        WriteSuccessor = 1, // write data from the subsequent revision
-        Stop = 2 // indicates the last operation
-    }
-
     /// <summary>
     /// Represents a single delta operation for a file revision.
     /// </summary>
-    /// <author>Trevor Robinson</author>
     public sealed class DeltaOperation
     {
         ArraySegment<byte> data; // WriteLog only
@@ -45,8 +14,34 @@ namespace Hpdi.VssPhysicalLib
         public int Length { get; private set; }
         public ArraySegment<byte> Data { get { return data; } }
 
+        public ArraySegment<byte> GetWriteLogDataSlice(int offset, int count)
+        {
+            if (Command != DeltaCommand.WriteLog)
+            {
+                throw new InvalidOperationException("GetWriteLogDataSlice called on non-WriteLog operation");
+            }
+
+            ArraySegment<byte> slice = Data.Slice(offset, count);
+            return slice;
+        }
+
         public static DeltaOperation WriteLog(byte[] data, int offset, int length)
         {
+            ArgumentOutOfRangeException.ThrowIfLessThan(offset, 0, nameof(offset));
+            ArgumentOutOfRangeException.ThrowIfLessThan(length, 0, nameof(length));
+
+            if (data == null)
+            {
+                if (length == 0)
+                {
+                    data = Array.Empty<byte>();
+                }
+                else
+                {
+                    throw new ArgumentNullException(nameof(data));
+                }
+            }
+
             var result = new DeltaOperation
             {
                 Command = DeltaCommand.WriteLog,
@@ -58,6 +53,9 @@ namespace Hpdi.VssPhysicalLib
 
         public static DeltaOperation WriteSuccessor(int offset, int length)
         {
+            ArgumentOutOfRangeException.ThrowIfLessThan(offset, 0, nameof(offset));
+            ArgumentOutOfRangeException.ThrowIfLessThan(length, 0, nameof(length));
+
             var result = new DeltaOperation
             {
                 Command = DeltaCommand.WriteSuccessor,
@@ -67,11 +65,11 @@ namespace Hpdi.VssPhysicalLib
             return result;
         }
 
-        public void Read(SourceSafe.IO.VssBufferReader reader)
+        public void Read(IO.VssBufferReader reader)
         {
             Command = (DeltaCommand)reader.ReadInt16();
             // Note in ApplyDifferenceData: "Next 16 bits is junk.  Ignore it."
-            reader.SkipUnknown(2);
+            reader.SkipKnownJunk(2);
             Offset = reader.ReadInt32();
             Length = reader.ReadInt32();
             if (Command == DeltaCommand.WriteLog)
@@ -85,7 +83,7 @@ namespace Hpdi.VssPhysicalLib
         {
             const int MAX_DATA_DUMP = 40;
 
-            string indentStr = VssRecord.DumpGetIndentString(indent);
+            string indentStr = IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.Write($"Offset={Offset:X8}, Length={Length:X4}, {Command}");
@@ -109,5 +107,5 @@ namespace Hpdi.VssPhysicalLib
             }
             writer.WriteLine();
         }
-    }
+    };
 }
