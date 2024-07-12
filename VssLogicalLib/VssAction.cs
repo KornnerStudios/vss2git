@@ -19,24 +19,6 @@ using SourceSafe.Logical;
 namespace Hpdi.VssLogicalLib
 {
     /// <summary>
-    /// Represents a VSS label action.
-    /// </summary>
-    /// <author>Trevor Robinson</author>
-    public sealed class VssLabelAction : VssActionBase
-    {
-        public override VssActionType Type => VssActionType.Label;
-
-        public string Label { get; init; }
-
-        public VssLabelAction(string label)
-        {
-            Label = label;
-        }
-
-        public override string ToString() => $"Label {Label}";
-    }
-
-    /// <summary>
     /// Represents a VSS project/file destroy action.
     /// </summary>
     /// <author>Trevor Robinson</author>
@@ -237,24 +219,6 @@ namespace Hpdi.VssLogicalLib
         }
 
         public override string ToString() => $"Branch {Name} from {Source.PhysicalName}";
-    }
-
-    /// <summary>
-    /// Represents a VSS file edit action.
-    /// </summary>
-    /// <author>Trevor Robinson</author>
-    public sealed class VssEditAction : VssActionBase
-    {
-        public override VssActionType Type => VssActionType.Edit;
-
-        public string PhysicalName { get; }
-
-        public VssEditAction(string physicalName)
-        {
-            PhysicalName = physicalName;
-        }
-
-        public override string ToString() => $"Edit {PhysicalName}";
     }
 
     /// <summary>
