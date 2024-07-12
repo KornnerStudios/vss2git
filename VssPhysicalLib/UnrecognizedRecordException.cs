@@ -21,7 +21,7 @@ namespace Hpdi.VssPhysicalLib
     /// Exception thrown when an unrecognized record type is encountered.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class UnrecognizedRecordException : RecordException
+    public class UnrecognizedRecordException : SourceSafe.Physical.Records.RecordExceptionBase
     {
         public RecordHeader Header { get; init; }
 

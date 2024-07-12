@@ -169,7 +169,7 @@ namespace Hpdi.Vss2Git
                     ++revisionCount;
                 }
             }
-            catch (RecordException e)
+            catch (SourceSafe.Physical.Records.RecordExceptionBase e)
             {
                 string message = $"Failed to read revisions for ({item.PhysicalName}): {ExceptionFormatter.Format(e)}";
                 LogException(e, message);
