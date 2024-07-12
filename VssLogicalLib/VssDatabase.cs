@@ -17,6 +17,7 @@ using System;
 using System.IO;
 using System.Text;
 using Hpdi.VssPhysicalLib;
+using SourceSafe;
 
 namespace Hpdi.VssLogicalLib
 {
@@ -26,10 +27,6 @@ namespace Hpdi.VssLogicalLib
     /// <author>Trevor Robinson</author>
     public sealed class VssDatabase
     {
-        public const string RootProjectName = "$";
-        public const string RootProjectFile = "AAAAAAAA";
-        public const char ProjectSeparatorChar = '/';
-        public const string ProjectSeparator = "/";
         private readonly NameFile nameFile;
 
         public string BasePath { get; init; }
@@ -44,9 +41,9 @@ namespace Hpdi.VssLogicalLib
 
         public VssItem GetItem(string logicalPath)
         {
-            string[] segments = logicalPath.Split(new char[] { ProjectSeparatorChar },
+            string[] segments = logicalPath.Split(new char[] { SourceSafeConstants.ProjectSeparatorChar },
                 StringSplitOptions.RemoveEmptyEntries);
-            int index = segments[0] == RootProjectName ? 1 : 0;
+            int index = segments[0] == SourceSafeConstants.RootProjectName ? 1 : 0;
             VssProject project = RootProject;
             while (index < segments.Length)
             {
@@ -68,7 +65,7 @@ namespace Hpdi.VssLogicalLib
                     }
                     else
                     {
-                        string currentPath = string.Join(ProjectSeparator, segments, 0, index);
+                        string currentPath = string.Join(SourceSafeConstants.ProjectSeparator, segments, 0, index);
                         throw new VssPathException($"{currentPath} is not a project");
                     }
                 }
@@ -82,7 +79,7 @@ namespace Hpdi.VssLogicalLib
         {
             physicalName = physicalName.ToUpper();
 
-            if (physicalName == RootProjectFile)
+            if (physicalName == SourceSafeConstants.RootPhysicalFile)
             {
                 return RootProject;
             }
@@ -108,6 +105,7 @@ namespace Hpdi.VssLogicalLib
             return item;
         }
 
+        [Obsolete("Unused")]
         public bool ItemExists(string physicalName)
         {
             string physicalPath = GetDataPath(physicalName);
@@ -125,7 +123,7 @@ namespace Hpdi.VssLogicalLib
             this.BasePath = path;
             this.Encoding = encoding;
 
-            IniPath = Path.Combine(path, "srcsafe.ini");
+            IniPath = Path.Combine(path, SourceSafeConstants.IniFile);
             SimpleIniReader iniReader = new(IniPath);
             iniReader.Parse();
 
@@ -134,7 +132,7 @@ namespace Hpdi.VssLogicalLib
             string namesPath = Path.Combine(DataPath, "names.dat");
             nameFile = new NameFile(namesPath, encoding);
 
-            RootProject = OpenProject(null, RootProjectFile, RootProjectName);
+            RootProject = OpenProject(null, SourceSafeConstants.RootPhysicalFile, SourceSafeConstants.RootProjectName);
         }
 
         internal VssProject OpenProject(VssProject parent, string physicalName, string logicalName)
@@ -154,7 +152,7 @@ namespace Hpdi.VssLogicalLib
 
         private static string BuildPath(VssProject parent, string logicalName)
         {
-            return (parent != null) ? parent.LogicalPath + ProjectSeparator + logicalName : logicalName;
+            return (parent != null) ? parent.LogicalPath + SourceSafeConstants.ProjectSeparator + logicalName : logicalName;
         }
 
         internal string GetDataPath(string physicalName)

@@ -46,6 +46,6 @@ namespace Hpdi.VssLogicalLib
         }
 
         public override string ToString() =>
-            $"{(IsProject ? VssDatabase.RootProjectName : "")}{LogicalName}({PhysicalName})";
+            $"{(IsProject ? SourceSafe.SourceSafeConstants.RootProjectName : "")}{LogicalName}({PhysicalName})";
     }
 }

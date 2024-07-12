@@ -21,18 +21,18 @@ namespace Hpdi.VssPhysicalLib
     /// Base class for exceptions thrown when an invalid record is read.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class RecordException : Exception
+    public abstract class RecordException : Exception
     {
-        public RecordException()
+        protected RecordException()
         {
         }
 
-        public RecordException(string message)
+        protected RecordException(string message)
             : base(message)
         {
         }
 
-        public RecordException(string message, Exception innerException)
+        protected RecordException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

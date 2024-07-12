@@ -1044,7 +1044,7 @@ namespace Hpdi.Vss2Git
         {
             string pendingBranch = "";
 
-            if (null != logicalProjectPath && 2 <= logicalProjectPath.Count && VssDatabase.RootProjectName == logicalProjectPath[0])
+            if (null != logicalProjectPath && 2 <= logicalProjectPath.Count && SourceSafe.SourceSafeConstants.RootProjectName == logicalProjectPath[0])
             {
                 pendingBranch = logicalProjectPath[1];
             }

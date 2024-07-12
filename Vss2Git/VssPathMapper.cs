@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Hpdi.VssLogicalLib;
+using SourceSafe;
 
 namespace Hpdi.Vss2Git
 {
@@ -338,8 +339,6 @@ namespace Hpdi.Vss2Git
     /// <author>Trevor Robinson</author>
     sealed class VssPathMapper
     {
-        const string ProjectSpecPrefix = VssDatabase.RootProjectName + VssDatabase.ProjectSeparator;
-
         // keyed by physical name
         private readonly Dictionary<string, VssProjectInfo> physicalNameToProjectInfo = [];
         private readonly Dictionary<string, VssProjectInfo> physicalNameToRootInfo = [];
@@ -793,9 +792,9 @@ namespace Hpdi.Vss2Git
 
         private VssProjectInfo ResolveProjectSpec(string projectSpec)
         {
-            if (!projectSpec.StartsWith(ProjectSpecPrefix))
+            if (!projectSpec.StartsWith(SourceSafeConstants.ProjectSpecPrefix))
             {
-                throw new ArgumentException($"Project spec must start with {ProjectSpecPrefix}", nameof(projectSpec));
+                throw new ArgumentException($"Project spec must start with {SourceSafeConstants.ProjectSpecPrefix}", nameof(projectSpec));
             }
 
             foreach (VssProjectInfo rootInfo in physicalNameToRootInfo.Values)
@@ -845,23 +844,23 @@ namespace Hpdi.Vss2Git
 
         public static string GetWorkingPath(string workingRoot, string vssPath)
         {
-            if (vssPath == VssDatabase.RootProjectName)
+            if (vssPath == SourceSafeConstants.RootProjectName)
             {
                 return workingRoot;
             }
 
-            if (vssPath.StartsWith(ProjectSpecPrefix))
+            if (vssPath.StartsWith(SourceSafeConstants.ProjectSpecPrefix))
             {
-                vssPath = vssPath.Substring(ProjectSpecPrefix.Length);
+                vssPath = vssPath.Substring(SourceSafeConstants.ProjectSpecPrefix.Length);
             }
 
-            string relPath = vssPath.Replace(VssDatabase.ProjectSeparatorChar, Path.DirectorySeparatorChar);
+            string relPath = vssPath.Replace(SourceSafeConstants.ProjectSeparatorChar, Path.DirectorySeparatorChar);
             return Path.Combine(workingRoot, relPath);
         }
 
         public static string LogicalPathToString(IEnumerable<string> path)
         {
-            return String.Join(VssDatabase.ProjectSeparator, path);
+            return String.Join(SourceSafeConstants.ProjectSeparator, path);
         }
 
         public static string WorkDirPathToString(IEnumerable<string> path)

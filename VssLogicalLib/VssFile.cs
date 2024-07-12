@@ -59,7 +59,7 @@ namespace Hpdi.VssLogicalLib
 
         public string GetPath(VssProject project)
         {
-            return project.LogicalPath + VssDatabase.ProjectSeparator + Name;
+            return project.LogicalPath + SourceSafe.SourceSafeConstants.ProjectSeparator + Name;
         }
 
         protected override VssRevision CreateRevision(RevisionRecord revision, CommentRecord comment)

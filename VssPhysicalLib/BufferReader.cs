@@ -127,12 +127,9 @@ namespace Hpdi.VssPhysicalLib
             return value;
         }
 
-        private static readonly DateTime EPOCH =
-            new(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);
-
         public DateTime ReadDateTime()
         {
-            return EPOCH + TimeSpan.FromSeconds(ReadInt32());
+            return SourceSafe.SourceSafeConstants.UnixLocalTimeEpoch + TimeSpan.FromSeconds(ReadInt32());
         }
 
         public string ReadSignature(int length)
