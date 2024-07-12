@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-using SourceSafe.IO;
 using System.IO;
+using SourceSafe.IO;
+using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssPhysicalLib
 {

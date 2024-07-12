@@ -1,27 +1,10 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System.IO;
-
-namespace Hpdi.VssPhysicalLib
+﻿
+namespace SourceSafe.Physical.Records
 {
     // #REVIEW this can probably be a struct
     /// <summary>
     /// Represents the header of a VSS record.
     /// </summary>
-    /// <author>Trevor Robinson</author>
     public sealed class RecordHeader
     {
         public const int LENGTH = 8;
@@ -29,10 +12,11 @@ namespace Hpdi.VssPhysicalLib
         public static bool IgnoreCrcErrors { get; set; }
             = false;
 
-        public int Offset { get; private set; }
         public int Length { get; private set; }
-        public string Signature { get; private set; }
+        public string? Signature { get; private set; }
         public ushort FileCrc { get; private set; }
+
+        public int Offset { get; private set; }
         public ushort ActualCrc { get; private set; }
         public bool IsCrcValid => FileCrc == ActualCrc;
 
@@ -40,7 +24,7 @@ namespace Hpdi.VssPhysicalLib
         {
             if (Signature != expected)
             {
-                throw new SourceSafe.Physical.Records.RecordNotFoundException(
+                throw new RecordNotFoundException(
                     $"Unexpected record signature: expected={expected}, actual={Signature}");
             }
         }
@@ -66,16 +50,16 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        private void CheckFileLength(SourceSafe.IO.VssBufferReader reader)
+        private void CheckFileLength(IO.VssBufferReader reader)
         {
             if (Length > reader.RemainingSize)
             {
-                throw new SourceSafe.IO.EndOfBufferException(
+                throw new IO.EndOfBufferException(
                     $"Attempted read of {Length} bytes with only {reader.RemainingSize} bytes remaining in from {reader.FileName}");
             }
         }
 
-        public void Read(SourceSafe.IO.VssBufferReader reader)
+        public void Read(IO.VssBufferReader reader)
         {
             Offset = reader.Offset;
             Length = reader.ReadInt32();
@@ -100,5 +84,5 @@ namespace Hpdi.VssPhysicalLib
             }
             writer.WriteLine();
         }
-    }
+    };
 }

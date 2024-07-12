@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using SourceSafe.IO;
+using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssPhysicalLib
 {
@@ -159,9 +160,8 @@ namespace Hpdi.VssPhysicalLib
             }
             else if (!ignoreUnknown)
             {
-                throw new UnrecognizedRecordException(recordHeader,
-                    string.Format("Unrecognized record signature {0} in item file",
-                    recordHeader.Signature));
+                throw new SourceSafe.Physical.Records.UnrecognizedRecordException(recordHeader,
+                    $"Unrecognized record signature {recordHeader.Signature} in item file");
             }
             return record;
         }

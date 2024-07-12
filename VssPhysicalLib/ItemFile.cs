@@ -24,6 +24,7 @@
 
 using System.Collections.Generic;
 using System.Text;
+using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssPhysicalLib
 {
