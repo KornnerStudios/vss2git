@@ -1,5 +1,4 @@
-﻿
-namespace SourceSafe.Logical
+﻿namespace SourceSafe.Logical.Actions
 {
     /// <summary>
     /// Base class for VSS project actions that target a particular item.

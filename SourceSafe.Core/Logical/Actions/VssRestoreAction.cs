@@ -1,5 +1,4 @@
-﻿
-namespace SourceSafe.Logical
+﻿namespace SourceSafe.Logical.Actions
 {
     /// <summary>
     /// Represents a VSS restore from archive action.
@@ -13,7 +12,7 @@ namespace SourceSafe.Logical
         public VssRestoreAction(VssItemName name, string archivePath)
             : base(name)
         {
-            this.ArchivePath = archivePath;
+            ArchivePath = archivePath;
         }
 
         public override string ToString() => $"Restore {Name} from archive {ArchivePath}";

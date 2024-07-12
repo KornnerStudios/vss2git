@@ -1,5 +1,4 @@
-﻿
-namespace SourceSafe.Logical
+﻿namespace SourceSafe.Logical.Actions
 {
     /// <summary>
     /// Enumeration of logical VSS revision actions.

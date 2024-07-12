@@ -1,5 +1,4 @@
-﻿
-namespace SourceSafe.Logical
+﻿namespace SourceSafe.Logical.Actions
 {
     /// <summary>
     /// Base class for VSS revision action descriptions.

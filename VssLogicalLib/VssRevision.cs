@@ -17,6 +17,7 @@ using System;
 using Hpdi.VssPhysicalLib;
 using SourceSafe;
 using SourceSafe.Logical;
+using SourceSafe.Logical.Actions;
 
 namespace Hpdi.VssLogicalLib
 {

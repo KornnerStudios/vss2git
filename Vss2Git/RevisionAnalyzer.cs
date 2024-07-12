@@ -19,7 +19,7 @@ using System.Diagnostics;
 using System.Threading;
 using Hpdi.VssLogicalLib;
 using Hpdi.VssPhysicalLib;
-using SourceSafe.Logical;
+using SourceSafe.Logical.Actions;
 
 namespace Hpdi.Vss2Git
 {

@@ -15,7 +15,7 @@
 
 using System;
 using System.Collections.Generic;
-using SourceSafe.Logical;
+using SourceSafe.Logical.Actions;
 
 namespace Hpdi.Vss2Git
 {

@@ -1,5 +1,4 @@
-﻿
-namespace SourceSafe.Logical
+﻿namespace SourceSafe.Logical.Actions
 {
     /// <summary>
     /// Represents a VSS project/file recover action.
