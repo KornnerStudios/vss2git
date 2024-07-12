@@ -68,10 +68,10 @@ namespace Hpdi.VssPhysicalLib
 
         private void CheckFileLength(BufferReader reader)
         {
-            if (Length > reader.Remaining)
+            if (Length > reader.RemainingSize)
             {
                 throw new SourceSafe.IO.EndOfBufferException(
-                    $"Attempted read of {Length} bytes with only {reader.Remaining} bytes remaining in from {reader.FileName}");
+                    $"Attempted read of {Length} bytes with only {reader.RemainingSize} bytes remaining in from {reader.FileName}");
             }
         }
 

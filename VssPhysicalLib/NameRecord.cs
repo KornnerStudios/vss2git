@@ -81,7 +81,7 @@ namespace Hpdi.VssPhysicalLib
                 try
                 {
                     reader.Offset = baseOffset + nameOffset;
-                    names[i] = reader.ReadString(reader.Remaining);
+                    names[i] = reader.ReadString(reader.RemainingSize);
                 }
 #if DEBUG // #REVIEW why did the original author wrap this in a try/catch block?
                 catch (System.Exception e)

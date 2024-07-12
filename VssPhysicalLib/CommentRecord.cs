@@ -32,7 +32,7 @@ namespace Hpdi.VssPhysicalLib
         {
             base.Read(reader, header);
 
-            Comment = reader.ReadString(reader.Remaining);
+            Comment = reader.ReadString(reader.RemainingSize);
         }
 
         public override void Dump(TextWriter writer, int indent)

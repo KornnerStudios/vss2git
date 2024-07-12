@@ -57,8 +57,6 @@ namespace Hpdi.VssPhysicalLib
 
         public int Size => mDataSegment.Count;
         public int RemainingSize => Size - Offset;
-        // #TODO replace uses with RemainingSize
-        public int Remaining => RemainingSize;
 
         // #REVIEW This is NOT thread-safe!
         private static readonly SourceSafe.Cryptography.Crc32ToXor16BitComputer mCrc16Computer = new(
@@ -198,7 +196,7 @@ namespace Hpdi.VssPhysicalLib
             if (Offset + bytes > Size)
             {
                 throw new SourceSafe.IO.EndOfBufferException(
-                    $"Attempted read of {bytes} bytes with only {Remaining} bytes remaining in buffer for {FileName}");
+                    $"Attempted read of {bytes} bytes with only {RemainingSize} bytes remaining in buffer for {FileName}");
             }
         }
     }

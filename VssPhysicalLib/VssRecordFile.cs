@@ -100,7 +100,7 @@ namespace Hpdi.VssPhysicalLib
 
         public bool ReadNextRecord(VssRecord record)
         {
-            while (reader.Remaining > RecordHeader.LENGTH)
+            while (reader.RemainingSize > RecordHeader.LENGTH)
             {
                 try
                 {
@@ -180,10 +180,10 @@ namespace Hpdi.VssPhysicalLib
             where T : VssRecord
         {
             int startingOffset = reader.Offset;
-            int startingRemaining = reader.Remaining;
+            int startingRemaining = reader.RemainingSize;
             int iterationCount = 0;
 
-            while (reader.Remaining > RecordHeader.LENGTH)
+            while (reader.RemainingSize > RecordHeader.LENGTH)
             {
                 int recordOffset = reader.Offset;
                 T record = GetRecord(creationCallback, skipUnknown);
