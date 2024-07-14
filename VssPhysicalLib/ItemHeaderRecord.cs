@@ -32,7 +32,7 @@ namespace Hpdi.VssPhysicalLib
     /// Base class for item VSS header records.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public abstract class ItemHeaderRecord : VssRecord
+    public abstract class ItemHeaderRecord : VssRecordBase
     {
         public const string SIGNATURE = "DH";
         public override string Signature => SIGNATURE;
@@ -99,7 +99,7 @@ namespace Hpdi.VssPhysicalLib
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Item Type: {ItemType} - Revisions: {Revisions} - Name: {Name.ShortName}");

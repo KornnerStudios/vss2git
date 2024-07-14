@@ -243,7 +243,7 @@ namespace Hpdi.Vss2Git
 
         private void DumpChangeset(Changeset changeset, int changesetId, int indent, string reason)
         {
-            string indentStr = VssRecord.DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             DateTime firstRevTime = changeset.Revisions.First().DateTime;
             TimeSpan changeDuration = changeset.DateTime - firstRevTime;

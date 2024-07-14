@@ -284,7 +284,7 @@ namespace Hpdi.Vss2Git
 
         private void ReplayRevision(VssPathMapper pathMapper, Changeset changeset, Revision revision, ref Dictionary<string, GitActions.Commit> pendingCommits)
         {
-            string indentStr = VssRecord.DumpGetIndentString(1);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(1);
 
             VssActionType actionType = revision.Action.Type;
             if (revision.Item.IsProject)
@@ -973,7 +973,7 @@ namespace Hpdi.Vss2Git
                     {
                         if (DryRun)
                         {
-                            logger.Write(VssRecord.DumpGetIndentString(1));
+                            logger.Write(SourceSafe.IO.OutputUtil.GetIndentString(1));
                             logger.WriteLine($"Excluding project {path}");
                         }
                         excludedProjects.Add(path);
@@ -982,7 +982,7 @@ namespace Hpdi.Vss2Git
                     {
                         if (DryRun)
                         {
-                            logger.Write(VssRecord.DumpGetIndentString(1));
+                            logger.Write(SourceSafe.IO.OutputUtil.GetIndentString(1));
                             logger.WriteLine($"Excluding file {path}");
                         }
                         excludedFiles.Add(path);
@@ -1009,7 +1009,7 @@ namespace Hpdi.Vss2Git
             {
                 projectDesc = revision.Item.ToString();
 
-                logger.Write(VssRecord.DumpGetIndentString(1));
+                logger.Write(SourceSafe.IO.OutputUtil.GetIndentString(1));
                 logger.WriteLine($"NOTE: {project.LogicalName} is currently unmapped");
             }
 

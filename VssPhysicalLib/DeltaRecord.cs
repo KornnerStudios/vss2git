@@ -24,7 +24,7 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record representing a reverse-delta for a file revision.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class DeltaRecord : VssRecord
+    public sealed class DeltaRecord : VssRecordBase
     {
         public const string SIGNATURE = "FD";
 

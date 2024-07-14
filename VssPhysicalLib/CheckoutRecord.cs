@@ -24,7 +24,7 @@ namespace Hpdi.VssPhysicalLib
     /// </summary>
     /// <author>Trevor Robinson</author>
     /// <seealso cref="VssScanCheckout"/>
-    public sealed class CheckoutRecord : VssRecord
+    public sealed class CheckoutRecord : VssRecordBase
     {
         public const string SIGNATURE = "CF";
         public override string Signature => SIGNATURE;
@@ -116,7 +116,7 @@ namespace Hpdi.VssPhysicalLib
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"User: {User} @ {CheckOutDateTime}");

@@ -79,12 +79,12 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public VssRecord GetRecord(int offset)
+        public VssRecordBase GetRecord(int offset)
         {
             return GetRecord(CreateVssRecord, false, offset);
         }
 
-        public VssRecord GetNextRecord(bool skipUnknown)
+        public VssRecordBase GetNextRecord(bool skipUnknown)
         {
 #if EOF_OFFSET_CHECK_ENABLED
             if (reader.Offset == this.Header.EofOffset)
@@ -183,11 +183,11 @@ namespace Hpdi.VssPhysicalLib
             return result;
         }
 
-        private static VssRecord CreateVssRecord(
+        private static VssRecordBase CreateVssRecord(
             RecordHeader recordHeader,
             SourceSafe.IO.VssBufferReader recordReader)
         {
-            VssRecord record = null;
+            VssRecordBase record = null;
             switch (recordHeader.Signature)
             {
                 case RevisionRecord.SIGNATURE:

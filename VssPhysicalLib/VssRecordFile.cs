@@ -52,7 +52,7 @@ namespace Hpdi.VssPhysicalLib
             reader = new VssBufferReader(encoding, new ArraySegment<byte>(fileBytes), filename);
         }
 
-        public void ReadRecord(VssRecord record)
+        public void ReadRecord(VssRecordBase record)
         {
             try
             {
@@ -94,13 +94,13 @@ namespace Hpdi.VssPhysicalLib
             }
         }
 
-        public void ReadRecord(VssRecord record, int offset)
+        public void ReadRecord(VssRecordBase record, int offset)
         {
             reader.Offset = offset;
             ReadRecord(record);
         }
 
-        public bool ReadNextRecord(VssRecord record)
+        public bool ReadNextRecord(VssRecordBase record)
         {
             while (reader.RemainingSize > RecordHeader.LENGTH)
             {
@@ -138,7 +138,7 @@ namespace Hpdi.VssPhysicalLib
         protected T GetRecord<T>(
             CreateRecordCallback<T> creationCallback,
             bool ignoreUnknown)
-            where T : VssRecord
+            where T : VssRecordBase
         {
             RecordHeader recordHeader = new();
             recordHeader.Read(reader);
@@ -170,7 +170,7 @@ namespace Hpdi.VssPhysicalLib
             CreateRecordCallback<T> creationCallback,
             bool ignoreUnknown,
             int offset)
-            where T : VssRecord
+            where T : VssRecordBase
         {
             reader.Offset = offset;
             return GetRecord<T>(creationCallback, ignoreUnknown);
@@ -179,7 +179,7 @@ namespace Hpdi.VssPhysicalLib
         protected T GetNextRecord<T>(
             CreateRecordCallback<T> creationCallback,
             bool skipUnknown)
-            where T : VssRecord
+            where T : VssRecordBase
         {
             int startingOffset = reader.Offset;
             int startingRemaining = reader.RemainingSize;

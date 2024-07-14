@@ -42,7 +42,7 @@ namespace Hpdi.VssDump
 
         public void DumpProject(VssProject project, int indent)
         {
-            string indentStr = VssPhysicalLib.VssRecord.DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             PhysicalNames.Add(project.PhysicalName);
             writer.Write(indentStr);

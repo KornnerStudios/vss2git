@@ -67,7 +67,7 @@ namespace Hpdi.VssPhysicalLib
     /// </summary>
     /// <author>Trevor Robinson</author>
     /// <seealso cref="VssScanLogEntry"/>
-    public class RevisionRecord : VssRecord
+    public class RevisionRecord : VssRecordBase
     {
         public const string SIGNATURE = "EL";
         public override string Signature => SIGNATURE;
@@ -192,7 +192,7 @@ namespace Hpdi.VssPhysicalLib
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine("Prev rev offset: {0:X6}", PrevRevOffset);
@@ -224,7 +224,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Name: {Name.ShortName} ({Physical})");
@@ -250,13 +250,13 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Name: {Name.ShortName} ({Physical})");
             if (unkShort != 0)
             {
-                writer.Write(DumpGetIndentString(indent + 1));
+                writer.Write(SourceSafe.IO.OutputUtil.GetIndentString(indent + 1));
                 writer.WriteLine($"Unknown: {unkShort}");
             }
         }
@@ -280,7 +280,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Name: {OldName.ShortName} -> {Name.ShortName} ({Physical})");
@@ -305,7 +305,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Project path: {ProjectPath}");
@@ -356,7 +356,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Project path: {ProjectPath}");
@@ -375,7 +375,7 @@ namespace Hpdi.VssPhysicalLib
 
             if (unkShort != 0)
             {
-                writer.Write(DumpGetIndentString(indent + 1));
+                writer.Write(SourceSafe.IO.OutputUtil.GetIndentString(indent + 1));
                 writer.WriteLine($"Unknown: {unkShort}");
             }
         }
@@ -399,7 +399,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Name: {Name.ShortName} ({Physical})");
@@ -433,7 +433,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine("Prev delta offset: {0:X6}", PrevDeltaOffset);
@@ -467,7 +467,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine("Name: {0} ({1})", Name.ShortName, Physical);

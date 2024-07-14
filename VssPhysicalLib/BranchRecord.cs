@@ -22,7 +22,7 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record representing a branch file.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class BranchRecord : VssRecord
+    public sealed class BranchRecord : VssRecordBase
     {
         public const string SIGNATURE = "BF";
 
@@ -40,7 +40,7 @@ namespace Hpdi.VssPhysicalLib
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine("Prev branch offset: {0:X6}", PrevBranchOffset);

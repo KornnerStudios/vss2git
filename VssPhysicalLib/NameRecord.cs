@@ -34,7 +34,7 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record containing the logical names of an object in particular contexts.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class NameRecord : VssRecord
+    public sealed class NameRecord : VssRecordBase
     {
         public const string SIGNATURE = "SN";
         NameKind[] kinds;
@@ -99,7 +99,7 @@ namespace Hpdi.VssPhysicalLib
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
             for (int i = 0; i < KindCount; ++i)
             {
                 writer.Write(indentStr);

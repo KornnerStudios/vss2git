@@ -121,7 +121,7 @@ namespace Hpdi.VssPhysicalLib
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Flags: {Flags}");

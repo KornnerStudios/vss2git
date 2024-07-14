@@ -22,7 +22,7 @@ namespace Hpdi.VssPhysicalLib
     /// VSS record representing a comment message.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class CommentRecord : VssRecord
+    public sealed class CommentRecord : VssRecordBase
     {
         public const string SIGNATURE = "MC";
 
@@ -38,7 +38,7 @@ namespace Hpdi.VssPhysicalLib
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine("{0}", Comment);

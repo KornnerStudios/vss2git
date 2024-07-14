@@ -22,7 +22,7 @@ namespace Hpdi.VssPhysicalLib
     /// VSS header record for the name file.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class NameHeaderRecord : VssRecord
+    public sealed class NameHeaderRecord : VssRecordBase
     {
         public const string SIGNATURE = "HN";
 
@@ -40,7 +40,7 @@ namespace Hpdi.VssPhysicalLib
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = DumpGetIndentString(indent);
+            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"EOF offset: {EofOffset:X6}");

@@ -236,7 +236,7 @@ namespace Hpdi.VssDump
                 var itemFile = new ItemFile(filename, Encoding.Default);
                 itemFile.Header.Header.Dump(outputWriter, kDumpIndent);
                 itemFile.Header.Dump(outputWriter, kDumpIndent);
-                VssRecord record = itemFile.GetNextRecord(true);
+                SourceSafe.Physical.Records.VssRecordBase record = itemFile.GetNextRecord(true);
                 int revisionIndex = -1;
                 while (record != null)
                 {
