@@ -23,7 +23,7 @@ namespace Hpdi.VssPhysicalLib
     /// VSS header record for a project.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class ProjectHeaderRecord : ItemHeaderRecord
+    public sealed class ProjectHeaderRecord : VssItemHeaderRecordBase
     {
         public string ParentProject { get; private set; }
         public string ParentFile { get; private set; }

@@ -37,7 +37,7 @@ namespace Hpdi.VssPhysicalLib
     {
         const string FILE_SIGNATUIRE = "SourceSafe@Microsoft";
 
-        public ItemHeaderRecord Header { get; }
+        public VssItemHeaderRecordBase Header { get; }
 
         public ItemFile(string filename, Encoding encoding)
             : base(filename, encoding)

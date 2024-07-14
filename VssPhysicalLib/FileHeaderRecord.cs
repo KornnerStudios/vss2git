@@ -41,7 +41,7 @@ namespace Hpdi.VssPhysicalLib
     /// VSS header record for a file.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class FileHeaderRecord : ItemHeaderRecord
+    public sealed class FileHeaderRecord : VssItemHeaderRecordBase
     {
         public FileFlags Flags { get; private set; }
         public string BranchFile { get; private set; }

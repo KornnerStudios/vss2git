@@ -1,29 +1,10 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System.IO;
-using SourceSafe.Physical;
-using SourceSafe.Physical.Records;
-
-namespace Hpdi.VssPhysicalLib
+﻿
+namespace SourceSafe.Physical.Records
 {
     /// <summary>
     /// Base class for item VSS header records.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    public abstract class ItemHeaderRecord : VssRecordBase
+    public abstract class VssItemHeaderRecordBase : VssRecordBase
     {
         public const string SIGNATURE = "DH";
         public override string Signature => SIGNATURE;
@@ -53,7 +34,7 @@ namespace Hpdi.VssPhysicalLib
         ///     observed to be the case with the test DB, so that test was never
         ///     needed with this code.
         /// </remarks>
-        public string DataExt { get; private set; }
+        public string DataExt { get; private set; } = "";
         public int FirstRevOffset { get; private set; }
         /// <summary>
         /// File offset of the last RecordHeader and its payload
@@ -70,12 +51,12 @@ namespace Hpdi.VssPhysicalLib
         public bool IsProject => ItemType == VssItemType.Project;
         public bool IsFile => ItemType == VssItemType.File;
 
-        protected ItemHeaderRecord(VssItemType itemType)
+        protected VssItemHeaderRecordBase(VssItemType itemType)
         {
             ItemType = itemType;
         }
 
-        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
+        public override void Read(IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -93,7 +74,7 @@ namespace Hpdi.VssPhysicalLib
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
+            string indentStr = IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Item Type: {ItemType} - Revisions: {Revisions} - Name: {Name.ShortName}");
@@ -110,5 +91,5 @@ namespace Hpdi.VssPhysicalLib
             writer.Write(indentStr);
             writer.WriteLine($"Rights offset: {RightsOffset:X8}");
         }
-    }
+    };
 }
