@@ -24,6 +24,7 @@
 
 using System.Collections.Generic;
 using System.Text;
+using SourceSafe.Physical;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssPhysicalLib
@@ -46,19 +47,19 @@ namespace Hpdi.VssPhysicalLib
                 string fileSig = reader.ReadString(0x20);
                 if (fileSig != FILE_SIGNATUIRE)
                 {
-                    throw new SourceSafe.Physical.Records.BadHeaderException("Incorrect file signature");
+                    throw new BadHeaderException("Incorrect file signature");
                 }
 
-                var fileType = (ItemType)reader.ReadInt16();
+                var fileType = (VssItemType)reader.ReadInt16();
                 short fileVersion = reader.ReadInt16();
                 if (fileVersion != 6)
                 {
-                    throw new SourceSafe.Physical.Records.BadHeaderException($"Incorrect file version: {fileVersion}");
+                    throw new BadHeaderException($"Incorrect file version: {fileVersion}");
                 }
 
                 reader.SkipAssumedToBeAllZeros(16); // reserved; always 0
 
-                if (fileType == ItemType.Project)
+                if (fileType == VssItemType.Project)
                 {
                     Header = new ProjectHeaderRecord();
                 }
@@ -70,12 +71,12 @@ namespace Hpdi.VssPhysicalLib
                 ReadRecord(Header);
                 if (Header.ItemType != fileType)
                 {
-                    throw new SourceSafe.Physical.Records.BadHeaderException("Header record type mismatch");
+                    throw new BadHeaderException("Header record type mismatch");
                 }
             }
             catch (SourceSafe.IO.EndOfBufferException e)
             {
-                throw new SourceSafe.Physical.Records.BadHeaderException("Truncated header", e);
+                throw new BadHeaderException("Truncated header", e);
             }
         }
 

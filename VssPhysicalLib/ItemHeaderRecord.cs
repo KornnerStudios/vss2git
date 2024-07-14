@@ -14,20 +14,11 @@
  */
 
 using System.IO;
+using SourceSafe.Physical;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssPhysicalLib
 {
-    /// <summary>
-    /// Enumeration indicating whether an item is a project or a file.
-    /// </summary>
-    /// <author>Trevor Robinson</author>
-    public enum ItemType
-    {
-        Project = 1,
-        File = 2,
-    }
-
     /// <summary>
     /// Base class for item VSS header records.
     /// </summary>
@@ -37,12 +28,12 @@ namespace Hpdi.VssPhysicalLib
         public const string SIGNATURE = "DH";
         public override string Signature => SIGNATURE;
 
-        public ItemType ItemType { get; private set; }
+        public VssItemType ItemType { get; private set; }
         /// <summary>
         /// Stores the number of log entry ("EL") chunks stored in the file.
         /// </summary>
         public int Revisions { get; private set; }
-        public SourceSafe.Physical.VssName Name { get; private set; }
+        public VssName Name { get; private set; }
         /// <summary>
         /// If the file has been branched, this field will contain the version
         /// number at which it was branched.
@@ -76,10 +67,10 @@ namespace Hpdi.VssPhysicalLib
         public int EofOffset { get; private set; }
         public int RightsOffset { get; private set; }
 
-        public bool IsProject => ItemType == ItemType.Project;
-        public bool IsFile => ItemType == ItemType.File;
+        public bool IsProject => ItemType == VssItemType.Project;
+        public bool IsFile => ItemType == VssItemType.File;
 
-        protected ItemHeaderRecord(ItemType itemType)
+        protected ItemHeaderRecord(VssItemType itemType)
         {
             ItemType = itemType;
         }
@@ -88,7 +79,7 @@ namespace Hpdi.VssPhysicalLib
         {
             base.Read(reader, header);
 
-            ItemType = (ItemType)reader.ReadInt16();
+            ItemType = (VssItemType)reader.ReadInt16();
             Revisions = reader.ReadInt16();
             Name = reader.ReadName();
             FirstRevision = reader.ReadInt16();

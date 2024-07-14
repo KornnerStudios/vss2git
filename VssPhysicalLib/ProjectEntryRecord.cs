@@ -15,6 +15,7 @@
 
 using System;
 using System.IO;
+using SourceSafe.Physical;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssPhysicalLib
@@ -43,7 +44,7 @@ namespace Hpdi.VssPhysicalLib
         public const string SIGNATURE = "JP";
         public override string Signature => SIGNATURE;
 
-        public ItemType ItemType { get; private set; }
+        public VssItemType ItemType { get; private set; }
         public ProjectEntryFlags Flags { get; private set; }
         public SourceSafe.Physical.VssName Name { get; private set; }
         public short PinnedVersion { get; private set; }
@@ -52,15 +53,15 @@ namespace Hpdi.VssPhysicalLib
         /// </summary>
         public string Physical { get; private set; }
 
-        public bool IsProject => ItemType == ItemType.Project;
-        public bool IsFile => ItemType == ItemType.File;
+        public bool IsProject => ItemType == VssItemType.Project;
+        public bool IsFile => ItemType == VssItemType.File;
         public string PhysicalNameAllUpperCase => Physical.ToUpperInvariant();
 
         public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
-            ItemType = (ItemType)reader.ReadInt16();
+            ItemType = (VssItemType)reader.ReadInt16();
             Flags = (ProjectEntryFlags)reader.ReadInt16();
             Name = reader.ReadName();
             PinnedVersion = reader.ReadInt16();

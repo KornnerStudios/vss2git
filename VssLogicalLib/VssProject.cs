@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Hpdi.VssPhysicalLib;
 using SourceSafe.Logical;
+using SourceSafe.Physical;
 
 namespace Hpdi.VssLogicalLib
 {
@@ -133,8 +134,8 @@ namespace Hpdi.VssLogicalLib
         private enum ItemTypes
         {
             None = 0,
-            Project = ItemType.Project,
-            File = ItemType.File,
+            Project = VssItemType.Project,
+            File = VssItemType.File,
             Any = Project | File
         }
 

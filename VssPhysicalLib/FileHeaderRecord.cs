@@ -15,6 +15,7 @@
 
 using System;
 using System.IO;
+using SourceSafe.Physical;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssPhysicalLib
@@ -74,7 +75,7 @@ namespace Hpdi.VssPhysicalLib
         public DateTime CreationDateTime { get; private set; }
 
         public FileHeaderRecord()
-            : base(ItemType.File)
+            : base(VssItemType.File)
         {
         }
 

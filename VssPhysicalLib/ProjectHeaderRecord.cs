@@ -14,6 +14,7 @@
  */
 
 using System.IO;
+using SourceSafe.Physical;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssPhysicalLib
@@ -30,7 +31,7 @@ namespace Hpdi.VssPhysicalLib
         public int Subprojects { get; private set; }
 
         public ProjectHeaderRecord()
-            : base(ItemType.Project)
+            : base(VssItemType.Project)
         {
         }
 
