@@ -187,9 +187,9 @@ namespace Hpdi.VssLogicalLib
 
                     if (entryItem == null)
                     {
-                        string physicalName = entryRecord.Physical.ToUpper();
+                        string physicalName = entryRecord.PhysicalNameAllUpperCase;
                         string logicalName = project.Database.GetFullName(entryRecord.Name);
-                        if (entryRecord.ItemType == ItemType.Project)
+                        if (entryRecord.IsProject)
                         {
                             entryItem = project.Database.OpenProject(project, physicalName, logicalName);
                         }

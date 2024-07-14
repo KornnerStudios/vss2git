@@ -245,7 +245,7 @@ namespace Hpdi.VssDump
                     record.Dump(outputWriter, kDumpIndent + 2);
                     if (record is RevisionRecord revision)
                     {
-                        if (itemFile.Header.ItemType == ItemType.Project)
+                        if (itemFile.Header.IsProject)
                         {
                             projectActions.Add(revision.Action);
                         }

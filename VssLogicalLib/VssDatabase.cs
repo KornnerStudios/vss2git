@@ -78,7 +78,7 @@ namespace Hpdi.VssLogicalLib
 
         public VssItem GetItemPhysical(string physicalName)
         {
-            physicalName = physicalName.ToUpper();
+            physicalName = physicalName.ToUpperInvariant();
 
             if (physicalName == SourceSafeConstants.RootPhysicalFile)
             {
@@ -87,7 +87,7 @@ namespace Hpdi.VssLogicalLib
 
             string physicalPath = GetDataPath(physicalName);
             ItemFile itemFile = new(physicalPath, Encoding);
-            bool isProject = (itemFile.Header.ItemType == ItemType.Project);
+            bool isProject = itemFile.Header.IsProject;
             string logicalName = GetFullName(itemFile.Header.Name);
             VssItemName itemName = new(logicalName, physicalName, isProject);
             VssItem item;
@@ -130,18 +130,18 @@ namespace Hpdi.VssLogicalLib
             RootProject = OpenProject(null, SourceSafeConstants.RootPhysicalFile, SourceSafeConstants.RootProjectName);
         }
 
-        internal VssProject OpenProject(VssProject parent, string physicalName, string logicalName)
+        internal VssProject OpenProject(VssProject parent, string physicalNameAllUpperCase, string logicalName)
         {
-            VssItemName itemName = new(logicalName, physicalName, true);
+            VssItemName itemName = new(logicalName, physicalNameAllUpperCase, true);
             string logicalPath = BuildPath(parent, logicalName);
-            string physicalPath = GetDataPath(physicalName);
+            string physicalPath = GetDataPath(physicalNameAllUpperCase);
             return new VssProject(this, itemName, physicalPath, logicalPath);
         }
 
-        internal VssFile OpenFile(string physicalName, string logicalName)
+        internal VssFile OpenFile(string physicalNameAllUpperCase, string logicalName)
         {
-            VssItemName itemName = new(logicalName, physicalName, false);
-            string physicalPath = GetDataPath(physicalName);
+            VssItemName itemName = new(logicalName, physicalNameAllUpperCase, false);
+            string physicalPath = GetDataPath(physicalNameAllUpperCase);
             return new VssFile(this, itemName, physicalPath);
         }
 

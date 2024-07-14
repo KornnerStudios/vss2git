@@ -76,6 +76,9 @@ namespace Hpdi.VssPhysicalLib
         public int EofOffset { get; private set; }
         public int RightsOffset { get; private set; }
 
+        public bool IsProject => ItemType == ItemType.Project;
+        public bool IsFile => ItemType == ItemType.File;
+
         protected ItemHeaderRecord(ItemType itemType)
         {
             ItemType = itemType;

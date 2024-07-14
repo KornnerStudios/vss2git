@@ -52,6 +52,10 @@ namespace Hpdi.VssPhysicalLib
         /// </summary>
         public string Physical { get; private set; }
 
+        public bool IsProject => ItemType == ItemType.Project;
+        public bool IsFile => ItemType == ItemType.File;
+        public string PhysicalNameAllUpperCase => Physical.ToUpperInvariant();
+
         public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
