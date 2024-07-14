@@ -7,7 +7,7 @@ namespace SourceSafe.Physical.Records
     public sealed class VssItemFileHeaderRecord : VssItemHeaderRecordBase
     {
         public VssItemFileFlags Flags { get; private set; }
-        public string BranchFile { get; private set; }
+        public string BranchFile { get; private set; } = "";
         public int BranchOffset { get; private set; }
         public int ProjectOffset { get; private set; }
         /// <summary>
@@ -42,7 +42,7 @@ namespace SourceSafe.Physical.Records
         {
         }
 
-        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
+        public override void Read(IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -85,7 +85,7 @@ namespace SourceSafe.Physical.Records
         public override void Dump(TextWriter writer, int indent)
         {
             base.Dump(writer, indent);
-            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
+            string indentStr = IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"Flags: {Flags}");

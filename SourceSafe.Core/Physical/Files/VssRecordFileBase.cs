@@ -1,33 +1,12 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Text;
-using SourceSafe.IO;
-using SourceSafe.Physical.Records;
 
-namespace Hpdi.VssPhysicalLib
+namespace SourceSafe.Physical.Files
 {
     /// <summary>
     /// Represents a file containing VSS records.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    public abstract class VssRecordFile
+    public abstract class VssRecordFileBase
     {
         public static bool IgnoreInvalidCommentRecords { get; set; }
             = true;
@@ -39,30 +18,30 @@ namespace Hpdi.VssPhysicalLib
         public static bool UseInMemoryFilePooling { get; set; }
             = true;
 
-        protected readonly VssBufferReader reader;
+        protected readonly IO.VssBufferReader reader;
 
         public string Filename { get; }
 
-        public VssRecordFile(string filename, Encoding encoding)
+        public VssRecordFileBase(string filename, Encoding encoding)
         {
             Filename = filename;
             byte[] fileBytes = UseInMemoryFilePooling
                 ? ReadFileOrAccessFromPool(filename)
                 : ReadFile(filename);
-            reader = new VssBufferReader(encoding, new ArraySegment<byte>(fileBytes), filename);
+            reader = new IO.VssBufferReader(encoding, new ArraySegment<byte>(fileBytes), filename);
         }
 
-        public void ReadRecord(VssRecordBase record)
+        public void ReadRecord(Records.VssRecordBase record)
         {
             try
             {
-                RecordHeader recordHeader = new();
+                Records.RecordHeader recordHeader = new();
                 recordHeader.Read(reader);
 
                 if (IgnoreInvalidCommentRecords &&
-                    record.Signature == CommentRecord.SIGNATURE &&
+                    record.Signature == Records.CommentRecord.SIGNATURE &&
                     // recordHeader.Length is likely bunk if the signature is wrong
-                    recordHeader.Signature != CommentRecord.SIGNATURE)
+                    recordHeader.Signature != Records.CommentRecord.SIGNATURE)
                 {
                     recordHeader.LogInvalidSignature(record.Signature, Filename);
 
@@ -75,10 +54,10 @@ namespace Hpdi.VssPhysicalLib
                 }
                 else
                 {
-                    VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+                    IO.VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
                     // comment records always seem to have a zero CRC
-                    if (recordHeader.Signature != CommentRecord.SIGNATURE)
+                    if (recordHeader.Signature != Records.CommentRecord.SIGNATURE)
                     {
                         recordHeader.CheckCrc(Filename);
                     }
@@ -88,31 +67,31 @@ namespace Hpdi.VssPhysicalLib
                     record.Read(recordReader, recordHeader);
                 }
             }
-            catch (SourceSafe.IO.EndOfBufferException e)
+            catch (IO.EndOfBufferException e)
             {
-                throw new SourceSafe.Physical.Records.RecordTruncatedException(e.Message);
+                throw new Records.RecordTruncatedException(e.Message);
             }
         }
 
-        public void ReadRecord(VssRecordBase record, int offset)
+        public void ReadRecord(Records.VssRecordBase record, int offset)
         {
             reader.Offset = offset;
             ReadRecord(record);
         }
 
-        public bool ReadNextRecord(VssRecordBase record)
+        public bool ReadNextRecord(Records.VssRecordBase record)
         {
-            while (reader.RemainingSize > RecordHeader.LENGTH)
+            while (reader.RemainingSize > Records.RecordHeader.LENGTH)
             {
                 try
                 {
-                    RecordHeader recordHeader = new();
+                    Records.RecordHeader recordHeader = new();
                     recordHeader.Read(reader);
 
-                    VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+                    IO.VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
                     // comment records always seem to have a zero CRC
-                    if (recordHeader.Signature != CommentRecord.SIGNATURE)
+                    if (recordHeader.Signature != Records.CommentRecord.SIGNATURE)
                     {
                         recordHeader.CheckCrc(Filename);
                     }
@@ -123,35 +102,35 @@ namespace Hpdi.VssPhysicalLib
                         return true;
                     }
                 }
-                catch (SourceSafe.IO.EndOfBufferException e)
+                catch (IO.EndOfBufferException e)
                 {
-                    throw new SourceSafe.Physical.Records.RecordTruncatedException(e.Message);
+                    throw new Records.RecordTruncatedException(e.Message);
                 }
             }
             return false;
         }
 
-        protected delegate T CreateRecordCallback<T>(
-            RecordHeader recordHeader,
-            VssBufferReader recordReader);
+        protected delegate T? CreateRecordCallback<T>(
+            Records.RecordHeader recordHeader,
+            IO.VssBufferReader recordReader);
 
-        protected T GetRecord<T>(
+        protected T? GetRecord<T>(
             CreateRecordCallback<T> creationCallback,
             bool ignoreUnknown)
-            where T : VssRecordBase
+            where T : Records.VssRecordBase
         {
-            RecordHeader recordHeader = new();
+            Records.RecordHeader recordHeader = new();
             recordHeader.Read(reader);
 
-            VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+            IO.VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
             // comment records always seem to have a zero CRC
-            if (recordHeader.Signature != CommentRecord.SIGNATURE)
+            if (recordHeader.Signature != Records.CommentRecord.SIGNATURE)
             {
                 recordHeader.CheckCrc(Filename);
             }
 
-            T record = creationCallback(recordHeader, recordReader);
+            T? record = creationCallback(recordHeader, recordReader);
             if (record != null)
             {
                 // double-check that the object signature matches the file
@@ -160,35 +139,35 @@ namespace Hpdi.VssPhysicalLib
             }
             else if (!ignoreUnknown)
             {
-                throw new SourceSafe.Physical.Records.UnrecognizedRecordException(recordHeader,
+                throw new Records.UnrecognizedRecordException(recordHeader,
                     $"Unrecognized record signature {recordHeader.Signature} in item file");
             }
             return record;
         }
 
-        protected T GetRecord<T>(
+        protected T? GetRecord<T>(
             CreateRecordCallback<T> creationCallback,
             bool ignoreUnknown,
             int offset)
-            where T : VssRecordBase
+            where T : Records.VssRecordBase
         {
             reader.Offset = offset;
             return GetRecord<T>(creationCallback, ignoreUnknown);
         }
 
-        protected T GetNextRecord<T>(
+        protected T? GetNextRecord<T>(
             CreateRecordCallback<T> creationCallback,
             bool skipUnknown)
-            where T : VssRecordBase
+            where T : Records.VssRecordBase
         {
             int startingOffset = reader.Offset;
             int startingRemaining = reader.RemainingSize;
             int iterationCount = 0;
 
-            while (reader.RemainingSize > RecordHeader.LENGTH)
+            while (reader.RemainingSize > Records.RecordHeader.LENGTH)
             {
                 int recordOffset = reader.Offset;
-                T record = GetRecord(creationCallback, skipUnknown);
+                T? record = GetRecord(creationCallback, skipUnknown);
                 if (record != null)
                 {
                     return record;
@@ -222,7 +201,7 @@ namespace Hpdi.VssPhysicalLib
 
         private static byte[] ReadFileOrAccessFromPool(string filename)
         {
-            if (FilesPool.TryGetValue(filename, out byte[] data))
+            if (FilesPool.TryGetValue(filename, out byte[]? data))
             {
                 AccessFileInFilesPool(filename);
             }

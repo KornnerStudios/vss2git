@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using Hpdi.VssPhysicalLib;
 using SourceSafe.Logical;
 using SourceSafe.Physical;
+using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
 {

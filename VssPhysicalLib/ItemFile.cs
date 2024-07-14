@@ -33,7 +33,7 @@ namespace Hpdi.VssPhysicalLib
     /// Represents a file containing VSS project/file records.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class ItemFile : VssRecordFile
+    public sealed class ItemFile : SourceSafe.Physical.Files.VssRecordFileBase
     {
         const string FILE_SIGNATUIRE = "SourceSafe@Microsoft";
 

@@ -21,7 +21,7 @@ namespace Hpdi.VssPhysicalLib
     /// Represents a file containing VSS name records.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public sealed class NameFile : VssRecordFile
+    public sealed class NameFile : SourceSafe.Physical.Files.VssRecordFileBase
     {
         public NameHeaderRecord Header { get; } = new();
 

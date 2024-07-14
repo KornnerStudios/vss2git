@@ -21,7 +21,7 @@ namespace Hpdi.VssPhysicalLib
     /// Represents a file containing VSS project entry records.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    public class ProjectEntryFile : VssRecordFile
+    public class ProjectEntryFile : SourceSafe.Physical.Files.VssRecordFileBase
     {
         public ProjectEntryFile(string filename, Encoding encoding)
             : base(filename, encoding)

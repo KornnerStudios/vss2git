@@ -14,6 +14,7 @@
  */
 
 using Hpdi.VssPhysicalLib;
+using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
 {
