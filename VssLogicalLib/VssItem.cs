@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Hpdi.VssPhysicalLib;
 using SourceSafe.Logical;
+using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
 {
@@ -60,7 +61,7 @@ namespace Hpdi.VssLogicalLib
             {
                 if (!IsProject)
                 {
-                    var fileHeader = (FileHeaderRecord)itemFile.Header;
+                    var fileHeader = (VssItemFileHeaderRecord)itemFile.Header;
                     return Database.GetItemPhysical(fileHeader.BranchFile).GetRevision(version);
                 }
                 else

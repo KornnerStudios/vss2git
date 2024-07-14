@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using Hpdi.VssPhysicalLib;
 using SourceSafe.Logical;
+using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
 {
@@ -26,15 +27,15 @@ namespace Hpdi.VssLogicalLib
     /// <author>Trevor Robinson</author>
     public sealed class VssFile : VssItem
     {
-        public bool IsLocked => (Header.Flags & FileFlags.Locked) != 0;
+        public bool IsLocked => (Header.Flags & VssItemFileFlags.Locked) != 0;
 
-        public bool IsBinary => (Header.Flags & FileFlags.Binary) != 0;
+        public bool IsBinary => (Header.Flags & VssItemFileFlags.Binary) != 0;
 
-        public bool IsLatestOnly => (Header.Flags & FileFlags.LatestOnly) != 0;
+        public bool IsLatestOnly => (Header.Flags & VssItemFileFlags.LatestOnly) != 0;
 
-        public bool IsShared => (Header.Flags & FileFlags.Shared) != 0;
+        public bool IsShared => (Header.Flags & VssItemFileFlags.Shared) != 0;
 
-        public bool IsCheckedOut => (Header.Flags & FileFlags.CheckedOut) != 0;
+        public bool IsCheckedOut => (Header.Flags & VssItemFileFlags.CheckedOut) != 0;
 
         public uint Crc => Header.DataCrc;
 
@@ -51,7 +52,7 @@ namespace Hpdi.VssLogicalLib
             return (VssFileRevision)base.GetRevision(version);
         }
 
-        internal FileHeaderRecord Header => (FileHeaderRecord)ItemFile.Header;
+        internal VssItemFileHeaderRecord Header => (VssItemFileHeaderRecord)ItemFile.Header;
 
         internal VssFile(VssDatabase database, VssItemName itemName, string physicalPath)
             : base(database, itemName, physicalPath)

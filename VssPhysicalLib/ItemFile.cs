@@ -65,7 +65,7 @@ namespace Hpdi.VssPhysicalLib
                 }
                 else
                 {
-                    Header = new FileHeaderRecord();
+                    Header = new VssItemFileHeaderRecord();
                 }
 
                 ReadRecord(Header);
@@ -167,7 +167,7 @@ namespace Hpdi.VssPhysicalLib
         {
             // #TODO: change this to regular List then do a reverse for the result
             var result = new LinkedList<string>();
-            if (Header is FileHeaderRecord fileHeader)
+            if (Header is VssItemFileHeaderRecord fileHeader)
             {
                 var record = new ProjectRecord();
                 int offset = fileHeader.ProjectOffset;
