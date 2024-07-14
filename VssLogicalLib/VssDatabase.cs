@@ -19,6 +19,7 @@ using System.Text;
 using Hpdi.VssPhysicalLib;
 using SourceSafe;
 using SourceSafe.Logical;
+using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
 {
@@ -93,7 +94,7 @@ namespace Hpdi.VssLogicalLib
             VssItem item;
             if (isProject)
             {
-                string parentFile = ((ProjectHeaderRecord)itemFile.Header).ParentFile;
+                string parentFile = ((VssItemProjectHeaderRecord)itemFile.Header).ParentFile;
                 var parent = (VssProject)GetItemPhysical(parentFile);
                 string logicalPath = BuildPath(parent, logicalName);
                 item = new VssProject(this, itemName, physicalPath, logicalPath);

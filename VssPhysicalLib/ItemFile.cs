@@ -61,7 +61,7 @@ namespace Hpdi.VssPhysicalLib
 
                 if (fileType == VssItemType.Project)
                 {
-                    Header = new ProjectHeaderRecord();
+                    Header = new VssItemProjectHeaderRecord();
                 }
                 else
                 {
