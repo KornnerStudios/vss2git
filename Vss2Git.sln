@@ -20,6 +20,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VssLogicalLib", "VssLogical
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SourceSafe.Core", "SourceSafe.Core\SourceSafe.Core.csproj", "{C43080E1-D710-43AC-AA4C-87C754C60EFF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "010Editor", "010Editor", "{03E340D5-A2E4-493D-B1AF-899926ADBF35}"
+	ProjectSection(SolutionItems) = preProject
+		010Editor\VSS_names_dat.bt = 010Editor\VSS_names_dat.bt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +54,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{03E340D5-A2E4-493D-B1AF-899926ADBF35} = {54D377F4-153E-4900-8317-3A1371626EF2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {40C19C70-A1DC-4766-B886-09B60F33AA40}

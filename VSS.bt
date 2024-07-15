@@ -108,8 +108,6 @@ struct VssFileHeader
 	VssDataHeader DataHeader;
 };
 
-VssFileHeader FileHeader;
-
 struct VssChunk
 {
 	VssChunkHeader Header;
@@ -139,9 +137,16 @@ string VssChunkComment(VssChunk& chunk)
 
 	return comment;
 }
+
+#ifndef AUTOMATIC_FILE_HEADER_DISABLED
+VssFileHeader FileHeader;
+#endif // AUTOMATIC_FILE_HEADER_DISABLED
+
+#ifndef AUTOMATIC_CHUNK_POPULATION_DISABLED
 while (FTell() <= FileHeader.DataHeader.LastLogEntryOffset)
 // This will choke on improper CM (comment) chunks
 //while (FTell() < FileHeader.DataHeader.EofOffset)
 {
 	VssChunk Chunk <comment=VssChunkComment>;
 }
+#endif // AUTOMATIC_CHUNK_POPULATION_DISABLED

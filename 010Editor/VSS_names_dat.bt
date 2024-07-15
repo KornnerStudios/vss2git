@@ -1,0 +1,84 @@
+#define AUTOMATIC_FILE_HEADER_DISABLED
+#define AUTOMATIC_CHUNK_POPULATION_DISABLED
+#include "../VSS.bt"
+
+struct VssNamesHeader
+{
+	short Unknown1;
+	short Unknown2[7];
+	uint32 EofOffset;
+	byte Reserved[60] <hidden=true>;
+};
+
+enum <int16> VssNameKind
+{
+	Dos = 1,
+	Long = 2,
+	MacOS = 3,
+	Project = 10,
+};
+
+struct VssNameKindData
+{
+	VssNameKind Kind;
+	int16 Offset;
+};
+string VssNameKindDataComment(VssNameKindData& chunk)
+{
+	string comment;
+	SPrintf(comment, "%08X %s",
+		chunk.Offset,
+		EnumToString(chunk.Kind));
+
+	return comment;
+}
+
+struct VssNameString
+{
+	char CString[];
+};
+string VssNameStringComment(VssNameString& chunk)
+{
+	return chunk.CString;
+}
+
+struct VssNamesChunk
+{
+	VssChunkHeader Header;
+
+	int16 Count;
+	int16 Junk <hidden=true>;
+	VssNameKindData Kinds[Count] <comment=VssNameKindDataComment>;
+	VssNameString Names[Count] <optimize=false, comment=VssNameStringComment>;
+};
+string VssNamesChunkComment(VssNamesChunk& chunk)
+{
+	string comment = "(ERROR)";
+
+	if (chunk.Header.Signature == VssMarker_ShortName)
+	{
+		if (chunk.Count == 0)
+		{
+			comment = "(Empty)";
+		}
+		else if (chunk.Count == 1)
+		{
+			comment = chunk.Names[0].CString;
+		}
+		else if (chunk.Count > 1)
+		{
+			comment = chunk.Names[chunk.Count-1].CString;
+		}
+	}
+
+	return comment;
+}
+
+VssChunkHeader NamesHeaderChunk;
+VssNamesHeader NamesHeader;
+
+while (FTell() < NamesHeader.EofOffset)
+{
+	//VssChunk Chunk <comment=VssChunkComment>;
+	VssNamesChunk NameChunks <comment=VssNamesChunkComment>;
+}
