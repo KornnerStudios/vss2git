@@ -155,6 +155,32 @@ namespace SourceSafe.IO
             return str;
         }
 
+        public string ReadCString(int maxLength = -1)
+        {
+            int count = 0;
+            int maxCountFromOffset = mDataSegment.Count - Offset;
+            for (int i = 0; i < maxCountFromOffset; ++i)
+            {
+                if (mDataSegment[Offset + i] == 0)
+                {
+                    break;
+                }
+                ++count;
+            }
+
+            string str = mEncoding.GetString(mDataSegment.AsSpan(Offset, count));
+
+            if (maxLength >= 0 && count > maxLength)
+            {
+                throw new InvalidOperationException(
+                    $"Read CString of length {count} exceeds maximum length of {maxLength} at offset {Offset:X8} in {FileName}");
+            }
+
+            mOffset += (count + 1); // +1 for nil character
+
+            return str;
+        }
+
         public VssBufferReader ReadBytesIntoNewBufferReader(int bytes)
         {
             CheckRead(bytes);

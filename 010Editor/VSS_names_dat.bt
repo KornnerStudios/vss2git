@@ -21,12 +21,13 @@ enum <int16> VssNameKind
 struct VssNameKindData
 {
 	VssNameKind Kind;
+	// Offsets are relative to after the VssNamesChunk.Kinds[] array
 	int16 Offset;
 };
 string VssNameKindDataComment(VssNameKindData& chunk)
 {
 	string comment;
-	SPrintf(comment, "%08X %s",
+	SPrintf(comment, "%04X %s",
 		chunk.Offset,
 		EnumToString(chunk.Kind));
 

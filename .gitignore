@@ -1,5 +1,6 @@
 .vs/
 *.csproj.user
-bin/
-obj/
+*/bin/
+*/obj/
+*/Properties/launchSettings.json
 Vss2GitSetup*.exe

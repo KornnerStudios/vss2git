@@ -29,7 +29,7 @@ namespace Hpdi.VssLogicalLib
     /// <author>Trevor Robinson</author>
     public sealed class VssDatabase
     {
-        private readonly NameFile nameFile;
+        private readonly SourceSafe.Physical.Files.Names.VssNamesDatFile nameFile;
 
         public string BasePath { get; init; }
 
@@ -126,7 +126,8 @@ namespace Hpdi.VssLogicalLib
             DataPath = Path.Combine(path, iniReader.GetValue("Data_Path", "data"));
 
             string namesPath = Path.Combine(DataPath, "names.dat");
-            nameFile = new NameFile(namesPath, encoding);
+            nameFile = new SourceSafe.Physical.Files.Names.VssNamesDatFile(namesPath, encoding);
+            nameFile.ReadHeaderAndNames();
 
             RootProject = OpenProject(null, SourceSafeConstants.RootPhysicalFile, SourceSafeConstants.RootProjectName);
         }
@@ -160,11 +161,10 @@ namespace Hpdi.VssLogicalLib
         {
             if (name.NameFileOffset != 0)
             {
-                NameRecord nameRecord = nameFile.GetName(name.NameFileOffset);
-                int nameIndex = nameRecord.IndexOf(name.IsProject ? NameKind.Project : NameKind.Long);
-                if (nameIndex >= 0)
+                string projectOrLongName = nameFile.TryAndGetProjectOrLongName(name.NameFileOffset, name.IsProject);
+                if (projectOrLongName != null)
                 {
-                    return nameRecord.GetName(nameIndex);
+                    return projectOrLongName;
                 }
             }
             return name.ShortName;

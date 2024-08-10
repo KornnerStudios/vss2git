@@ -29,6 +29,8 @@ namespace Hpdi.VssDump
     class Program
     {
         private const string Separator = "------------------------------------------------------------";
+        private static bool DumpRecordHeaders { get; set; }
+            = true;
         private static bool DumpFileHierarchy { get; set; }
             = false;
         private static bool DumpNameFileContents { get; set; }
@@ -182,7 +184,17 @@ namespace Hpdi.VssDump
             {
                 foreach (string specificDataFile in LimitLogFilesList)
                 {
+                    if (string.IsNullOrEmpty(specificDataFile))
+                    {
+                        continue;
+                    }
+
                     string dataPath = Path.Combine(db.DataPath, specificDataFile[0].ToString(), specificDataFile);
+                    if (!File.Exists(dataPath))
+                    {
+                        outputWriter.WriteLine($"LimitLogFilesList not found: {dataPath}");
+                        continue;
+                    }
 
                     outputWriter.WriteLine(Separator);
                     outputWriter.WriteLine(dataPath);
@@ -196,7 +208,7 @@ namespace Hpdi.VssDump
                 outputWriter.WriteLine("Name file contents:");
                 outputWriter.WriteLine(Separator);
                 string namePath = Path.Combine(db.DataPath, "names.dat");
-                DumpNameFile(outputWriter, namePath);
+                DumpNamesDatFile(outputWriter, namePath);
                 outputWriter.WriteLine();
             }
 
@@ -234,14 +246,20 @@ namespace Hpdi.VssDump
             try
             {
                 var itemFile = new ItemFile(filename, Encoding.Default);
-                itemFile.Header.Header.Dump(outputWriter, kDumpIndent);
+                if (DumpRecordHeaders)
+                {
+                    itemFile.Header.Header.Dump(outputWriter, kDumpIndent);
+                }
                 itemFile.Header.Dump(outputWriter, kDumpIndent);
                 SourceSafe.Physical.Records.VssRecordBase record = itemFile.GetNextRecord(true);
                 int revisionIndex = -1;
                 while (record != null)
                 {
                     revisionIndex++;
-                    record.Header.Dump(outputWriter, kDumpIndent + 1);
+                    if (DumpRecordHeaders)
+                    {
+                        record.Header.Dump(outputWriter, kDumpIndent + 1);
+                    }
                     record.Dump(outputWriter, kDumpIndent + 2);
                     if (record is RevisionRecord revision)
                     {
@@ -262,22 +280,27 @@ namespace Hpdi.VssDump
                 WriteException(outputWriter, e);
             }
         }
-
-        private static void DumpNameFile(TextWriter outputWriter, string filename)
+        private static void DumpNamesDatFile(TextWriter outputWriter, string filename)
         {
             const int kDumpIndent = 0;
 
             try
             {
-                var nameFile = new NameFile(filename, Encoding.Default);
-                nameFile.Header.Header.Dump(outputWriter, kDumpIndent);
-                nameFile.Header.Dump(outputWriter, kDumpIndent);
-                NameRecord name = nameFile.GetNextName();
-                while (name != null)
+                var namesDatFile = new SourceSafe.Physical.Files.Names.VssNamesDatFile(filename, Encoding.Default);
+                namesDatFile.ReadHeaderAndNames();
+
+                if (DumpRecordHeaders)
                 {
-                    name.Header.Dump(outputWriter, kDumpIndent + 1);
-                    name.Dump(outputWriter, kDumpIndent + 2);
-                    name = nameFile.GetNextName();
+                    namesDatFile.Header.Header.Dump(outputWriter, kDumpIndent);
+                }
+                namesDatFile.Header.Dump(outputWriter, kDumpIndent);
+                foreach (SourceSafe.Physical.Files.Names.NamesRecord record in namesDatFile.GetRecords())
+                {
+                    if (DumpRecordHeaders)
+                    {
+                        record.Header.Dump(outputWriter, kDumpIndent + 1);
+                    }
+                    record.Dump(outputWriter, kDumpIndent + 2);
                 }
             }
             catch (Exception e)

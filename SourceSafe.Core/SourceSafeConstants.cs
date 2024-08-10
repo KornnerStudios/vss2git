@@ -1,4 +1,6 @@
-﻿
+﻿// #TODO temporarily expose to VssDump project
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("VssDump")]
+
 namespace SourceSafe
 {
     public static class SourceSafeConstants
