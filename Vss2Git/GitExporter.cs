@@ -23,7 +23,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using Hpdi.VssLogicalLib;
-using Hpdi.VssPhysicalLib;
 using SourceSafe;
 using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;

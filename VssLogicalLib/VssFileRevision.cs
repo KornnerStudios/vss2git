@@ -15,8 +15,8 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Hpdi.VssPhysicalLib;
 using SourceSafe.Physical.DeltaDiff;
+using SourceSafe.Physical.Files;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
@@ -34,8 +34,8 @@ namespace Hpdi.VssLogicalLib
             Stream dataFile = new FileStream(item.DataPath,
                 FileMode.Open, FileAccess.Read, FileShare.Read);
 
-            ItemFile itemFile = item.ItemFile;
-            SourceSafe.Physical.Revisions.RevisionRecordBase lastRev = itemFile.GetLastRevision();
+            VssPhysicalFile itemPhysicalFile = item.PhysicalFile;
+            SourceSafe.Physical.Revisions.RevisionRecordBase lastRev = itemPhysicalFile.GetLastRevision();
             if (lastRev != null)
             {
                 IEnumerable<DeltaOperation> deltaOps = null;
@@ -45,18 +45,18 @@ namespace Hpdi.VssLogicalLib
                     {
                         int branchRevId = branchRev.Revision;
                         string itemPath = item.Database.GetDataPath(branchRev.BranchFile);
-                        itemFile = new ItemFile(itemPath, item.Database.Encoding);
-                        lastRev = itemFile.GetLastRevision();
+                        itemPhysicalFile = new(itemPath, item.Database.Encoding);
+                        lastRev = itemPhysicalFile.GetLastRevision();
                         while (lastRev != null && lastRev.Revision >= branchRevId)
                         {
-                            lastRev = itemFile.GetPreviousRevision(lastRev);
+                            lastRev = itemPhysicalFile.GetPreviousRevision(lastRev);
                         }
                     }
                     else
                     {
                         if (lastRev is SourceSafe.Physical.Revisions.EditRevisionRecord editRev)
                         {
-                            DeltaRecord delta = itemFile.GetPreviousDelta(editRev);
+                            DeltaRecord delta = itemPhysicalFile.GetPreviousDelta(editRev);
                             if (delta != null)
                             {
                                 IEnumerable<DeltaOperation> curDeltaOps = delta.Operations;
@@ -64,7 +64,7 @@ namespace Hpdi.VssLogicalLib
                                     DeltaUtil.Merge(deltaOps, curDeltaOps);
                             }
                         }
-                        lastRev = itemFile.GetPreviousRevision(lastRev);
+                        lastRev = itemPhysicalFile.GetPreviousRevision(lastRev);
                     }
                 }
 

@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Hpdi.VssLogicalLib;
-using Hpdi.VssPhysicalLib;
+using SourceSafe.Physical.Files;
 
 namespace Hpdi.VssDump
 {
@@ -37,7 +37,7 @@ namespace Hpdi.VssDump
             = false;
         private static string OutputFileName { get; set; }
             = @"";
-        private static readonly List<string> LimitLogFilesList =
+        private static readonly List<string> LimitPhysicalFilesList =
         [
         ];
 
@@ -156,8 +156,8 @@ namespace Hpdi.VssDump
                 outputWriter.WriteLine();
             }
 
-            outputWriter.WriteLine("Log file contents:");
-            if (LimitLogFilesList.Count == 0)
+            outputWriter.WriteLine("Physical file contents:");
+            if (LimitPhysicalFilesList.Count == 0)
             {
                 for (char c = 'a'; c <= 'z'; ++c)
                 {
@@ -176,13 +176,13 @@ namespace Hpdi.VssDump
                         {
                             outputWriter.WriteLine(dataPath);
                         }
-                        DumpLogFile(outputWriter, dataPath);
+                        DumpPhysicalFile(outputWriter, dataPath);
                     }
                 }
             }
             else
             {
-                foreach (string specificDataFile in LimitLogFilesList)
+                foreach (string specificDataFile in LimitPhysicalFilesList)
                 {
                     if (string.IsNullOrEmpty(specificDataFile))
                     {
@@ -192,13 +192,13 @@ namespace Hpdi.VssDump
                     string dataPath = Path.Combine(db.DataPath, specificDataFile[0].ToString(), specificDataFile);
                     if (!File.Exists(dataPath))
                     {
-                        outputWriter.WriteLine($"LimitLogFilesList not found: {dataPath}");
+                        outputWriter.WriteLine($"{nameof(LimitPhysicalFilesList)} not found: {dataPath}");
                         continue;
                     }
 
                     outputWriter.WriteLine(Separator);
                     outputWriter.WriteLine(dataPath);
-                    DumpLogFile(outputWriter, dataPath);
+                    DumpPhysicalFile(outputWriter, dataPath);
                 }
             }
             outputWriter.WriteLine();
@@ -239,19 +239,19 @@ namespace Hpdi.VssDump
             return buf.ToString();
         }
 
-        private static void DumpLogFile(TextWriter outputWriter, string filename)
+        private static void DumpPhysicalFile(TextWriter outputWriter, string filename)
         {
             const int kDumpIndent = 0;
 
             try
             {
-                var itemFile = new ItemFile(filename, Encoding.Default);
+                var physicalFile = new VssPhysicalFile(filename, Encoding.Default);
                 if (DumpRecordHeaders)
                 {
-                    itemFile.Header.Header.Dump(outputWriter, kDumpIndent);
+                    physicalFile.Header.Header.Dump(outputWriter, kDumpIndent);
                 }
-                itemFile.Header.Dump(outputWriter, kDumpIndent);
-                SourceSafe.Physical.Records.VssRecordBase record = itemFile.GetNextRecord(true);
+                physicalFile.Header.Dump(outputWriter, kDumpIndent);
+                SourceSafe.Physical.Records.VssRecordBase record = physicalFile.GetNextRecord(true);
                 int revisionIndex = -1;
                 while (record != null)
                 {
@@ -263,7 +263,7 @@ namespace Hpdi.VssDump
                     record.Dump(outputWriter, kDumpIndent + 2);
                     if (record is SourceSafe.Physical.Revisions.RevisionRecordBase revision)
                     {
-                        if (itemFile.Header.IsProject)
+                        if (physicalFile.Header.IsProject)
                         {
                             projectActions.Add(revision.Action);
                         }
@@ -272,7 +272,7 @@ namespace Hpdi.VssDump
                             fileActions.Add(revision.Action);
                         }
                     }
-                    record = itemFile.GetNextRecord(true);
+                    record = physicalFile.GetNextRecord(true);
                 }
             }
             catch (Exception e)

@@ -15,7 +15,8 @@ namespace SourceSafe.Physical.Files
     /// <summary>
     /// Represents a file containing VSS project/file records.
     /// </summary>
-    internal class VssPhysicalFile : VssRecordFileBase
+    public // #TODO temporary until VssDatabase is in this assembly
+    /*internal*/ class VssPhysicalFile : VssRecordFileBase
     {
         const string FILE_SIGNATUIRE = "SourceSafe@Microsoft";
 
@@ -60,6 +61,12 @@ namespace SourceSafe.Physical.Files
             {
                 throw new Records.BadHeaderException("Truncated header", e);
             }
+        }
+
+        [Obsolete("Unused")]
+        public Records.VssRecordBase? GetRecordByFileOffset(int fileOffset)
+        {
+            return GetRecord(CreateVssRecord, false, fileOffset);
         }
 
         public Records.VssRecordBase? GetNextRecord(bool skipUnknown)
@@ -137,6 +144,30 @@ namespace SourceSafe.Physical.Files
                 return record;
             }
             return null;
+        }
+
+        [Obsolete("Unused")]
+        public ICollection<string> GetProjectFileNames()
+        {
+            var result = new List<string>();
+            if (Header is Records.VssItemFileHeaderRecord fileHeader)
+            {
+                var record = new Records.ProjectRecord();
+                int offset = fileHeader.ProjectOffset;
+                while (offset > 0)
+                {
+                    ReadRecord(record, offset);
+                    if (!string.IsNullOrEmpty(record.ProjectFile))
+                    {
+                        result.Add(record.ProjectFile);
+                    }
+                    offset = record.PrevProjectOffset;
+                }
+
+                // This used to be a LinkedList with AddFirst calls, so we need to reverse the result
+                result.Reverse();
+            }
+            return result;
         }
 
         private static Records.VssRecordBase? CreateVssRecord(

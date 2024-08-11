@@ -17,8 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Hpdi.VssLogicalLib;
-using Hpdi.VssPhysicalLib;
 using SourceSafe;
 using SourceSafe.Logical.Actions;
 

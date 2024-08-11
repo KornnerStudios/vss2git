@@ -15,7 +15,6 @@
 
 using System;
 using System.Collections.Generic;
-using Hpdi.VssPhysicalLib;
 using SourceSafe.Logical;
 using SourceSafe.Physical.Records;
 
@@ -52,7 +51,7 @@ namespace Hpdi.VssLogicalLib
             return (VssFileRevision)base.GetRevision(version);
         }
 
-        internal VssItemFileHeaderRecord Header => (VssItemFileHeaderRecord)ItemFile.Header;
+        internal VssItemFileHeaderRecord Header => (VssItemFileHeaderRecord)PhysicalFile.Header;
 
         internal VssFile(VssDatabase database, VssItemName itemName, string physicalPath)
             : base(database, itemName, physicalPath)

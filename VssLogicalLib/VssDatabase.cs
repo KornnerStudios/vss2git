@@ -16,9 +16,9 @@
 using System;
 using System.IO;
 using System.Text;
-using Hpdi.VssPhysicalLib;
 using SourceSafe;
 using SourceSafe.Logical;
+using SourceSafe.Physical.Files;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
@@ -77,7 +77,7 @@ namespace Hpdi.VssLogicalLib
             return project;
         }
 
-        public VssItem GetItemPhysical(string physicalName)
+        public VssItem GetItemByPhysicalName(string physicalName)
         {
             physicalName = physicalName.ToUpperInvariant();
 
@@ -87,15 +87,15 @@ namespace Hpdi.VssLogicalLib
             }
 
             string physicalPath = GetDataPath(physicalName);
-            ItemFile itemFile = new(physicalPath, Encoding);
-            bool isProject = itemFile.Header.IsProject;
-            string logicalName = GetFullName(itemFile.Header.Name);
+            VssPhysicalFile physicalFile = new(physicalPath, Encoding);
+            bool isProject = physicalFile.Header.IsProject;
+            string logicalName = GetFullName(physicalFile.Header.Name);
             VssItemName itemName = new(logicalName, physicalName, isProject);
             VssItem item;
             if (isProject)
             {
-                string parentFile = ((VssItemProjectHeaderRecord)itemFile.Header).ParentFile;
-                var parent = (VssProject)GetItemPhysical(parentFile);
+                string parentFile = ((VssItemProjectHeaderRecord)physicalFile.Header).ParentFile;
+                var parent = (VssProject)GetItemByPhysicalName(parentFile);
                 string logicalPath = BuildPath(parent, logicalName);
                 item = new VssProject(this, itemName, physicalPath, logicalPath);
             }
@@ -103,12 +103,12 @@ namespace Hpdi.VssLogicalLib
             {
                 item = new VssFile(this, itemName, physicalPath);
             }
-            item.ItemFile = itemFile;
+            item.PhysicalFile = physicalFile;
             return item;
         }
 
         [Obsolete("Unused")]
-        public bool ItemExists(string physicalName)
+        public bool PhysicalFileExists(string physicalName)
         {
             string physicalPath = GetDataPath(physicalName);
             return File.Exists(physicalPath);

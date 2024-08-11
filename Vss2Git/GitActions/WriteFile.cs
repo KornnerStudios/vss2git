@@ -51,7 +51,7 @@ namespace Hpdi.Vss2Git.GitActions
             Stream contents = null;
             try
             {
-                item = (VssFile)database.GetItemPhysical(physicalName);
+                item = (VssFile)database.GetItemByPhysicalName(physicalName);
                 revision = item.GetRevision(version);
                 contents = revision.GetContents();
             }
@@ -113,7 +113,7 @@ namespace Hpdi.Vss2Git.GitActions
             return true;
         }
 
-        private void WriteStream(Stream inputStream, string path)
+        private static void WriteStream(Stream inputStream, string path)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path));
 

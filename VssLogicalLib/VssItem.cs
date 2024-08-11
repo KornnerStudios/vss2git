@@ -16,8 +16,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Hpdi.VssPhysicalLib;
 using SourceSafe.Logical;
+using SourceSafe.Physical.Files;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
@@ -28,7 +28,7 @@ namespace Hpdi.VssLogicalLib
     /// <author>Trevor Robinson</author>
     public abstract class VssItem
     {
-        private ItemFile itemFile;
+        private VssPhysicalFile mPhysicalFile;
 
         public VssDatabase Database { get; init; }
 
@@ -42,27 +42,27 @@ namespace Hpdi.VssLogicalLib
 
         public string PhysicalPath { get; init; }
 
-        public string DataPath => PhysicalPath + ItemFile.Header.DataExt;
+        public string DataPath => PhysicalPath + PhysicalFile.Header.DataExt;
 
-        public int RevisionCount => ItemFile.Header.Revisions;
+        public int RevisionCount => PhysicalFile.Header.Revisions;
 
         public IEnumerable<VssRevision> Revisions => new VssRevisions<VssItem, VssRevision>(this);
 
         public VssRevision GetRevision(int version)
         {
-            ItemFile itemFile = ItemFile;
-            if (version < 1 || version > itemFile.Header.Revisions)
+            VssPhysicalFile backingPhysicalFile = PhysicalFile;
+            if (version < 1 || version > backingPhysicalFile.Header.Revisions)
             {
                 throw new ArgumentOutOfRangeException(nameof(version), version, "Invalid version number");
             }
 
             // check whether version was before branch
-            if (version < itemFile.Header.FirstRevision)
+            if (version < backingPhysicalFile.Header.FirstRevision)
             {
                 if (!IsProject)
                 {
-                    var fileHeader = (VssItemFileHeaderRecord)itemFile.Header;
-                    return Database.GetItemPhysical(fileHeader.BranchFile).GetRevision(version);
+                    var fileHeader = (VssItemFileHeaderRecord)backingPhysicalFile.Header;
+                    return Database.GetItemByPhysicalName(fileHeader.BranchFile).GetRevision(version);
                 }
                 else
                 {
@@ -71,10 +71,10 @@ namespace Hpdi.VssLogicalLib
                 }
             }
 
-            SourceSafe.Physical.Revisions.RevisionRecordBase revisionRecord = itemFile.GetFirstRevision();
+            SourceSafe.Physical.Revisions.RevisionRecordBase revisionRecord = backingPhysicalFile.GetFirstRevision();
             while (revisionRecord != null && revisionRecord.Revision < version)
             {
-                revisionRecord = itemFile.GetNextRevision(revisionRecord);
+                revisionRecord = backingPhysicalFile.GetNextRevision(revisionRecord);
             }
             if (revisionRecord == null)
             {
@@ -83,19 +83,19 @@ namespace Hpdi.VssLogicalLib
             return CreateRevision(revisionRecord);
         }
 
-        internal ItemFile ItemFile
+        internal VssPhysicalFile PhysicalFile
         {
             get
             {
-                if (itemFile == null)
+                if (mPhysicalFile == null)
                 {
-                    itemFile = new ItemFile(PhysicalPath, Database.Encoding);
+                    mPhysicalFile = new(PhysicalPath, Database.Encoding);
                 }
-                return itemFile;
+                return mPhysicalFile;
             }
             set
             {
-                itemFile = value;
+                mPhysicalFile = value;
             }
         }
 
@@ -112,13 +112,13 @@ namespace Hpdi.VssLogicalLib
             if (revision.CommentLength > 0 && revision.CommentOffset > 0)
             {
                 comment = new CommentRecord();
-                ItemFile.ReadRecord(comment, revision.CommentOffset);
+                PhysicalFile.ReadRecord(comment, revision.CommentOffset);
             }
             else if (revision.Action == SourceSafe.Physical.Revisions.RevisionAction.Label &&
                 revision.LabelCommentLength > 0 && revision.LabelCommentOffset > 0)
             {
                 comment = new CommentRecord();
-                ItemFile.ReadRecord(comment, revision.LabelCommentOffset);
+                PhysicalFile.ReadRecord(comment, revision.LabelCommentOffset);
             }
             return CreateRevision(revision, comment);
         }
@@ -166,12 +166,12 @@ namespace Hpdi.VssLogicalLib
 
                 if (beforeFirst)
                 {
-                    revisionRecord = item.ItemFile.GetFirstRevision();
+                    revisionRecord = item.PhysicalFile.GetFirstRevision();
                     beforeFirst = false;
                 }
                 else if (revisionRecord != null)
                 {
-                    revisionRecord = item.ItemFile.GetNextRevision(revisionRecord);
+                    revisionRecord = item.PhysicalFile.GetNextRevision(revisionRecord);
                 }
 
                 if (revisionRecord != null)
