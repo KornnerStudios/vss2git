@@ -33,7 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SourceSafe.Core\SourceSafe.Core.csproj" />
-    <ProjectReference Include="..\VssLogicalLib\VssLogicalLib.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Vss2Git.ico" />

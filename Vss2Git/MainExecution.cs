@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
-using Hpdi.VssLogicalLib;
+using SourceSafe.Logical.Items;
 
 namespace Hpdi.Vss2Git
 {
@@ -85,28 +85,24 @@ namespace Hpdi.Vss2Git
                 logger.WriteLine("Dry run: {0}",
                     Settings.DryRun ? "enabled" : "disabled");
 
-                var df = new VssDatabaseFactory(Settings.VssDirectory)
-                {
-                    Encoding = encoding,
-                };
-                VssDatabase db = df.Open();
+                SourceSafe.Logical.VssDatabase db = new(Settings.VssDirectory, encoding);
 
                 string path = Settings.VssProject;
-                VssItem item;
+                VssItemBase item;
                 try
                 {
                     item = db.GetItem(path);
                 }
-                catch (VssPathException ex)
+                catch (SourceSafe.Logical.VssPathException ex)
                 {
                     // Invalid project path
                     VssUtil.MarkUnusedVariable(ref ex);
                     throw;
                 }
 
-                if (item is not VssProject project)
+                if (item is not VssProjectItem project)
                 {
-                    throw new VssPathException($"{path} is not a project");
+                    throw new SourceSafe.Logical.VssPathException($"{path} is not a project");
                 }
 
                 revisionAnalyzer = new RevisionAnalyzer(workQueue, logger, db);

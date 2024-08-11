@@ -17,8 +17,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Hpdi.VssLogicalLib;
+using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;
+using SourceSafe.Logical.Items;
 
 namespace Hpdi.Vss2Git
 {
@@ -35,21 +36,21 @@ namespace Hpdi.Vss2Git
 
         public VssDatabase Database { get; }
 
-        private readonly List<VssProject> rootProjects = [];
-        public IEnumerable<VssProject> RootProjects => rootProjects;
+        private readonly List<VssProjectItem> mRootProjects = [];
+        public IEnumerable<VssProjectItem> RootProjects => mRootProjects;
 
         public SortedDictionary<DateTime, ICollection<Revision>> SortedRevisions { get; } = [];
         public HashSet<string> ProcessedFiles { get; } = [];
         public HashSet<DeletedFileData> DestroyedFiles { get; } = [];
 
-        private int projectCount;
-        public int ProjectCount => Thread.VolatileRead(ref projectCount);
+        private int mProjectCount;
+        public int ProjectCount => Thread.VolatileRead(ref mProjectCount);
 
-        private int fileCount;
-        public int FileCount => Thread.VolatileRead(ref fileCount);
+        private int mFileCount;
+        public int FileCount => Thread.VolatileRead(ref mFileCount);
 
-        private int revisionCount;
-        public int RevisionCount => Thread.VolatileRead(ref revisionCount);
+        private int mRevisionCount;
+        public int RevisionCount => Thread.VolatileRead(ref mRevisionCount);
 
         public RevisionAnalyzer(WorkQueue workQueue, Logger logger, VssDatabase database)
             : base(workQueue, logger)
@@ -62,7 +63,7 @@ namespace Hpdi.Vss2Git
             return DestroyedFiles.Contains(new DeletedFileData(parentPhysicalName, itemPhysicalName));
         }
 
-        public void AddItem(VssProject project)
+        public void AddItem(VssProjectItem project)
         {
             if (project == null)
             {
@@ -73,13 +74,13 @@ namespace Hpdi.Vss2Git
                 throw new ArgumentException("Project database mismatch", nameof(project));
             }
 
-            rootProjects.Add(project);
+            mRootProjects.Add(project);
 
             // #REVIEW: could the callback just use rootProjects.Last()?
             workQueue.AddLast(work => AddItemWorkQueueCallback(work, project));
         }
 
-        private void AddItemWorkQueueCallback(object work, VssProject project)
+        private void AddItemWorkQueueCallback(object work, VssProjectItem project)
         {
             logger.WriteSectionSeparator();
             LogStatus(work, "Building revision list");
@@ -88,7 +89,7 @@ namespace Hpdi.Vss2Git
 
             var stopwatch = Stopwatch.StartNew();
             VssUtil.RecurseItems(project,
-                (VssProject subproject) =>
+                (VssProjectItem subproject) =>
                 {
                     if (workQueue.IsAborting)
                     {
@@ -96,10 +97,10 @@ namespace Hpdi.Vss2Git
                     }
 
                     ProcessItem(subproject);
-                    ++projectCount;
+                    ++mProjectCount;
                     return RecursionStatus.Continue;
                 },
-                (VssProject subproject, VssFile file) =>
+                (VssProjectItem subproject, VssFileItem file) =>
                 {
                     if (workQueue.IsAborting)
                     {
@@ -111,7 +112,7 @@ namespace Hpdi.Vss2Git
                     {
                         ProcessedFiles.Add(file.PhysicalName);
                         ProcessItem(file);
-                        ++fileCount;
+                        ++mFileCount;
                     }
                     return RecursionStatus.Continue;
                 });
@@ -119,14 +120,14 @@ namespace Hpdi.Vss2Git
 
             logger.WriteSectionSeparator();
             logger.WriteLine("Analysis complete in {0:HH:mm:ss}", new DateTime(stopwatch.ElapsedTicks));
-            logger.WriteLine($"Revisions: {revisionCount}");
+            logger.WriteLine($"Revisions: {mRevisionCount}");
         }
 
-        private void ProcessItem(VssItem item)
+        private void ProcessItem(VssItemBase item)
         {
             try
             {
-                foreach (VssRevision vssRevision in item.Revisions)
+                foreach (VssItemRevisionBase vssRevision in item.Revisions)
                 {
                     VssActionType actionType = vssRevision.Action.Type;
                     if (vssRevision.Action is VssNamedActionBase namedAction)
@@ -165,7 +166,7 @@ namespace Hpdi.Vss2Git
                         SortedRevisions[vssRevision.DateTime] = revisionSet;
                     }
                     revisionSet.Add(revision);
-                    ++revisionCount;
+                    ++mRevisionCount;
                 }
             }
             catch (SourceSafe.Physical.Records.RecordExceptionBase e)

@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-using Hpdi.VssLogicalLib;
+using SourceSafe.Logical.Items;
 
 namespace Hpdi.Vss2Git
 {
     enum RecursionStatus
     {
         Continue, Skip, Abort
-    }
+    };
 
-    delegate RecursionStatus VssProjectCallback(VssProject project);
+    delegate RecursionStatus VssProjectCallback(VssProjectItem project);
 
-    delegate RecursionStatus VssFileCallback(VssProject project, VssFile file);
+    delegate RecursionStatus VssFileCallback(VssProjectItem project, VssFileItem file);
 
     /// <summary>
     /// Helper methods for working with VSS objects.
@@ -33,7 +33,9 @@ namespace Hpdi.Vss2Git
     static class VssUtil
     {
         public static RecursionStatus RecurseItems(
-            VssProject project, VssProjectCallback projectCallback, VssFileCallback fileCallback)
+            VssProjectItem project,
+            VssProjectCallback projectCallback,
+            VssFileCallback fileCallback)
         {
             if (projectCallback != null)
             {
@@ -43,7 +45,7 @@ namespace Hpdi.Vss2Git
                     return status;
                 }
             }
-            foreach (VssProject subproject in project.Projects)
+            foreach (VssProjectItem subproject in project.Projects)
             {
                 RecursionStatus status = RecurseItems(
                     subproject, projectCallback, fileCallback);
@@ -52,7 +54,7 @@ namespace Hpdi.Vss2Git
                     return status;
                 }
             }
-            foreach (VssFile file in project.Files)
+            foreach (VssFileItem file in project.Files)
             {
                 RecursionStatus status = fileCallback(project, file);
                 if (status == RecursionStatus.Abort)
@@ -66,5 +68,5 @@ namespace Hpdi.Vss2Git
         public static void MarkUnusedVariable<T>(ref T _)
         {
         }
-    }
+    };
 }

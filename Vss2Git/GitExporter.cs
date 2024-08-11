@@ -22,10 +22,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using Hpdi.VssLogicalLib;
 using SourceSafe;
 using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;
+using SourceSafe.Logical.Items;
 
 namespace Hpdi.Vss2Git
 {
@@ -156,7 +156,7 @@ namespace Hpdi.Vss2Git
                 var pathMapper = new VssPathMapper();
 
                 // create mappings for root projects
-                foreach (VssProject rootProject in revisionAnalyzer.RootProjects)
+                foreach (VssProjectItem rootProject in revisionAnalyzer.RootProjects)
                 {
                     // root must be repo path here - the path mapper uses paths relative to this one
                     string rootPath = git.GetRepoPath();
@@ -1041,7 +1041,7 @@ namespace Hpdi.Vss2Git
             return GetOrCreatePendingCommitForLogicalPath(ref pendingCommits, changeset, pathMapper.GetProjectLogicalPath(project.PhysicalName));
         }
 
-        [System.Obsolete("Unused")]
+        [Obsolete("Unused")]
         private static string GetPendingBranchFromLogicalProjectPath(List<string> logicalProjectPath)
         {
             string pendingBranch = "";
@@ -1201,5 +1201,5 @@ namespace Hpdi.Vss2Git
 
         [GeneratedRegex("[^A-Za-z0-9_-]+")]
         private static partial Regex GetGitTagToFileNameReplacementRegex();
-    }
+    };
 }

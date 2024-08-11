@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Hpdi.VssLogicalLib;
 using SourceSafe.Physical.Files;
 
 namespace Hpdi.VssDump
@@ -139,8 +138,7 @@ namespace Hpdi.VssDump
             }
 
             string repoPath = args[argIndex];
-            var df = new VssDatabaseFactory(repoPath);
-            VssDatabase db = df.Open();
+            SourceSafe.Logical.VssDatabase db = new(repoPath, Encoding.Default);
 
             TreeDumper tree = null;
             if (DumpFileHierarchy)

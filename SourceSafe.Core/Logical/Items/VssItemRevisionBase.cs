@@ -1,66 +1,54 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using SourceSafe.Logical;
-using SourceSafe.Logical.Actions;
+﻿using SourceSafe.Logical.Actions;
 using SourceSafe.Physical.Records;
 using SourceSafe.Physical.Revisions;
 
-namespace Hpdi.VssLogicalLib
+namespace SourceSafe.Logical.Items
 {
     /// <summary>
     /// Base class for revisions to a VSS item.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    public abstract class VssRevision
+    public abstract class VssItemRevisionBase
     {
-        protected readonly VssItem item;
-        protected readonly RevisionRecordBase revision;
-        protected readonly CommentRecord comment;
-
-        public VssItem Item => item;
+        protected readonly VssItemBase mItem;
+        protected readonly RevisionRecordBase mRevision;
+        protected readonly CommentRecord mComment;
 
         public VssActionBase Action { get; init; }
 
-        public int Version => revision.Revision;
+        public VssItemBase Item => mItem;
 
-        public DateTime DateTime => revision.DateTime;
+        public int Version => mRevision.Revision;
 
-        public string User => revision.User;
+        public DateTime DateTime => mRevision.DateTime;
 
-        public string Label => revision.Label;
+        public string? User => mRevision.User;
 
-        public string Comment => comment?.Comment;
+        public string? Label => mRevision.Label;
 
-        internal VssRevision(VssItem item, RevisionRecordBase revision, CommentRecord comment)
+        public string? Comment => mComment?.Comment;
+
+        internal VssItemRevisionBase(
+            VssItemBase item,
+            RevisionRecordBase revision,
+            CommentRecord comment)
         {
-            this.item = item;
-            this.Action = CreateAction(revision, item);
-            this.revision = revision;
-            this.comment = comment;
+            mItem = item;
+            mRevision = revision;
+            mComment = comment;
+
+            Action = CreateAction(revision, item);
         }
 
-        private static VssActionBase CreateAction(RevisionRecordBase revision, VssItem item)
+        private static VssActionBase CreateAction(
+            RevisionRecordBase revision,
+            VssItemBase item)
         {
             VssDatabase db = item.Database;
             switch (revision.Action)
             {
                 case RevisionAction.Label:
                 {
-                    return new VssLabelAction(revision.Label);
+                    return new VssLabelAction(revision.Label!);
                 }
                 case RevisionAction.DestroyProject:
                 case RevisionAction.DestroyFile:
@@ -152,5 +140,5 @@ namespace Hpdi.VssLogicalLib
                     throw new ArgumentException($"Unknown revision action: {revision.Action}");
             }
         }
-    }
+    };
 }

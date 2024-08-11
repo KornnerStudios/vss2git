@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-using Hpdi.VssLogicalLib;
 using SourceSafe;
 using System;
 using System.Collections.Generic;

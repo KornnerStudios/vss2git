@@ -15,7 +15,7 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Hpdi.VssLogicalLib;
+using SourceSafe.Logical.Items;
 
 namespace Hpdi.VssDump
 {
@@ -25,49 +25,49 @@ namespace Hpdi.VssDump
     /// <author>Trevor Robinson</author>
     class TreeDumper
     {
-        private readonly TextWriter writer;
+        private readonly TextWriter mWriter;
         public HashSet<string> PhysicalNames { get; } = [];
 
         public bool IncludeRevisions { get; set; }
 
         public TreeDumper(TextWriter writer)
         {
-            this.writer = writer;
+            this.mWriter = writer;
         }
 
-        public void DumpProject(VssProject project)
+        public void DumpProject(VssProjectItem project)
         {
             DumpProject(project, 0);
         }
 
-        public void DumpProject(VssProject project, int indent)
+        public void DumpProject(VssProjectItem project, int indent)
         {
             string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
             PhysicalNames.Add(project.PhysicalName);
-            writer.Write(indentStr);
-            writer.WriteLine($"({project.PhysicalName}) {project.Name}/");
+            mWriter.Write(indentStr);
+            mWriter.WriteLine($"({project.PhysicalName}) {project.Name}/");
 
-            foreach (VssProject subproject in project.Projects)
+            foreach (VssProjectItem subproject in project.Projects)
             {
                 DumpProject(subproject, indent + 1);
             }
 
-            foreach (VssFile file in project.Files)
+            foreach (VssFileItem file in project.Files)
             {
                 PhysicalNames.Add(file.PhysicalName);
-                writer.Write(indentStr);
-                writer.WriteLine($"\t({file.PhysicalName}) {file.Name} - {file.GetPath(project)}");
+                mWriter.Write(indentStr);
+                mWriter.WriteLine($"\t({file.PhysicalName}) {file.Name} - {file.GetPath(project)}");
 
                 if (IncludeRevisions)
                 {
-                    foreach (VssFileRevision version in file.Revisions)
+                    foreach (VssFileItemRevision version in file.Revisions)
                     {
-                        writer.Write(indentStr);
-                        writer.WriteLine($"\t\t#{version.Version} {version.User} {version.DateTime}");
+                        mWriter.Write(indentStr);
+                        mWriter.WriteLine($"\t\t#{version.Version} {version.User} {version.DateTime}");
                     }
                 }
             }
         }
-    }
+    };
 }

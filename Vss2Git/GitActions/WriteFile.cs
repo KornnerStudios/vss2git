@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-using Hpdi.VssLogicalLib;
 using System;
 using System.IO;
+using SourceSafe.Logical;
+using SourceSafe.Logical.Items;
 
 namespace Hpdi.Vss2Git.GitActions
 {
@@ -25,41 +26,41 @@ namespace Hpdi.Vss2Git.GitActions
     /// Represents a VSS-revision-to-git file writer action.
     /// </summary>
     /// <author>Dariusz Bywalec</author>
-    class WriteFile : IGitAction
+    sealed class WriteFile : IGitAction
     {
         public static bool SleepThreadBeforeSetLastWriteTimeUtc { get; set; } = true;
 
-        private readonly VssDatabase database;
-        private readonly string physicalName;
-        private readonly int version;
-        private readonly string destPath;
+        private readonly VssDatabase mDatabase;
+        private readonly string mPhysicalName;
+        private readonly int mVersion;
+        private readonly string mDestinationPath;
 
-        public WriteFile(VssDatabase database, string physicalName, int version, string destPath)
+        public WriteFile(VssDatabase database, string physicalName, int version, string destinationPath)
         {
-            this.database = database;
-            this.physicalName = physicalName;
-            this.version = version;
-            this.destPath = destPath;
+            mDatabase = database;
+            mPhysicalName = physicalName;
+            mVersion = version;
+            mDestinationPath = destinationPath;
         }
 
         public bool Run(Logger logger, IGitWrapper git, IGitStatistic stat)
         {
-            logger.WriteLine("Writing file: {0} ({1})@{2}", destPath, physicalName, version);
+            logger.WriteLine($"Writing file: {mDestinationPath} ({mPhysicalName})@{mVersion}");
 
-            VssFile item;
-            VssFileRevision revision;
+            VssFileItem item;
+            VssFileItemRevision revision;
             Stream contents = null;
             try
             {
-                item = (VssFile)database.GetItemByPhysicalName(physicalName);
-                revision = item.GetRevision(version);
+                item = (VssFileItem)mDatabase.GetItemByPhysicalName(mPhysicalName);
+                revision = item.GetRevision(mVersion);
                 contents = revision.GetContents();
             }
             catch (Exception e)
             {
                 // log an error for missing data files or versions, but keep processing
                 string message = ExceptionFormatter.Format(e);
-                logger.WriteLine("ERROR: {0}", message);
+                logger.WriteLine($"ERROR: {message}");
                 logger.WriteLine(e);
                 return false;
             }
@@ -69,14 +70,14 @@ namespace Hpdi.Vss2Git.GitActions
                 // propagate exceptions here (e.g. disk full) to abort/retry/ignore
                 using (contents)
                 {
-                    WriteStream(contents, destPath);
+                    WriteStream(contents, mDestinationPath);
                 }
             }
 
             // try to use the first revision (for this branch) as the create time,
             // since the item creation time doesn't seem to be meaningful
             DateTime createDateTime = item.Created;
-            using (System.Collections.Generic.IEnumerator<VssFileRevision> revEnum = item.Revisions.GetEnumerator())
+            using (System.Collections.Generic.IEnumerator<VssFileItemRevision> revEnum = item.Revisions.GetEnumerator())
             {
                 if (revEnum.MoveNext())
                 {
@@ -90,14 +91,14 @@ namespace Hpdi.Vss2Git.GitActions
                 DateTime revisionDateTimeUtc = revision.DateTime.ConvertAmbiguousTimeToUtc(logger);
 
                 // set file creation and update timestamps
-                File.SetCreationTimeUtc(destPath, createDateTimeUtc);
+                File.SetCreationTimeUtc(mDestinationPath, createDateTimeUtc);
                 if (SleepThreadBeforeSetLastWriteTimeUtc)
                 {
                     // I've had one failure case for SetLastWriteTimeUtc because SetCreationTimeUtc had not yet completed.
                     // This was in 2018 on a HDD, perhaps less of a concern on SSDs?
                     System.Threading.Thread.Sleep(343);
                 }
-                File.SetLastWriteTimeUtc(destPath, revisionDateTimeUtc);
+                File.SetLastWriteTimeUtc(mDestinationPath, revisionDateTimeUtc);
             }
             catch (Exception e)
             {
@@ -108,7 +109,7 @@ namespace Hpdi.Vss2Git.GitActions
                 return false;
             }
 
-            git.Add(destPath);
+            git.Add(mDestinationPath);
 
             return true;
         }
@@ -122,5 +123,5 @@ namespace Hpdi.Vss2Git.GitActions
                 inputStream.CopyTo(outputStream);
             }
         }
-    }
+    };
 }
