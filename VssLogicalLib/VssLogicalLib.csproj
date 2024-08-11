@@ -31,9 +31,6 @@
     <ProjectReference Include="..\SourceSafe.Core\SourceSafe.Core.csproj">
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\VssPhysicalLib\VssPhysicalLib.csproj">
-      <Private>False</Private>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

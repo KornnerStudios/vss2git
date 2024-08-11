@@ -16,7 +16,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Hpdi.VssPhysicalLib;
 using SourceSafe.Logical;
 using SourceSafe.Physical;
 using SourceSafe.Physical.Records;
@@ -148,8 +147,8 @@ namespace Hpdi.VssLogicalLib
         {
             private readonly VssProject project;
             private readonly ItemTypes itemTypes;
-            private readonly ProjectEntryFile entryFile;
-            private ProjectEntryRecord entryRecord;
+            private readonly SourceSafe.Physical.Projects.ProjectEntryFile entryFile;
+            private SourceSafe.Physical.Projects.ProjectEntryRecord entryRecord;
             private VssItem entryItem;
             private bool beforeFirst = true;
 
@@ -157,7 +156,7 @@ namespace Hpdi.VssLogicalLib
             {
                 this.project = project;
                 this.itemTypes = itemTypes;
-                entryFile = new ProjectEntryFile(entryFilePath, project.Database.Encoding);
+                entryFile = new(entryFilePath, project.Database.Encoding);
             }
 
             public void Dispose()

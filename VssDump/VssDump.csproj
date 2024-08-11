@@ -33,7 +33,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SourceSafe.Core\SourceSafe.Core.csproj" />
-    <ProjectReference Include="..\VssPhysicalLib\VssPhysicalLib.csproj" />
     <ProjectReference Include="..\VssLogicalLib\VssLogicalLib.csproj" />
   </ItemGroup>
   <ItemGroup>
