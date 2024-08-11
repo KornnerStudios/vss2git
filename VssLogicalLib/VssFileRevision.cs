@@ -35,13 +35,13 @@ namespace Hpdi.VssLogicalLib
                 FileMode.Open, FileAccess.Read, FileShare.Read);
 
             ItemFile itemFile = item.ItemFile;
-            RevisionRecord lastRev = itemFile.GetLastRevision();
+            SourceSafe.Physical.Revisions.RevisionRecordBase lastRev = itemFile.GetLastRevision();
             if (lastRev != null)
             {
                 IEnumerable<DeltaOperation> deltaOps = null;
                 while (lastRev != null && lastRev.Revision > this.Version)
                 {
-                    if (lastRev is BranchRevisionRecord branchRev)
+                    if (lastRev is SourceSafe.Physical.Revisions.BranchRevisionRecord branchRev)
                     {
                         int branchRevId = branchRev.Revision;
                         string itemPath = item.Database.GetDataPath(branchRev.BranchFile);
@@ -54,7 +54,7 @@ namespace Hpdi.VssLogicalLib
                     }
                     else
                     {
-                        if (lastRev is EditRevisionRecord editRev)
+                        if (lastRev is SourceSafe.Physical.Revisions.EditRevisionRecord editRev)
                         {
                             DeltaRecord delta = itemFile.GetPreviousDelta(editRev);
                             if (delta != null)
@@ -77,7 +77,7 @@ namespace Hpdi.VssLogicalLib
             return dataFile;
         }
 
-        internal VssFileRevision(VssItem item, RevisionRecord revision, CommentRecord comment)
+        internal VssFileRevision(VssItem item, SourceSafe.Physical.Revisions.RevisionRecordBase revision, CommentRecord comment)
             : base(item, revision, comment)
         {
         }

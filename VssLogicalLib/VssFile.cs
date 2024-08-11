@@ -64,7 +64,7 @@ namespace Hpdi.VssLogicalLib
             return project.LogicalPath + SourceSafe.SourceSafeConstants.ProjectSeparator + Name;
         }
 
-        protected override VssRevision CreateRevision(RevisionRecord revision, CommentRecord comment)
+        protected override VssRevision CreateRevision(SourceSafe.Physical.Revisions.RevisionRecordBase revision, CommentRecord comment)
         {
             return new VssFileRevision(this, revision, comment);
         }

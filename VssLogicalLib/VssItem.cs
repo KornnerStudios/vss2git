@@ -71,7 +71,7 @@ namespace Hpdi.VssLogicalLib
                 }
             }
 
-            RevisionRecord revisionRecord = itemFile.GetFirstRevision();
+            SourceSafe.Physical.Revisions.RevisionRecordBase revisionRecord = itemFile.GetFirstRevision();
             while (revisionRecord != null && revisionRecord.Revision < version)
             {
                 revisionRecord = itemFile.GetNextRevision(revisionRecord);
@@ -106,7 +106,7 @@ namespace Hpdi.VssLogicalLib
             PhysicalPath = physicalPath;
         }
 
-        protected VssRevision CreateRevision(RevisionRecord revision)
+        protected VssRevision CreateRevision(SourceSafe.Physical.Revisions.RevisionRecordBase revision)
         {
             CommentRecord comment = null;
             if (revision.CommentLength > 0 && revision.CommentOffset > 0)
@@ -114,7 +114,7 @@ namespace Hpdi.VssLogicalLib
                 comment = new CommentRecord();
                 ItemFile.ReadRecord(comment, revision.CommentOffset);
             }
-            else if (revision.Action == VssPhysicalLib.Action.Label &&
+            else if (revision.Action == SourceSafe.Physical.Revisions.RevisionAction.Label &&
                 revision.LabelCommentLength > 0 && revision.LabelCommentOffset > 0)
             {
                 comment = new CommentRecord();
@@ -123,7 +123,7 @@ namespace Hpdi.VssLogicalLib
             return CreateRevision(revision, comment);
         }
 
-        protected abstract VssRevision CreateRevision(RevisionRecord revision, CommentRecord comment);
+        protected abstract VssRevision CreateRevision(SourceSafe.Physical.Revisions.RevisionRecordBase revision, CommentRecord comment);
 
         protected class VssRevisions<ItemT, RevisionT> : IEnumerable<RevisionT>
             where ItemT : VssItem
@@ -143,7 +143,7 @@ namespace Hpdi.VssLogicalLib
             where RevisionT : VssRevision
         {
             private readonly ItemT item;
-            private RevisionRecord revisionRecord;
+            private SourceSafe.Physical.Revisions.RevisionRecordBase revisionRecord;
             private RevisionT revision;
             private bool beforeFirst = true;
             private int revisionIndex = -1;

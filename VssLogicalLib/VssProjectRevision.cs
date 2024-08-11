@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-using Hpdi.VssPhysicalLib;
 using SourceSafe.Physical.Records;
 
 namespace Hpdi.VssLogicalLib
@@ -26,7 +25,7 @@ namespace Hpdi.VssLogicalLib
     {
         public VssProject Project => (VssProject)Item;
 
-        internal VssProjectRevision(VssProject item, RevisionRecord revision, CommentRecord comment)
+        internal VssProjectRevision(VssProject item, SourceSafe.Physical.Revisions.RevisionRecordBase revision, CommentRecord comment)
             : base(item, revision, comment)
         {
         }

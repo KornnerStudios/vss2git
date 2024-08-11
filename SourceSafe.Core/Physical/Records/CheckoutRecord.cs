@@ -1,28 +1,9 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.IO;
-using SourceSafe.Physical.Records;
-
-namespace Hpdi.VssPhysicalLib
+﻿
+namespace SourceSafe.Physical.Records
 {
     /// <summary>
     /// VSS record representing a file checkout.
     /// </summary>
-    /// <author>Trevor Robinson</author>
     /// <seealso cref="VssScanCheckout"/>
     public sealed class CheckoutRecord : VssRecordBase
     {
@@ -40,7 +21,7 @@ namespace Hpdi.VssPhysicalLib
         /// Name of the user who currently holds the check-out on the file, or
         /// performed the last check-in.
         /// </summary>
-        public string User { get; private set; }
+        public string User { get; private set; } = "";
         /// <summary>
         /// This is the time at which the file was last checked-out. (Is it
         /// updated when the file is checked in?) This is a 32-bit time_t value.
@@ -49,11 +30,11 @@ namespace Hpdi.VssPhysicalLib
         /// <summary>
         /// Absolute path ("D:\foo\bar.h") at which the file is checked out.
         /// </summary>
-        public string WorkingDir { get; private set; }
+        public string WorkingDir { get; private set; } = "";
         /// <summary>
         /// Network name for the machine where the file is checked out.
         /// </summary>
-        public string Machine { get; private set; }
+        public string Machine { get; private set; } = "";
         /// <summary>
         /// This stores the path to the file within VSS, which can be used to
         /// disambiguate which link is being used when the file is shared between
@@ -62,13 +43,13 @@ namespace Hpdi.VssPhysicalLib
         /// This always starts with // "$/", which indicates the root of the VSS
         /// source tree.
         /// </summary>
-        public string Project { get; private set; }
+        public string Project { get; private set; } = "";
         /// <summary>
         /// When a file is checked out, the user is (usually) prompted to enter a
         /// comment. That string is stored here, and will serve as the default
         /// comment when the file is eventually checked in.
         /// </summary>
-        public string Comment { get; private set; }
+        public string Comment { get; private set; } = "";
         /// <summary>
         /// If the file is checked out, this indicates the version at which the
         /// file was checked out.
@@ -142,5 +123,5 @@ namespace Hpdi.VssPhysicalLib
             writer.Write(indentStr);
             writer.WriteLine($"Checkouts: {Checkouts}");
         }
-    }
+    };
 }

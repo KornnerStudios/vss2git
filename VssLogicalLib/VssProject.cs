@@ -37,9 +37,11 @@ namespace Hpdi.VssLogicalLib
         public IEnumerable<VssFile> Files =>
             new VssFiles(this);
 
+        [System.Obsolete("Currently unused")]
         public new IEnumerable<VssProjectRevision> Revisions =>
             new VssRevisions<VssProject, VssProjectRevision>(this);
 
+        [System.Obsolete("Currently unused")]
         public new VssProjectRevision GetRevision(int version)
         {
             return (VssProjectRevision)base.GetRevision(version);
@@ -69,6 +71,7 @@ namespace Hpdi.VssLogicalLib
             return null;
         }
 
+        [System.Obsolete("Currently unused")]
         public VssItem FindItem(string name)
         {
             VssProject project = FindProject(name);
@@ -86,7 +89,7 @@ namespace Hpdi.VssLogicalLib
             LogicalPath = logicalPath;
         }
 
-        protected override VssRevision CreateRevision(RevisionRecord revision, CommentRecord comment)
+        protected override VssRevision CreateRevision(SourceSafe.Physical.Revisions.RevisionRecordBase revision, CommentRecord comment)
         {
             return new VssProjectRevision(this, revision, comment);
         }

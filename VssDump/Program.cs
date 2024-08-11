@@ -222,8 +222,8 @@ namespace Hpdi.VssDump
             }
         }
 
-        private static readonly HashSet<VssPhysicalLib.Action> projectActions = [];
-        private static readonly HashSet<VssPhysicalLib.Action> fileActions = [];
+        private static readonly HashSet<SourceSafe.Physical.Revisions.RevisionAction> projectActions = [];
+        private static readonly HashSet<SourceSafe.Physical.Revisions.RevisionAction> fileActions = [];
 
         private static string FormatCollection<T>(IEnumerable<T> collection)
         {
@@ -261,7 +261,7 @@ namespace Hpdi.VssDump
                         record.Header.Dump(outputWriter, kDumpIndent + 1);
                     }
                     record.Dump(outputWriter, kDumpIndent + 2);
-                    if (record is RevisionRecord revision)
+                    if (record is SourceSafe.Physical.Revisions.RevisionRecordBase revision)
                     {
                         if (itemFile.Header.IsProject)
                         {
