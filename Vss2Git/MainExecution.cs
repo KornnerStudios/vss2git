@@ -16,7 +16,7 @@ namespace Hpdi.Vss2Git
         private static readonly object padlock = new();
 
         private readonly WorkQueue workQueue = new(1);
-        private Logger logger = Logger.Null;
+        private SourceSafe.IO.SimpleLogger logger = SourceSafe.IO.SimpleLogger.Null;
         private RevisionAnalyzer revisionAnalyzer;
         private ChangesetBuilder changesetBuilder;
         public MainSettings Settings { get; set; } = new();
@@ -50,7 +50,9 @@ namespace Hpdi.Vss2Git
 
         private void OpenLog(string filename, bool runningUnderCommandLine)
         {
-            logger = string.IsNullOrEmpty(filename) ? Logger.Null : new Logger(filename);
+            logger = string.IsNullOrEmpty(filename)
+                ? SourceSafe.IO.SimpleLogger.Null
+                : new(filename);
 
             if (runningUnderCommandLine)
             {
@@ -63,7 +65,7 @@ namespace Hpdi.Vss2Git
         private void CloseLog()
         {
             logger?.Dispose();
-            logger = Logger.Null;
+            logger = SourceSafe.IO.SimpleLogger.Null;
         }
 
         public void StartConversion(bool runningUnderCommandLine = false)
@@ -161,7 +163,7 @@ namespace Hpdi.Vss2Git
                 workQueue.Idle += delegate
                 {
                     logger.Dispose();
-                    logger = Logger.Null;
+                    logger = SourceSafe.IO.SimpleLogger.Null;
                 };
 
                 workQueue.ExceptionThrown += LogException;
@@ -177,9 +179,9 @@ namespace Hpdi.Vss2Git
 
         private void LogException(object sender, ExceptionThrownEventArgs e)
         {
-            string message = ExceptionFormatter.Format(e.Exception);
+            string message = SourceSafe.Exceptions.ExceptionFormatter.Format(e.Exception);
 
-            logger.WriteLine("ERROR: {0}", message);
+            logger.WriteLine($"ERROR: {message}");
             logger.WriteLine(e.Exception);
         }
 

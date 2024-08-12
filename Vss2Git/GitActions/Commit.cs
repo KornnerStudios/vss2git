@@ -55,7 +55,10 @@ namespace Hpdi.Vss2Git.GitActions
             this.includeVssMetaDataInComments = includeVssMetaDataInComments;
         }
 
-        public override bool Run(Logger logger, IGitWrapper git, IGitStatistic stat)
+        public override bool Run(
+            SourceSafe.IO.SimpleLogger logger,
+            IGitWrapper git,
+            IGitStatistic stat)
         {
             bool result = false;
 

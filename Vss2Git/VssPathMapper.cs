@@ -414,7 +414,7 @@ namespace Hpdi.Vss2Git
             string filePhysicalName,
             string underProject,
             int version,
-            Logger logger)
+            SourceSafe.IO.SimpleLogger logger)
         {
             var result = new List<Tuple<List<string>, List<string>>>();
             if (physicalNameToFileInfo.TryGetValue(filePhysicalName, out VssFileInfo fileInfo))

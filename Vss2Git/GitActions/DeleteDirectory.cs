@@ -35,7 +35,10 @@ namespace Hpdi.Vss2Git.GitActions
             this.containsFiles = containsFiles;
         }
 
-        public bool Run(Logger logger, IGitWrapper git, IGitStatistic stat)
+        public bool Run(
+            SourceSafe.IO.SimpleLogger logger,
+            IGitWrapper git,
+            IGitStatistic stat)
         {
             logger.WriteLine("Deleting directory: {0}", path);
 

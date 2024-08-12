@@ -52,7 +52,7 @@ namespace Hpdi.Vss2Git
         private int mRevisionCount;
         public int RevisionCount => Thread.VolatileRead(ref mRevisionCount);
 
-        public RevisionAnalyzer(WorkQueue workQueue, Logger logger, VssDatabase database)
+        public RevisionAnalyzer(WorkQueue workQueue, SourceSafe.IO.SimpleLogger logger, VssDatabase database)
             : base(workQueue, logger)
         {
             Database = database;
@@ -171,7 +171,7 @@ namespace Hpdi.Vss2Git
             }
             catch (SourceSafe.Physical.Records.RecordExceptionBase e)
             {
-                string message = $"Failed to read revisions for ({item.PhysicalName}): {ExceptionFormatter.Format(e)}";
+                string message = $"Failed to read revisions for ({item.PhysicalName}): {SourceSafe.Exceptions.ExceptionFormatter.Format(e)}";
                 LogException(e, message);
                 ReportError(message);
             }

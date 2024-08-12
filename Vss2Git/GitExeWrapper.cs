@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
+using SourceSafe;
 
 namespace Hpdi.Vss2Git
 {
@@ -33,7 +34,7 @@ namespace Hpdi.Vss2Git
 
         public string GitInitialArguments { get; set; } = null;
 
-        public GitExeWrapper(string repoPath, Logger logger)
+        public GitExeWrapper(string repoPath, SourceSafe.IO.SimpleLogger logger)
             : base(repoPath, logger)
         {
         }
@@ -136,8 +137,8 @@ namespace Hpdi.Vss2Git
 
         private static void FailExitCode(string exec, string args, string stdout, string stderr, int exitCode)
         {
-            throw new ProcessExitException(
-                string.Format("git returned exit code {0}", exitCode),
+            throw new SourceSafe.Exceptions.ExternalProcessExitException(
+                $"git returned exit code {exitCode}",
                 exec, args, stdout, stderr);
         }
 
@@ -150,8 +151,8 @@ namespace Hpdi.Vss2Git
                 using (var process = Process.Start(startInfo))
                 {
                     process.StandardInput.Close();
-                    var stdoutReader = new AsyncLineReader(process.StandardOutput.BaseStream);
-                    var stderrReader = new AsyncLineReader(process.StandardError.BaseStream);
+                    var stdoutReader = new SourceSafe.IO.AsyncLineReader(process.StandardOutput.BaseStream);
+                    var stderrReader = new SourceSafe.IO.AsyncLineReader(process.StandardError.BaseStream);
 
                     var activityEvent = new ManualResetEvent(false);
                     EventHandler activityHandler = delegate { activityEvent.Set(); };
@@ -214,12 +215,12 @@ namespace Hpdi.Vss2Git
             }
             catch (FileNotFoundException e)
             {
-                throw new ProcessException("Executable not found.",
+                throw new SourceSafe.Exceptions.ExternalProcessException("Executable not found.",
                     e, startInfo.FileName, startInfo.Arguments);
             }
             catch (Win32Exception e)
             {
-                throw new ProcessException("Error executing external process.",
+                throw new SourceSafe.Exceptions.ExternalProcessException("Error executing external process.",
                     e, startInfo.FileName, startInfo.Arguments);
             }
             finally
@@ -370,13 +371,13 @@ namespace Hpdi.Vss2Git
 
         public override bool Add(IEnumerable<string> paths)
         {
-            if (CollectionUtil.IsEmpty(paths))
+            if (paths.IsNullOrEmpty())
             {
                 return false;
             }
 
             var args = new StringBuilder("add -- ");
-            CollectionUtil.Join(args, " ", CollectionUtil.Transform<string, string>(paths, QuoteRelativePath));
+            CollectionUtils.Join(args, " ", CollectionUtils.Transform(paths, QuoteRelativePath));
             ProcessStartInfo startInfo = GetStartInfo(args.ToString());
 
             // add fails if there are no files (directories don't count)

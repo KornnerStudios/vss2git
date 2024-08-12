@@ -35,7 +35,7 @@ namespace Hpdi.Vss2Git
         public TimeSpan AnyCommentThreshold { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan SameCommentThreshold { get; set; } = TimeSpan.FromMinutes(10);
 
-        public ChangesetBuilder(WorkQueue workQueue, Logger logger, RevisionAnalyzer revisionAnalyzer)
+        public ChangesetBuilder(WorkQueue workQueue, SourceSafe.IO.SimpleLogger logger, RevisionAnalyzer revisionAnalyzer)
             : base(workQueue, logger)
         {
             this.revisionAnalyzer = revisionAnalyzer;

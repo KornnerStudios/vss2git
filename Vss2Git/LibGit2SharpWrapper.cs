@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using SourceSafe;
 
 namespace Hpdi.Vss2Git
 {
@@ -31,7 +32,7 @@ namespace Hpdi.Vss2Git
         LibGit2Sharp.Repository repo = null;
         LibGit2Sharp.StageOptions stageOptions = null;
 
-        public LibGit2SharpWrapper(string repoPath, Logger logger)
+        public LibGit2SharpWrapper(string repoPath, SourceSafe.IO.SimpleLogger logger)
             : base(repoPath, logger)
         {
         }
@@ -128,7 +129,7 @@ namespace Hpdi.Vss2Git
 
         public override bool Add(IEnumerable<string> paths)
         {
-            if (CollectionUtil.IsEmpty(paths))
+            if (paths.IsNullOrEmpty())
             {
                 return false;
             }

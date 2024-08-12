@@ -34,14 +34,14 @@ namespace Hpdi.Vss2Git
 
         public bool IncludeIgnoredFiles { get; set; }
 
-        public Logger Logger { get; } = null;
+        public SourceSafe.IO.SimpleLogger Logger { get; } = null;
 
         public Stopwatch Stopwatch { get; } = new Stopwatch();
         public bool ShellQuoting { get; set; } = false;
 
         public Encoding CommitEncoding { get; set; } = Encoding.UTF8;
 
-        public AbstractGitWrapper(string repoPath, Logger logger)
+        public AbstractGitWrapper(string repoPath, SourceSafe.IO.SimpleLogger logger)
         {
             this.repoPath = repoPath;
             Logger = logger;

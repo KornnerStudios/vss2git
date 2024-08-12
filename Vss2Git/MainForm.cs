@@ -100,9 +100,9 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        private void ShowException(Exception exception)
+        private static void ShowException(Exception exception)
         {
-            string message = ExceptionFormatter.Format(exception);
+            string message = SourceSafe.Exceptions.ExceptionFormatter.Format(exception);
 
             MessageBox.Show(message, "Unhandled Exception",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);

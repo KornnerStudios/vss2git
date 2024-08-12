@@ -1,61 +1,43 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Globalization;
-using System.IO;
+﻿using System.Globalization;
 using System.Text;
 
-namespace Hpdi.Vss2Git
+namespace SourceSafe.IO
 {
     /// <summary>
     /// Writes log messages to an optional stream.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    public sealed class Logger : IDisposable
+    public sealed class SimpleLogger : IDisposable
     {
-        public static readonly Logger Null = new((Stream)null);
+        public static readonly SimpleLogger Null = new((Stream?)null);
 
-        private const string sectionSeparator = "------------------------------------------------------------";
+        private const string SectionSeparator = "------------------------------------------------------------";
 
-        private readonly Stream baseStream;
-        private readonly Encoding encoding;
-        private readonly IFormatProvider formatProvider;
+        private readonly Stream? mBaseStream;
+        private readonly Encoding mEncoding;
+        private readonly IFormatProvider mFormatProvider;
 
-        public TextWriter EchoWriter { get; set; }
+        public TextWriter? EchoWriter { get; set; }
 
-        public Logger(string filename)
+        public SimpleLogger(string filename)
             : this(new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.Read))
         {
         }
 
-        public Logger(Stream baseStream)
+        public SimpleLogger(Stream? baseStream)
             : this(baseStream, Encoding.Default, CultureInfo.InvariantCulture)
         {
         }
 
-        public Logger(Stream baseStream, Encoding encoding, IFormatProvider formatProvider)
+        public SimpleLogger(Stream? baseStream, Encoding encoding, IFormatProvider formatProvider)
         {
-            this.baseStream = baseStream;
-            this.encoding = encoding;
-            this.formatProvider = formatProvider;
+            mBaseStream = baseStream;
+            mEncoding = encoding;
+            mFormatProvider = formatProvider;
         }
 
         public void Dispose()
         {
-            baseStream?.Dispose();
+            mBaseStream?.Dispose();
             EchoWriter?.Dispose();
             // Ensure we don't hang on to the echo writer,
             // in the event someone modifies the 'Null' logger's echo
@@ -64,14 +46,14 @@ namespace Hpdi.Vss2Git
 
         public void Flush()
         {
-            baseStream?.Flush();
+            mBaseStream?.Flush();
             EchoWriter?.Flush();
 
         }
 
         public void Write(bool value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -79,7 +61,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(char value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -89,7 +71,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(char[] buffer)
         {
-            if (baseStream != null && buffer != null)
+            if (mBaseStream != null && buffer != null)
             {
                 Write(buffer, 0, buffer.Length);
             }
@@ -97,7 +79,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(decimal value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -107,7 +89,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(double value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -117,7 +99,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(float value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -127,7 +109,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(int value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -137,7 +119,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(long value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -147,9 +129,9 @@ namespace Hpdi.Vss2Git
 
         public void Write(object value)
         {
-            if (baseStream != null && value != null)
+            if (mBaseStream != null && value != null)
             {
-                Write(value.ToString());
+                Write(value.ToString()!);
             }
 
             EchoWriter?.Write(value);
@@ -157,10 +139,10 @@ namespace Hpdi.Vss2Git
 
         public void Write(string value)
         {
-            if (baseStream != null && value != null)
+            if (mBaseStream != null && value != null)
             {
                 WriteInternal(value);
-                baseStream.Flush();
+                mBaseStream.Flush();
             }
 
             EchoWriter?.Write(value);
@@ -168,7 +150,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(uint value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -178,7 +160,7 @@ namespace Hpdi.Vss2Git
 
         public void Write(ulong value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 Write(value.ToString());
             }
@@ -188,26 +170,26 @@ namespace Hpdi.Vss2Git
 
         public void Write(string format, params object[] arg)
         {
-            if (baseStream != null && arg != null)
+            if (mBaseStream != null && arg != null)
             {
-                Write(string.Format(formatProvider, format, arg));
+                Write(string.Format(mFormatProvider, format, arg));
             }
 
             if (arg != null)
             {
-                EchoWriter?.Write(string.Format(formatProvider, format, arg));
+                EchoWriter?.Write(string.Format(mFormatProvider, format, arg));
             }
         }
 
         public void Write(char[] buffer, int index, int count)
         {
-            if (baseStream != null && buffer != null)
+            if (mBaseStream != null && buffer != null)
             {
                 WriteInternal(buffer, index, count);
-                baseStream.Flush();
+                mBaseStream.Flush();
             }
 
-            EchoWriter?.Write(buffer, index, count);
+            EchoWriter?.Write(buffer!, index, count);
         }
 
         public void WriteLine()
@@ -219,7 +201,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(bool value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -230,7 +212,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(char value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -241,7 +223,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(char[] buffer)
         {
-            if (baseStream != null && buffer != null)
+            if (mBaseStream != null && buffer != null)
             {
                 WriteInternal(buffer, 0, buffer.Length);
                 WriteLine();
@@ -252,7 +234,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(decimal value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -263,7 +245,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(double value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -274,7 +256,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(float value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -285,7 +267,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(int value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -296,7 +278,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(long value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -307,9 +289,9 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(object value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
-                WriteInternal(value.ToString());
+                WriteInternal(value.ToString()!);
                 WriteLine();
             }
 
@@ -318,7 +300,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(string value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value);
                 WriteLine();
@@ -329,7 +311,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(uint value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -340,7 +322,7 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(ulong value)
         {
-            if (baseStream != null)
+            if (mBaseStream != null)
             {
                 WriteInternal(value.ToString());
                 WriteLine();
@@ -351,42 +333,42 @@ namespace Hpdi.Vss2Git
 
         public void WriteLine(string format, params object[] arg)
         {
-            if (baseStream != null && arg != null)
+            if (mBaseStream != null && arg != null)
             {
-                WriteInternal(string.Format(formatProvider, format, arg));
+                WriteInternal(string.Format(mFormatProvider, format, arg));
                 WriteLine();
             }
 
-            EchoWriter?.WriteLine(format, arg);
+            EchoWriter?.WriteLine(format, arg ?? []);
         }
 
         public void WriteLine(char[] buffer, int index, int count)
         {
-            if (baseStream != null && buffer != null)
+            if (mBaseStream != null && buffer != null)
             {
                 WriteInternal(buffer, index, count);
                 WriteLine();
             }
 
-            EchoWriter?.WriteLine(buffer, index, count);
+            EchoWriter?.WriteLine(buffer!, index, count);
         }
 
         public void WriteSectionSeparator()
         {
-            WriteLine(sectionSeparator);
-            EchoWriter?.WriteLine(sectionSeparator);
+            WriteLine(SectionSeparator);
+            EchoWriter?.WriteLine(SectionSeparator);
         }
 
         private void WriteInternal(string value)
         {
-            byte[] bytes = encoding.GetBytes(value);
-            baseStream.Write(bytes, 0, bytes.Length);
+            byte[] bytes = mEncoding.GetBytes(value);
+            mBaseStream!.Write(bytes, 0, bytes.Length);
         }
 
         private void WriteInternal(char[] buffer, int index, int count)
         {
-            byte[] bytes = encoding.GetBytes(buffer, index, count);
-            baseStream.Write(bytes, 0, bytes.Length);
+            byte[] bytes = mEncoding.GetBytes(buffer, index, count);
+            mBaseStream!.Write(bytes, 0, bytes.Length);
         }
-    }
+    };
 }

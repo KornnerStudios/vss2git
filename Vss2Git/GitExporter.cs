@@ -42,13 +42,13 @@ namespace Hpdi.Vss2Git
         private readonly RevisionAnalyzer revisionAnalyzer;
         private readonly ChangesetBuilder changesetBuilder;
         private readonly HashSet<string> tagsUsed = [];
-        private EmailDictionaryFileReader userToEmailDictionary = null;
+        private SourceSafe.IO.EmailDictionaryFileReader userToEmailDictionary = null;
         private readonly HashSet<string> excludedProjects = [];
         private readonly HashSet<string> excludedFiles =  [];
         private int commitCount = 0;
         private int tagCount = 0;
-        PathMatcher vssProjectInclusionMatcher = null;
-        PathMatcher fileExclusionMatcher = null;
+        SourceSafe.IO.FilePathMatcher vssProjectInclusionMatcher = null;
+        SourceSafe.IO.FilePathMatcher fileExclusionMatcher = null;
 
         public string EmailDomain { get; set; } = "localhost";
         public bool ResetRepo { get; set; } = true;
@@ -63,10 +63,7 @@ namespace Hpdi.Vss2Git
 
         public string UserToEmailDictionaryFile
         {
-            set
-            {
-                userToEmailDictionary = new EmailDictionaryFileReader( value );
-            }
+            set => userToEmailDictionary = new(value);
         }
 
         public bool IncludeVssMetaDataInComments { get; set; } = false;
@@ -78,8 +75,11 @@ namespace Hpdi.Vss2Git
         internal static readonly char[] EmailPartsSeparator = ['@'];
         internal static readonly char[] EmailUserNamePartsSeparator = ['.'];
 
-        public GitExporter(WorkQueue workQueue, Logger logger,
-            RevisionAnalyzer revisionAnalyzer, ChangesetBuilder changesetBuilder)
+        public GitExporter(
+            WorkQueue workQueue,
+            SourceSafe.IO.SimpleLogger logger,
+            RevisionAnalyzer revisionAnalyzer,
+            ChangesetBuilder changesetBuilder)
             : base(workQueue, logger)
         {
             this.database = revisionAnalyzer.Database;
@@ -93,14 +93,14 @@ namespace Hpdi.Vss2Git
             {
                 string[] includeProjectArray = VssIncludedProjects.Split(
                     new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                vssProjectInclusionMatcher = new PathMatcher(includeProjectArray);
+                vssProjectInclusionMatcher = new(includeProjectArray);
             }
 
             if (!string.IsNullOrEmpty(ExcludeFiles))
             {
                 string[] excludeFileArray = ExcludeFiles.Split(
                     new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                fileExclusionMatcher = new PathMatcher(excludeFileArray);
+                fileExclusionMatcher = new(excludeFileArray);
             }
 
             workQueue.AddLast(delegate(object work)

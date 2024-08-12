@@ -25,9 +25,9 @@ namespace Hpdi.Vss2Git
     abstract class Worker
     {
         protected readonly WorkQueue workQueue;
-        protected readonly Logger logger;
+        protected readonly SourceSafe.IO.SimpleLogger logger;
 
-        public Worker(WorkQueue workQueue, Logger logger)
+        public Worker(WorkQueue workQueue, SourceSafe.IO.SimpleLogger logger)
         {
             this.workQueue = workQueue;
             this.logger = logger;
@@ -41,7 +41,7 @@ namespace Hpdi.Vss2Git
 
         protected string LogException(Exception exception)
         {
-            string message = ExceptionFormatter.Format(exception);
+            string message = SourceSafe.Exceptions.ExceptionFormatter.Format(exception);
             LogException(exception, message);
             return message;
         }

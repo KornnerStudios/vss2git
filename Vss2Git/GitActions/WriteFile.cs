@@ -17,6 +17,7 @@
 
 using System;
 using System.IO;
+using SourceSafe;
 using SourceSafe.Logical;
 using SourceSafe.Logical.Items;
 
@@ -43,7 +44,10 @@ namespace Hpdi.Vss2Git.GitActions
             mDestinationPath = destinationPath;
         }
 
-        public bool Run(Logger logger, IGitWrapper git, IGitStatistic stat)
+        public bool Run(
+            SourceSafe.IO.SimpleLogger logger,
+            IGitWrapper git,
+            IGitStatistic stat)
         {
             logger.WriteLine($"Writing file: {mDestinationPath} ({mPhysicalName})@{mVersion}");
 
@@ -59,7 +63,7 @@ namespace Hpdi.Vss2Git.GitActions
             catch (Exception e)
             {
                 // log an error for missing data files or versions, but keep processing
-                string message = ExceptionFormatter.Format(e);
+                string message = SourceSafe.Exceptions.ExceptionFormatter.Format(e);
                 logger.WriteLine($"ERROR: {message}");
                 logger.WriteLine(e);
                 return false;
@@ -103,8 +107,8 @@ namespace Hpdi.Vss2Git.GitActions
             catch (Exception e)
             {
                 // log an error for missing data files or versions, but keep processing
-                string message = ExceptionFormatter.Format(e);
-                logger.WriteLine("ERROR: {0}", message);
+                string message = SourceSafe.Exceptions.ExceptionFormatter.Format(e);
+                logger.WriteLine($"ERROR: {message}");
                 logger.WriteLine(e);
                 return false;
             }
