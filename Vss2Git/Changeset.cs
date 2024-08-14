@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using SourceSafe.Analysis;
 using SourceSafe.Logical.Actions;
 
 namespace Hpdi.Vss2Git
@@ -30,7 +31,7 @@ namespace Hpdi.Vss2Git
         public DateTime DateTime { get; set; }
         public string User { get; set; }
         public List<string> Comment { get; set; } = [];
-        public List<Revision> Revisions { get; } = [];
+        public List<VssItemRevision> Revisions { get; } = [];
         public HashSet<string> TargetFiles { get; } = [];
 #if DEBUG
         // I added this mainly for my own tracing purposes, for debugging Hpdi.Vss2Git.ChangesetBuilder.BuildChangesets

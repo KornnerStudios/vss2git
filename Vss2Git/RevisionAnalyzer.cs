@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using SourceSafe.Analysis;
 using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;
 using SourceSafe.Logical.Items;
@@ -39,7 +40,7 @@ namespace Hpdi.Vss2Git
         private readonly List<VssProjectItem> mRootProjects = [];
         public IEnumerable<VssProjectItem> RootProjects => mRootProjects;
 
-        public SortedDictionary<DateTime, ICollection<Revision>> SortedRevisions { get; } = [];
+        public SortedDictionary<DateTime, ICollection<VssItemRevision>> SortedRevisions { get; } = [];
         public HashSet<string> ProcessedFiles { get; } = [];
         public HashSet<DeletedFileData> DestroyedFiles { get; } = [];
 
@@ -156,13 +157,13 @@ namespace Hpdi.Vss2Git
                         }
                     }
 
-                    var revision = new Revision(vssRevision.DateTime,
+                    var revision = new VssItemRevision(vssRevision.DateTime,
                         vssRevision.User, item.ItemName, vssRevision.Version,
                         vssRevision.Comment, vssRevision.Action);
 
-                    if (!SortedRevisions.TryGetValue(vssRevision.DateTime, out ICollection<Revision> revisionSet))
+                    if (!SortedRevisions.TryGetValue(vssRevision.DateTime, out ICollection<VssItemRevision> revisionSet))
                     {
-                        revisionSet = new List<Revision>();
+                        revisionSet = new List<VssItemRevision>();
                         SortedRevisions[vssRevision.DateTime] = revisionSet;
                     }
                     revisionSet.Add(revision);

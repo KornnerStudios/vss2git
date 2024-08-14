@@ -23,6 +23,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using SourceSafe;
+using SourceSafe.Analysis;
 using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;
 using SourceSafe.Logical.Items;
@@ -275,13 +276,13 @@ namespace Hpdi.Vss2Git
         }
         private void ReplayChangeset(VssPathMapper pathMapper, Changeset changeset, ref Dictionary<string, GitActions.Commit> pendingCommits)
         {
-            foreach (Revision revision in changeset.Revisions)
+            foreach (VssItemRevision revision in changeset.Revisions)
             {
                 ReplayRevision(pathMapper, changeset, revision, ref pendingCommits);
             }
         }
 
-        private void ReplayRevision(VssPathMapper pathMapper, Changeset changeset, Revision revision, ref Dictionary<string, GitActions.Commit> pendingCommits)
+        private void ReplayRevision(VssPathMapper pathMapper, Changeset changeset, VssItemRevision revision, ref Dictionary<string, GitActions.Commit> pendingCommits)
         {
             string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(1);
 
@@ -996,7 +997,7 @@ namespace Hpdi.Vss2Git
             return shouldBeIncluded;
         }
 
-        private string GetProjectDescription(VssPathMapper _/*pathMapper*/, Revision revision, VssItemName project, List<string> projectPath)
+        private string GetProjectDescription(VssPathMapper _/*pathMapper*/, VssItemRevision revision, VssItemName project, List<string> projectPath)
         {
             string projectDesc;
 

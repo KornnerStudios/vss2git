@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using SourceSafe;
+using SourceSafe.Analysis;
 using SourceSafe.Logical.Actions;
 
 namespace Hpdi.Vss2Git
@@ -63,9 +64,9 @@ namespace Hpdi.Vss2Git
             bool hasRename = false;
             string changesetReason = "";
 
-            foreach (KeyValuePair<DateTime, ICollection<Revision>> dateEntry in revisionAnalyzer.SortedRevisions)
+            foreach (KeyValuePair<DateTime, ICollection<VssItemRevision>> dateEntry in revisionAnalyzer.SortedRevisions)
             {
-                foreach (Revision revision in dateEntry.Value)
+                foreach (VssItemRevision revision in dateEntry.Value)
                 {
                     // determine target of project revisions
                     VssActionType actionType = revision.Action.Type;
@@ -102,7 +103,7 @@ namespace Hpdi.Vss2Git
                             timeDiff > AnyCommentThreshold)
                         {
                             if (SameCommentThreshold > TimeSpan.Zero &&
-                                HasSameComment(revision, change.Revisions.Last()))
+                                VssItemRevision.HaveSameComment(revision, change.Revisions.Last()))
                             {
                                 string message;
                                 if (timeDiff < SameCommentThreshold)
@@ -227,11 +228,6 @@ namespace Hpdi.Vss2Git
             logger.WriteLine($"Found {Changesets.Count} changesets in {stopwatch.Elapsed}");
         }
 
-        private static bool HasSameComment(Revision rev1, Revision rev2)
-        {
-            return (!string.IsNullOrEmpty(rev1.Comment) && !string.IsNullOrEmpty(rev1.Comment) && rev1.Comment == rev2.Comment);
-        }
-
         private void AddChangeset(Changeset change, string reason)
         {
             change.Id = Changesets.Count + 1;
@@ -261,7 +257,7 @@ namespace Hpdi.Vss2Git
             }
 
             logger.WriteLine();
-            foreach (Revision revision in changeset.Revisions)
+            foreach (VssItemRevision revision in changeset.Revisions)
             {
                 // (target)@version format matches "File conflict..." output
                 logger.WriteLine("{0}  {1} {2}@{3} {4}",

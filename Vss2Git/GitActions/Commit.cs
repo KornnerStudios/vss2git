@@ -16,6 +16,7 @@
  */
 
 using SourceSafe;
+using SourceSafe.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,9 +39,9 @@ namespace Hpdi.Vss2Git.GitActions
         private readonly bool includeVssMetaDataInComments;
         private bool needsCommit = false;
 
-        private List<Revision> revisions = new List<Revision>();
-        private List<IGitAction> tags = new List<IGitAction>();
-        private List<IGitAction> actions = new List<IGitAction>();
+        private List<VssItemRevision> revisions = [];
+        private List<IGitAction> tags = [];
+        private List<IGitAction> actions = [];
 
         List<string> addedFiles = new List<string>();
         List<string> movedFiles = new List<string>();
@@ -95,19 +96,19 @@ namespace Hpdi.Vss2Git.GitActions
             return result;
         }
 
-        public void AddTag(Revision revision, CreateTag tag)
+        public void AddTag(VssItemRevision revision, CreateTag tag)
         {
             revisions.Add(revision);
             tags.Add(tag);
         }
 
-        public void AddAction(Revision revision, IGitAction action, bool needsCommit)
+        public void AddAction(VssItemRevision revision, IGitAction action, bool needsCommit)
         {
             revisions.Add(revision);
             actions.Add(action);
             this.needsCommit |= needsCommit;
         }
-        public void AddFile(Revision revision, WriteFile action, string message)
+        public void AddFile(VssItemRevision revision, WriteFile action, string message)
         {
             AddAction(revision, action, true);
 
@@ -118,11 +119,11 @@ namespace Hpdi.Vss2Git.GitActions
                 addedFiles.Add(message);
             }
         }
-        public void WriteFile(Revision revision, WriteFile action)
+        public void WriteFile(VssItemRevision revision, WriteFile action)
         {
             AddAction(revision, action, true);
         }
-        public void MoveFileOrDirectory(Revision revision, IGitAction action, string message)
+        public void MoveFileOrDirectory(VssItemRevision revision, IGitAction action, string message)
         {
             AddAction(revision, action, true);
 
@@ -133,7 +134,7 @@ namespace Hpdi.Vss2Git.GitActions
                 movedFiles.Add(message);
             }
         }
-        public void DeleteFileOrDirectory(Revision revision, IGitAction action, string message)
+        public void DeleteFileOrDirectory(VssItemRevision revision, IGitAction action, string message)
         {
             AddAction(revision, action, true);
 
@@ -255,7 +256,7 @@ namespace Hpdi.Vss2Git.GitActions
                     indentStr, changeset.Id, changeset.DateTime.ToIsoTimestamp(), changeDuration.TotalSeconds,
                     "", changeset.User, changeset.Revisions.Count));
 
-                foreach (Revision revision in revisions)
+                foreach (VssItemRevision revision in revisions)
                 {
                     message.Add(String.Format("{0}  {1} {2}@{3} {4}",
                         indentStr, revision.DateTime.ToIsoTimestamp(),
