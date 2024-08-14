@@ -16,7 +16,7 @@ namespace SourceSafe.Jobs
             mLogger = logger;
         }
 
-        protected void LogStatus(object work, string status)
+        protected void LogStatus(WorkerCallback work, string status)
         {
             mWorkQueue.SetStatus(work, status);
             mLogger.WriteLine(status);
@@ -24,7 +24,7 @@ namespace SourceSafe.Jobs
 
         protected string LogException(Exception exception)
         {
-            string message = SourceSafe.Exceptions.ExceptionFormatter.Format(exception);
+            string message = Exceptions.ExceptionFormatter.Format(exception);
             LogException(exception, message);
             return message;
         }

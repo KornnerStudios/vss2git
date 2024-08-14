@@ -13,58 +13,14 @@
  * limitations under the License.
  */
 
-using SourceSafe.Logical.Items;
-
 namespace Hpdi.Vss2Git
 {
-    enum RecursionStatus
-    {
-        Continue, Skip, Abort
-    };
-
-    delegate RecursionStatus VssProjectCallback(VssProjectItem project);
-
-    delegate RecursionStatus VssFileCallback(VssProjectItem project, VssFileItem file);
-
     /// <summary>
     /// Helper methods for working with VSS objects.
     /// </summary>
     /// <author>Trevor Robinson</author>
     static class VssUtil
     {
-        public static RecursionStatus RecurseItems(
-            VssProjectItem project,
-            VssProjectCallback projectCallback,
-            VssFileCallback fileCallback)
-        {
-            if (projectCallback != null)
-            {
-                RecursionStatus status = projectCallback(project);
-                if (status != RecursionStatus.Continue)
-                {
-                    return status;
-                }
-            }
-            foreach (VssProjectItem subproject in project.Projects)
-            {
-                RecursionStatus status = RecurseItems(
-                    subproject, projectCallback, fileCallback);
-                if (status == RecursionStatus.Abort)
-                {
-                    return status;
-                }
-            }
-            foreach (VssFileItem file in project.Files)
-            {
-                RecursionStatus status = fileCallback(project, file);
-                if (status == RecursionStatus.Abort)
-                {
-                    return status;
-                }
-            }
-            return RecursionStatus.Continue;
-        }
-
         public static void MarkUnusedVariable<T>(ref T _)
         {
         }

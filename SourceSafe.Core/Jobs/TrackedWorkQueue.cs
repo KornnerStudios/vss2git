@@ -10,8 +10,8 @@ namespace SourceSafe.Jobs
         private readonly ManualResetEvent mIdleEvent = new(true);
         private readonly Stopwatch mStopwatch = new();
         private readonly List<Exception> mWorkExceptions = [];
-        private readonly Dictionary<object, string?> mWorkStatuses = [];
-        private object? mLastStatusWork;
+        private readonly Dictionary<WorkerCallback, string?> mWorkStatuses = [];
+        private WorkerCallback? mLastStatusWork;
 
         public string? LastStatus { get; private set; }
 
@@ -50,7 +50,7 @@ namespace SourceSafe.Jobs
             return null;
         }
 
-        public string? GetStatus(object work)
+        public string? GetStatus(WorkerCallback work)
         {
             string? result;
             lock (mWorkStatuses)
@@ -60,7 +60,7 @@ namespace SourceSafe.Jobs
             return result;
         }
 
-        public void SetStatus(object work, string? status)
+        public void SetStatus(WorkerCallback work, string? status)
         {
             lock (mWorkStatuses)
             {
@@ -82,7 +82,7 @@ namespace SourceSafe.Jobs
             }
         }
 
-        public void ClearStatus(object work)
+        public void ClearStatus(WorkerCallback work)
         {
             SetStatus(work, null);
         }
@@ -100,14 +100,10 @@ namespace SourceSafe.Jobs
             mStopwatch.Stop();
             mIdleEvent.Set();
 
-            EventHandler? handler = Idle;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            Idle?.Invoke(this, EventArgs.Empty);
         }
 
-        protected override void OnStart(WaitCallback work)
+        protected override void OnStart(WorkerCallback work)
         {
             base.OnStart(work);
             lock (mWorkStatuses)
@@ -116,7 +112,7 @@ namespace SourceSafe.Jobs
             }
         }
 
-        protected override void OnStop(WaitCallback work)
+        protected override void OnStop(WorkerCallback work)
         {
             base.OnStop(work);
             lock (mWorkStatuses)
@@ -126,14 +122,14 @@ namespace SourceSafe.Jobs
             }
         }
 
-        protected override void OnException(WaitCallback work, Exception e)
+        protected override void OnException(WorkerCallback work, Exception e)
         {
             base.OnException(work, e);
 
             EventHandler<WorkerExceptionThrownEventArgs>? handler = ExceptionThrown;
             if (handler != null)
             {
-                WorkerExceptionThrownEventArgs eventArgs = new(e); ;
+                WorkerExceptionThrownEventArgs eventArgs = new(e);
                 handler(this, eventArgs);
             }
 
@@ -144,14 +140,14 @@ namespace SourceSafe.Jobs
         }
 
         // Assumes work status lock is held.
-        private void WorkStatusCleared(object work)
+        private void WorkStatusCleared(WorkerCallback work)
         {
             if (work == mLastStatusWork)
             {
                 mLastStatusWork = null;
                 LastStatus = null;
 
-                foreach (KeyValuePair<object, string?> entry in mWorkStatuses)
+                foreach (KeyValuePair<WorkerCallback, string?> entry in mWorkStatuses)
                 {
                     if (!string.IsNullOrEmpty(entry.Value))
                     {

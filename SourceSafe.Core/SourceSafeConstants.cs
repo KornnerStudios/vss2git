@@ -16,5 +16,9 @@ namespace SourceSafe
 
         public static readonly DateTime UnixLocalTimeEpoch =
             new(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);
+
+        public static void MarkUnusedVariable<T>(ref T _)
+        {
+        }
     };
 }

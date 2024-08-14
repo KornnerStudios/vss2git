@@ -1,35 +1,15 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using SourceSafe.Analysis;
+﻿using System.Diagnostics;
 using SourceSafe.Jobs;
 using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;
 using SourceSafe.Logical.Items;
 
-namespace Hpdi.Vss2Git
+namespace SourceSafe.Analysis
 {
     /// <summary>
     /// Enumerates revisions in a VSS database.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    sealed class RevisionAnalyzer : QueuedWorkerBase
+    public sealed class VssRevisionAnalyzer : QueuedWorkerBase
     {
         public readonly record struct DeletedFileData(
             string ParentPhysicalName,
@@ -54,9 +34,9 @@ namespace Hpdi.Vss2Git
         private int mRevisionCount;
         public int RevisionCount => Thread.VolatileRead(ref mRevisionCount);
 
-        public RevisionAnalyzer(
+        public VssRevisionAnalyzer(
             TrackedWorkQueue workQueue,
-            SourceSafe.IO.SimpleLogger logger,
+            IO.SimpleLogger logger,
             VssDatabase database)
             : base(workQueue, logger)
         {
@@ -82,34 +62,34 @@ namespace Hpdi.Vss2Git
             mRootProjects.Add(project);
 
             // #REVIEW: could the callback just use rootProjects.Last()?
-            mWorkQueue.AddLast(work => AddItemWorkQueueCallback(work, project));
+            mWorkQueue.AddLast(workerCallback => AddItemWorkQueueCallback(workerCallback, project));
         }
 
-        private void AddItemWorkQueueCallback(object work, VssProjectItem project)
+        private void AddItemWorkQueueCallback(WorkerCallback workerCallback, VssProjectItem project)
         {
             mLogger.WriteSectionSeparator();
-            LogStatus(work, "Building revision list");
+            LogStatus(workerCallback, "Building revision list");
 
             mLogger.WriteLine($"Root project: {project.LogicalPath}");
 
             var stopwatch = Stopwatch.StartNew();
-            VssUtil.RecurseItems(project,
+            VssAnalysisUtils.RecurseItems(project,
                 (VssProjectItem subproject) =>
                 {
                     if (mWorkQueue.IsAborting)
                     {
-                        return RecursionStatus.Abort;
+                        return AnalysisRecursionStatus.Abort;
                     }
 
                     ProcessItem(subproject);
                     ++mProjectCount;
-                    return RecursionStatus.Continue;
+                    return AnalysisRecursionStatus.Continue;
                 },
                 (VssProjectItem subproject, VssFileItem file) =>
                 {
                     if (mWorkQueue.IsAborting)
                     {
-                        return RecursionStatus.Abort;
+                        return AnalysisRecursionStatus.Abort;
                     }
 
                     // only process shared files once (projects are never shared)
@@ -119,7 +99,7 @@ namespace Hpdi.Vss2Git
                         ProcessItem(file);
                         ++mFileCount;
                     }
-                    return RecursionStatus.Continue;
+                    return AnalysisRecursionStatus.Continue;
                 });
             stopwatch.Stop();
 
@@ -157,15 +137,15 @@ namespace Hpdi.Vss2Git
                         else if (actionType == VssActionType.Share || actionType == VssActionType.Branch)
                         {
                             bool wasRemoved = DestroyedFiles.Remove(tuple);
-                            VssUtil.MarkUnusedVariable(ref wasRemoved);
+                            SourceSafeConstants.MarkUnusedVariable(ref wasRemoved);
                         }
                     }
 
                     var revision = new VssItemRevision(vssRevision.DateTime,
-                        vssRevision.User, item.ItemName, vssRevision.Version,
-                        vssRevision.Comment, vssRevision.Action);
+                        vssRevision.User!, item.ItemName, vssRevision.Version,
+                        vssRevision.Comment ?? "", vssRevision.Action);
 
-                    if (!SortedRevisions.TryGetValue(vssRevision.DateTime, out ICollection<VssItemRevision> revisionSet))
+                    if (!SortedRevisions.TryGetValue(vssRevision.DateTime, out ICollection<VssItemRevision>? revisionSet))
                     {
                         revisionSet = new List<VssItemRevision>();
                         SortedRevisions[vssRevision.DateTime] = revisionSet;
@@ -174,12 +154,12 @@ namespace Hpdi.Vss2Git
                     ++mRevisionCount;
                 }
             }
-            catch (SourceSafe.Physical.Records.RecordExceptionBase e)
+            catch (Physical.Records.RecordExceptionBase e)
             {
                 string message = $"Failed to read revisions for ({item.PhysicalName}): {SourceSafe.Exceptions.ExceptionFormatter.Format(e)}";
                 LogException(e, message);
                 ReportError(message);
             }
         }
-    }
+    };
 }

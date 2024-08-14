@@ -1,13 +1,15 @@
 ﻿
 namespace SourceSafe.Jobs
 {
+    public delegate void WorkerCallback(WorkerCallback self);
+
     /// <summary>
     /// Simple work queue over a bounded number of thread-pool threads.
     /// </summary>
     // This is abstract only because nothing instances it, but it could be a concrete class (it was in the original code).
     public abstract class SimpleWorkQueue
     {
-        private readonly LinkedList<WaitCallback> mWorkQueue = [];
+        private readonly LinkedList<WorkerCallback> mWorkLinkedList = [];
         private readonly int mMaxThreads;
         private int mActiveThreadCount = 0;
         private volatile bool mIsAborting = false;
@@ -32,21 +34,21 @@ namespace SourceSafe.Jobs
 
         // Adds work to the head of the work queue. Useful for workers that
         // want to reschedule themselves on suspend.
-        public void AddFirst(WaitCallback work)
+        public void AddFirst(WorkerCallback work)
         {
-            lock (mWorkQueue)
+            lock (mWorkLinkedList)
             {
-                mWorkQueue.AddFirst(work);
+                mWorkLinkedList.AddFirst(work);
                 StartWorker();
             }
         }
 
         // Adds work to the tail of the work queue.
-        public void AddLast(WaitCallback work)
+        public void AddLast(WorkerCallback work)
         {
-            lock (mWorkQueue)
+            lock (mWorkLinkedList)
             {
-                mWorkQueue.AddLast(work);
+                mWorkLinkedList.AddLast(work);
                 StartWorker();
             }
         }
@@ -54,16 +56,16 @@ namespace SourceSafe.Jobs
         // Clears pending work without affecting active work.
         public void ClearPending()
         {
-            lock (mWorkQueue)
+            lock (mWorkLinkedList)
             {
-                mWorkQueue.Clear();
+                mWorkLinkedList.Clear();
             }
         }
 
         // Stops processing of pending work.
         public void Suspend()
         {
-            lock (mWorkQueue)
+            lock (mWorkLinkedList)
             {
                 IsSuspended = true;
             }
@@ -72,10 +74,10 @@ namespace SourceSafe.Jobs
         // Resumes processing of pending work after being suspended.
         public void Resume()
         {
-            lock (mWorkQueue)
+            lock (mWorkLinkedList)
             {
                 IsSuspended = false;
-                while (mActiveThreadCount < mWorkQueue.Count)
+                while (mActiveThreadCount < mWorkLinkedList.Count)
                 {
                     StartWorker();
                 }
@@ -85,7 +87,7 @@ namespace SourceSafe.Jobs
         // Signals active workers to abort and clears pending work.
         public void Abort()
         {
-            lock (mWorkQueue)
+            lock (mWorkLinkedList)
             {
                 if (mActiveThreadCount > 0)
                 {
@@ -94,7 +96,7 @@ namespace SourceSafe.Jobs
                 }
 
                 // to avoid non-determinism, always clear the queue
-                mWorkQueue.Clear();
+                mWorkLinkedList.Clear();
             }
         }
 
@@ -108,15 +110,15 @@ namespace SourceSafe.Jobs
             mIsAborting = false;
         }
 
-        protected virtual void OnStart(WaitCallback work)
+        protected virtual void OnStart(WorkerCallback work)
         {
         }
 
-        protected virtual void OnStop(WaitCallback work)
+        protected virtual void OnStop(WorkerCallback work)
         {
         }
 
-        protected virtual void OnException(WaitCallback work, Exception e)
+        protected virtual void OnException(WorkerCallback work, Exception e)
         {
         }
 
@@ -134,14 +136,14 @@ namespace SourceSafe.Jobs
             }
         }
 
-        private void Worker(object? state)
+        private void Worker(object? _)
         {
             while (true)
             {
-                WaitCallback work;
-                lock (mWorkQueue)
+                WorkerCallback work;
+                lock (mWorkLinkedList)
                 {
-                    LinkedListNode<WaitCallback>? head = mWorkQueue.First;
+                    LinkedListNode<WorkerCallback>? head = mWorkLinkedList.First;
                     if (head == null || IsSuspended)
                     {
                         if (--mActiveThreadCount == 0)
@@ -152,7 +154,7 @@ namespace SourceSafe.Jobs
                         return;
                     }
                     work = head.Value;
-                    mWorkQueue.RemoveFirst();
+                    mWorkLinkedList.RemoveFirst();
                 }
 
                 // hook for worker initialization

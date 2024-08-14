@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using SourceSafe.Analysis;
 using SourceSafe.Jobs;
 using SourceSafe.Logical.Items;
 
@@ -18,8 +19,8 @@ namespace Hpdi.Vss2Git
 
         private readonly TrackedWorkQueue workQueue = new(1);
         private SourceSafe.IO.SimpleLogger logger = SourceSafe.IO.SimpleLogger.Null;
-        private RevisionAnalyzer revisionAnalyzer;
-        private ChangesetBuilder changesetBuilder;
+        private VssRevisionAnalyzer revisionAnalyzer;
+        private PseudoChangesetBuilder changesetBuilder;
         public MainSettings Settings { get; set; } = new();
 
         private MainExecution()
@@ -108,7 +109,7 @@ namespace Hpdi.Vss2Git
                     throw new SourceSafe.Logical.VssPathException($"{path} is not a project");
                 }
 
-                revisionAnalyzer = new RevisionAnalyzer(workQueue, logger, db);
+                revisionAnalyzer = new(workQueue, logger, db);
 #if false // #REVIEW
                 if (!string.IsNullOrEmpty(Settings.VssExcludePaths))
                 {
@@ -117,7 +118,7 @@ namespace Hpdi.Vss2Git
 #endif
                 revisionAnalyzer.AddItem(project);
 
-                changesetBuilder = new ChangesetBuilder(workQueue, logger, revisionAnalyzer)
+                changesetBuilder = new(workQueue, logger, revisionAnalyzer)
                 {
                     AnyCommentThreshold = TimeSpan.FromSeconds(Settings.AnyCommentSeconds),
                     SameCommentThreshold = TimeSpan.FromSeconds(Settings.SameCommentSeconds),

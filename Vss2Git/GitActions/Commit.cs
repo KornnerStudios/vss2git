@@ -32,22 +32,22 @@ namespace Hpdi.Vss2Git.GitActions
         private const string DefaultComment = "Vss2Git";
         private static readonly char[] charsToTrim = { '$', '/', '\\' };
 
-        private readonly Changeset changeset;
+        private readonly PseudoChangeset changeset;
         private readonly string authorName;
         private readonly string authorEmail;
         private readonly DateTime utcTime;
         private readonly bool includeVssMetaDataInComments;
         private bool needsCommit = false;
 
-        private List<VssItemRevision> revisions = [];
-        private List<IGitAction> tags = [];
-        private List<IGitAction> actions = [];
+        private readonly List<VssItemRevision> revisions = [];
+        private readonly List<IGitAction> tags = [];
+        private readonly List<IGitAction> actions = [];
 
-        List<string> addedFiles = new List<string>();
-        List<string> movedFiles = new List<string>();
-        List<string> deletedFiles = new List<string>();
+        private readonly List<string> addedFiles = [];
+        private readonly List<string> movedFiles = [];
+        private readonly List<string> deletedFiles = [];
 
-        public Commit(Changeset changeset, string authorName, string authorEmail, DateTime utcTime, bool includeVssMetaDataInComments)
+        public Commit(PseudoChangeset changeset, string authorName, string authorEmail, DateTime utcTime, bool includeVssMetaDataInComments)
         {
             this.changeset = changeset;
             this.authorName = authorName;

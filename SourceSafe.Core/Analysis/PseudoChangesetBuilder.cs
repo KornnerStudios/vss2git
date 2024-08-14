@@ -1,46 +1,25 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using SourceSafe;
-using SourceSafe.Analysis;
+﻿using System.Diagnostics;
 using SourceSafe.Jobs;
 using SourceSafe.Logical.Actions;
 
-namespace Hpdi.Vss2Git
+namespace SourceSafe.Analysis
 {
     /// <summary>
     /// Reconstructs changesets from independent revisions.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    class ChangesetBuilder : QueuedWorkerBase
+    public sealed class PseudoChangesetBuilder : QueuedWorkerBase
     {
-        private readonly RevisionAnalyzer revisionAnalyzer;
+        private readonly VssRevisionAnalyzer revisionAnalyzer;
 
-        public List<Changeset> Changesets { get; } = [];
-        public List<Changeset> ChangesetsWithMeaningfulComments { get; } = [];
+        public List<PseudoChangeset> Changesets { get; } = [];
+        public List<PseudoChangeset> ChangesetsWithMeaningfulComments { get; } = [];
         public TimeSpan AnyCommentThreshold { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan SameCommentThreshold { get; set; } = TimeSpan.FromMinutes(10);
 
-        public ChangesetBuilder(
+        public PseudoChangesetBuilder(
             TrackedWorkQueue workQueue,
-            SourceSafe.IO.SimpleLogger logger,
-            RevisionAnalyzer revisionAnalyzer)
+            IO.SimpleLogger logger,
+            VssRevisionAnalyzer revisionAnalyzer)
             : base(workQueue, logger)
         {
             this.revisionAnalyzer = revisionAnalyzer;
@@ -54,16 +33,16 @@ namespace Hpdi.Vss2Git
         {
             mWorkQueue.AddLast(BuildChangesetsWorkQueueCallback);
         }
-        private void BuildChangesetsWorkQueueCallback(object work)
+        private void BuildChangesetsWorkQueueCallback(WorkerCallback thisMethodAsCallback)
         {
             mLogger.WriteSectionSeparator();
-            LogStatus(work, "Building changesets");
+            LogStatus(thisMethodAsCallback, "Building changesets");
             mLogger.WriteLine($"\tAnyCommentThreshold: {AnyCommentThreshold.TotalSeconds} seconds");
             mLogger.WriteLine($"\tSameCommentThreshold: {SameCommentThreshold.TotalSeconds} seconds");
             mLogger.WriteLine();
 
             var stopwatch = Stopwatch.StartNew();
-            var pendingChangesByUser = new Dictionary<string, Changeset>();
+            var pendingChangesByUser = new Dictionary<string, PseudoChangeset>();
             bool hasDelete = false;
             bool hasRename = false;
             string changesetReason = "";
@@ -93,12 +72,12 @@ namespace Hpdi.Vss2Git
                     // look up the pending change for user of this revision
                     // and flush changes past time threshold
                     string pendingUser = revision.User;
-                    Changeset pendingChange = null;
-                    List<string> flushedUsers = null;
-                    foreach (KeyValuePair<string, Changeset> userEntry in pendingChangesByUser)
+                    PseudoChangeset? pendingChange = null;
+                    List<string>? flushedUsers = null;
+                    foreach (KeyValuePair<string, PseudoChangeset> userEntry in pendingChangesByUser)
                     {
                         string user = userEntry.Key;
-                        Changeset change = userEntry.Value;
+                        PseudoChangeset change = userEntry.Value;
 
                         // flush change if file conflict or past time threshold
                         bool flush = false;
@@ -186,7 +165,7 @@ namespace Hpdi.Vss2Git
                     // if no pending change for user, create a new one
                     if (pendingChange == null)
                     {
-                        pendingChange = new Changeset
+                        pendingChange = new PseudoChangeset
                         {
                             User = pendingUser,
                         };
@@ -222,7 +201,7 @@ namespace Hpdi.Vss2Git
             }
 
             // flush all remaining changes
-            foreach (Changeset change in pendingChangesByUser.Values)
+            foreach (PseudoChangeset change in pendingChangesByUser.Values)
             {
                 AddChangeset(change, "Remaining revision(s)");
             }
@@ -232,14 +211,20 @@ namespace Hpdi.Vss2Git
             mLogger.WriteLine($"Found {Changesets.Count} changesets in {stopwatch.Elapsed}");
         }
 
-        private void AddChangeset(Changeset change, string reason)
+        private void AddChangeset(
+            PseudoChangeset change,
+            string reason)
         {
             change.Id = Changesets.Count + 1;
             Changesets.Add(change);
             DumpChangeset(change, change.Id, 0, reason);
         }
 
-        private void DumpChangeset(Changeset changeset, int changesetId, int indent, string reason)
+        private void DumpChangeset(
+            PseudoChangeset changeset,
+            int changesetId,
+            int indent,
+            string reason)
         {
             string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
 
@@ -268,7 +253,12 @@ namespace Hpdi.Vss2Git
                     indentStr, revision.DateTime.ToIsoTimestamp(), revision.Item, revision.Version, revision.Action);
             }
 
-            mLogger.WriteLine("{0}//------------------------- {1} {2}//", indentStr, reason, 53 > reason.Length ? new string('-', 53 - reason.Length) : "");
+            mLogger.WriteLine("{0}//------------------------- {1} {2}//",
+                indentStr,
+                reason,
+                53 > reason.Length
+                    ? new string('-', 53 - reason.Length)
+                    : "");
         }
-    }
+    };
 }

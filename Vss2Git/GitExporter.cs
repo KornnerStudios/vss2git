@@ -41,8 +41,8 @@ namespace Hpdi.Vss2Git
             = true;
 
         private readonly VssDatabase database;
-        private readonly RevisionAnalyzer revisionAnalyzer;
-        private readonly ChangesetBuilder changesetBuilder;
+        private readonly VssRevisionAnalyzer revisionAnalyzer;
+        private readonly PseudoChangesetBuilder changesetBuilder;
         private readonly HashSet<string> tagsUsed = [];
         private SourceSafe.IO.EmailDictionaryFileReader userToEmailDictionary = null;
         private readonly HashSet<string> excludedProjects = [];
@@ -81,8 +81,8 @@ namespace Hpdi.Vss2Git
         public GitExporter(
             TrackedWorkQueue workQueue,
             SourceSafe.IO.SimpleLogger logger,
-            RevisionAnalyzer revisionAnalyzer,
-            ChangesetBuilder changesetBuilder)
+            VssRevisionAnalyzer revisionAnalyzer,
+            PseudoChangesetBuilder changesetBuilder)
             : base(workQueue, logger)
         {
             this.database = revisionAnalyzer.Database;
@@ -106,12 +106,12 @@ namespace Hpdi.Vss2Git
                 fileExclusionMatcher = new(excludeFileArray);
             }
 
-            mWorkQueue.AddLast(delegate(object work)
+            mWorkQueue.AddLast(delegate(WorkerCallback workerCallback)
             {
                 var stopwatch = Stopwatch.StartNew();
 
                 mLogger.WriteSectionSeparator();
-                LogStatus(work, "Initializing repository");
+                LogStatus(workerCallback, "Initializing repository");
 
                 if (DryRun && DryRunOutputTargetWorkDirPathsAsRelative)
                 {
@@ -174,7 +174,7 @@ namespace Hpdi.Vss2Git
                     meaningfulCommentPercentage *= 100.0f;
 
                     mLogger.WriteLine($"Changesets with meaningful comments ({meaningfulCommentPercentage}%):");
-                    foreach (Changeset changeset in changesetBuilder.ChangesetsWithMeaningfulComments)
+                    foreach (PseudoChangeset changeset in changesetBuilder.ChangesetsWithMeaningfulComments)
                     {
                         mLogger.WriteLine($"\tChangeset {changeset.Id} {changeset.DateTime} {changeset.User}");
                         foreach (string commentLine in changeset.Comment)
@@ -187,7 +187,7 @@ namespace Hpdi.Vss2Git
 
                 // replay each changeset
                 int changesetId = 1;
-                List<Changeset> changesets = changesetBuilder.Changesets;
+                List<PseudoChangeset> changesets = changesetBuilder.Changesets;
                 excludedProjects.Clear();
                 excludedFiles.Clear();
                 commitCount = 0;
@@ -195,7 +195,7 @@ namespace Hpdi.Vss2Git
                 var replayStopwatch = new Stopwatch();
                 var gitStopwatch = new Stopwatch();
                 tagsUsed.Clear();
-                foreach (Changeset changeset in changesets)
+                foreach (PseudoChangeset changeset in changesets)
                 {
                     if (LoggerAutoFlushOnChangesetInterval > 0 && (changesetId % LoggerAutoFlushOnChangesetInterval) == 0)
                     {
@@ -208,7 +208,7 @@ namespace Hpdi.Vss2Git
                     mLogger.WriteLine("//-------------------------------------------------------------------------//");
 
                     // replay each revision in changeset
-                    LogStatus(work, "Replaying " + changesetDesc);
+                    LogStatus(workerCallback, "Replaying " + changesetDesc);
 
                     var pendingCommits = new Dictionary<string, GitActions.Commit>();
 
@@ -230,7 +230,7 @@ namespace Hpdi.Vss2Git
                     if (!DryRun)
                     {
                         // commit changes
-                        LogStatus(work, "Committing " + changesetDesc);
+                        LogStatus(workerCallback, "Committing " + changesetDesc);
 
                         gitStopwatch.Start();
                         try
@@ -276,7 +276,7 @@ namespace Hpdi.Vss2Git
                 mLogger.WriteLine("Git tags: {0}", tagCount);
             });
         }
-        private void ReplayChangeset(VssPathMapper pathMapper, Changeset changeset, ref Dictionary<string, GitActions.Commit> pendingCommits)
+        private void ReplayChangeset(VssPathMapper pathMapper, PseudoChangeset changeset, ref Dictionary<string, GitActions.Commit> pendingCommits)
         {
             foreach (VssItemRevision revision in changeset.Revisions)
             {
@@ -284,7 +284,7 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        private void ReplayRevision(VssPathMapper pathMapper, Changeset changeset, VssItemRevision revision, ref Dictionary<string, GitActions.Commit> pendingCommits)
+        private void ReplayRevision(VssPathMapper pathMapper, PseudoChangeset changeset, VssItemRevision revision, ref Dictionary<string, GitActions.Commit> pendingCommits)
         {
             string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(1);
 
@@ -1020,7 +1020,7 @@ namespace Hpdi.Vss2Git
 
         private GitActions.Commit GetOrCreatePendingCommitForLogicalPath(
             ref Dictionary<string, GitActions.Commit> pendingCommits,
-            Changeset changeset,
+            PseudoChangeset changeset,
             List<string> _/*logicalPath*/)
         {
             // #REVIEW this needs to be more robust, but we cannot call IGitWrapper.GetDefaultBranch() from here
@@ -1037,7 +1037,7 @@ namespace Hpdi.Vss2Git
 
         private GitActions.Commit GetOrCreatePendingCommitForProject(
             ref Dictionary<string, GitActions.Commit> pendingCommits,
-            Changeset changeset,
+            PseudoChangeset changeset,
             VssPathMapper pathMapper,
             VssItemName project)
         {
@@ -1057,7 +1057,7 @@ namespace Hpdi.Vss2Git
             return pendingBranch;
         }
 
-        private GitActions.Commit CreateGitCommitAction(Changeset changeset)
+        private GitActions.Commit CreateGitCommitAction(PseudoChangeset changeset)
         {
             return new GitActions.Commit(changeset, GetUser(changeset.User), GetEmail(changeset.User), changeset.DateTime.ConvertAmbiguousTimeToUtc(mLogger), IncludeVssMetaDataInComments);
         }
