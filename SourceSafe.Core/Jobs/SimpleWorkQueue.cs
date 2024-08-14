@@ -1,60 +1,42 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Collections.Generic;
-using System.Threading;
-
-namespace Hpdi.Vss2Git
+﻿
+namespace SourceSafe.Jobs
 {
     /// <summary>
     /// Simple work queue over a bounded number of thread-pool threads.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    public class SimpleWorkQueue
+    // This is abstract only because nothing instances it, but it could be a concrete class (it was in the original code).
+    public abstract class SimpleWorkQueue
     {
-        private readonly LinkedList<WaitCallback> workQueue = [];
-        private readonly int maxThreads;
-        private int activeThreads = 0;
-        private volatile bool aborting = false;
+        private readonly LinkedList<WaitCallback> mWorkQueue = [];
+        private readonly int mMaxThreads;
+        private int mActiveThreadCount = 0;
+        private volatile bool mIsAborting = false;
 
         public SimpleWorkQueue()
         {
-            this.maxThreads = Environment.ProcessorCount;
+            mMaxThreads = Environment.ProcessorCount;
         }
 
         public SimpleWorkQueue(int maxThreads)
         {
-            this.maxThreads = maxThreads;
+            mMaxThreads = maxThreads;
         }
 
-        public bool IsIdle => activeThreads == 0;
+        public bool IsIdle => mActiveThreadCount == 0;
 
-        public bool IsFullyActive => activeThreads == maxThreads;
+        public bool IsFullyActive => mActiveThreadCount == mMaxThreads;
 
         public bool IsSuspended { get; private set; } = false;
 
-        public bool IsAborting => aborting;
+        public bool IsAborting => mIsAborting;
 
         // Adds work to the head of the work queue. Useful for workers that
         // want to reschedule themselves on suspend.
         public void AddFirst(WaitCallback work)
         {
-            lock (workQueue)
+            lock (mWorkQueue)
             {
-                workQueue.AddFirst(work);
+                mWorkQueue.AddFirst(work);
                 StartWorker();
             }
         }
@@ -62,9 +44,9 @@ namespace Hpdi.Vss2Git
         // Adds work to the tail of the work queue.
         public void AddLast(WaitCallback work)
         {
-            lock (workQueue)
+            lock (mWorkQueue)
             {
-                workQueue.AddLast(work);
+                mWorkQueue.AddLast(work);
                 StartWorker();
             }
         }
@@ -72,16 +54,16 @@ namespace Hpdi.Vss2Git
         // Clears pending work without affecting active work.
         public void ClearPending()
         {
-            lock (workQueue)
+            lock (mWorkQueue)
             {
-                workQueue.Clear();
+                mWorkQueue.Clear();
             }
         }
 
         // Stops processing of pending work.
         public void Suspend()
         {
-            lock (workQueue)
+            lock (mWorkQueue)
             {
                 IsSuspended = true;
             }
@@ -90,10 +72,10 @@ namespace Hpdi.Vss2Git
         // Resumes processing of pending work after being suspended.
         public void Resume()
         {
-            lock (workQueue)
+            lock (mWorkQueue)
             {
                 IsSuspended = false;
-                while (activeThreads < workQueue.Count)
+                while (mActiveThreadCount < mWorkQueue.Count)
                 {
                     StartWorker();
                 }
@@ -103,16 +85,16 @@ namespace Hpdi.Vss2Git
         // Signals active workers to abort and clears pending work.
         public void Abort()
         {
-            lock (workQueue)
+            lock (mWorkQueue)
             {
-                if (activeThreads > 0)
+                if (mActiveThreadCount > 0)
                 {
                     // flag active workers to stop; last will reset the flag
-                    aborting = true;
+                    mIsAborting = true;
                 }
 
                 // to avoid non-determinism, always clear the queue
-                workQueue.Clear();
+                mWorkQueue.Clear();
             }
         }
 
@@ -123,7 +105,7 @@ namespace Hpdi.Vss2Git
         protected virtual void OnIdle()
         {
             // auto-reset abort flag
-            aborting = false;
+            mIsAborting = false;
         }
 
         protected virtual void OnStart(WaitCallback work)
@@ -141,9 +123,9 @@ namespace Hpdi.Vss2Git
         // Assumes work queue lock is held.
         private void StartWorker()
         {
-            if (activeThreads < maxThreads && !IsSuspended)
+            if (mActiveThreadCount < mMaxThreads && !IsSuspended)
             {
-                if (++activeThreads == 1)
+                if (++mActiveThreadCount == 1)
                 {
                     // hook for transition from Idle to Active
                     OnActive();
@@ -152,17 +134,17 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        private void Worker(object state)
+        private void Worker(object? state)
         {
             while (true)
             {
                 WaitCallback work;
-                lock (workQueue)
+                lock (mWorkQueue)
                 {
-                    LinkedListNode<WaitCallback> head = workQueue.First;
+                    LinkedListNode<WaitCallback>? head = mWorkQueue.First;
                     if (head == null || IsSuspended)
                     {
-                        if (--activeThreads == 0)
+                        if (--mActiveThreadCount == 0)
                         {
                             // hook for transition from Active to Idle
                             OnIdle();
@@ -170,7 +152,7 @@ namespace Hpdi.Vss2Git
                         return;
                     }
                     work = head.Value;
-                    workQueue.RemoveFirst();
+                    mWorkQueue.RemoveFirst();
                 }
 
                 // hook for worker initialization
@@ -191,5 +173,5 @@ namespace Hpdi.Vss2Git
                 }
             }
         }
-    }
+    };
 }

@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Linq;
 using SourceSafe;
 using SourceSafe.Analysis;
+using SourceSafe.Jobs;
 using SourceSafe.Logical.Actions;
 
 namespace Hpdi.Vss2Git
@@ -27,7 +28,7 @@ namespace Hpdi.Vss2Git
     /// Reconstructs changesets from independent revisions.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    class ChangesetBuilder : Worker
+    class ChangesetBuilder : QueuedWorkerBase
     {
         private readonly RevisionAnalyzer revisionAnalyzer;
 
@@ -36,7 +37,10 @@ namespace Hpdi.Vss2Git
         public TimeSpan AnyCommentThreshold { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan SameCommentThreshold { get; set; } = TimeSpan.FromMinutes(10);
 
-        public ChangesetBuilder(WorkQueue workQueue, SourceSafe.IO.SimpleLogger logger, RevisionAnalyzer revisionAnalyzer)
+        public ChangesetBuilder(
+            TrackedWorkQueue workQueue,
+            SourceSafe.IO.SimpleLogger logger,
+            RevisionAnalyzer revisionAnalyzer)
             : base(workQueue, logger)
         {
             this.revisionAnalyzer = revisionAnalyzer;
@@ -48,15 +52,15 @@ namespace Hpdi.Vss2Git
         public bool ForceFlushRenameAfterDeleteForFiles { get; set; } = true;
         public void BuildChangesets()
         {
-            workQueue.AddLast(BuildChangesetsWorkQueueCallback);
+            mWorkQueue.AddLast(BuildChangesetsWorkQueueCallback);
         }
         private void BuildChangesetsWorkQueueCallback(object work)
         {
-            logger.WriteSectionSeparator();
+            mLogger.WriteSectionSeparator();
             LogStatus(work, "Building changesets");
-            logger.WriteLine($"\tAnyCommentThreshold: {AnyCommentThreshold.TotalSeconds} seconds");
-            logger.WriteLine($"\tSameCommentThreshold: {SameCommentThreshold.TotalSeconds} seconds");
-            logger.WriteLine();
+            mLogger.WriteLine($"\tAnyCommentThreshold: {AnyCommentThreshold.TotalSeconds} seconds");
+            mLogger.WriteLine($"\tSameCommentThreshold: {SameCommentThreshold.TotalSeconds} seconds");
+            mLogger.WriteLine();
 
             var stopwatch = Stopwatch.StartNew();
             var pendingChangesByUser = new Dictionary<string, Changeset>();
@@ -115,7 +119,7 @@ namespace Hpdi.Vss2Git
                                     message = "Same comment but exceeded threshold";
                                     flush = true;
                                 }
-                                logger.WriteLine("NOTE: {0} ({1} second gap):",
+                                mLogger.WriteLine("NOTE: {0} ({1} second gap):",
                                     message, timeDiff.TotalSeconds);
                             }
                             else
@@ -224,8 +228,8 @@ namespace Hpdi.Vss2Git
             }
             stopwatch.Stop();
 
-            logger.WriteSectionSeparator();
-            logger.WriteLine($"Found {Changesets.Count} changesets in {stopwatch.Elapsed}");
+            mLogger.WriteSectionSeparator();
+            mLogger.WriteLine($"Found {Changesets.Count} changesets in {stopwatch.Elapsed}");
         }
 
         private void AddChangeset(Changeset change, string reason)
@@ -242,7 +246,7 @@ namespace Hpdi.Vss2Git
             DateTime firstRevTime = changeset.Revisions.First().DateTime;
             TimeSpan changeDuration = changeset.DateTime - firstRevTime;
 
-            logger.WriteLine("{0}Changeset {1} - {2} ({3} secs) {4} {5} file(s)",
+            mLogger.WriteLine("{0}Changeset {1} - {2} ({3} secs) {4} {5} file(s)",
                 indentStr, changesetId, changeset.DateTime.ToIsoTimestamp(), changeDuration.TotalSeconds,
                 changeset.User, changeset.Revisions.Count);
 
@@ -253,18 +257,18 @@ namespace Hpdi.Vss2Git
 
             foreach (string line in changeset.Comment)
             {
-                logger.WriteLine("{0}{1}", indentStr, line);
+                mLogger.WriteLine("{0}{1}", indentStr, line);
             }
 
-            logger.WriteLine();
+            mLogger.WriteLine();
             foreach (VssItemRevision revision in changeset.Revisions)
             {
                 // (target)@version format matches "File conflict..." output
-                logger.WriteLine("{0}  {1} {2}@{3} {4}",
+                mLogger.WriteLine("{0}  {1} {2}@{3} {4}",
                     indentStr, revision.DateTime.ToIsoTimestamp(), revision.Item, revision.Version, revision.Action);
             }
 
-            logger.WriteLine("{0}//------------------------- {1} {2}//", indentStr, reason, 53 > reason.Length ? new string('-', 53 - reason.Length) : "");
+            mLogger.WriteLine("{0}//------------------------- {1} {2}//", indentStr, reason, 53 > reason.Length ? new string('-', 53 - reason.Length) : "");
         }
     }
 }

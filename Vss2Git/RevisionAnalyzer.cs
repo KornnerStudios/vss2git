@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using SourceSafe.Analysis;
+using SourceSafe.Jobs;
 using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;
 using SourceSafe.Logical.Items;
@@ -28,7 +29,7 @@ namespace Hpdi.Vss2Git
     /// Enumerates revisions in a VSS database.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    sealed class RevisionAnalyzer : Worker
+    sealed class RevisionAnalyzer : QueuedWorkerBase
     {
         public readonly record struct DeletedFileData(
             string ParentPhysicalName,
@@ -53,7 +54,10 @@ namespace Hpdi.Vss2Git
         private int mRevisionCount;
         public int RevisionCount => Thread.VolatileRead(ref mRevisionCount);
 
-        public RevisionAnalyzer(WorkQueue workQueue, SourceSafe.IO.SimpleLogger logger, VssDatabase database)
+        public RevisionAnalyzer(
+            TrackedWorkQueue workQueue,
+            SourceSafe.IO.SimpleLogger logger,
+            VssDatabase database)
             : base(workQueue, logger)
         {
             Database = database;
@@ -78,21 +82,21 @@ namespace Hpdi.Vss2Git
             mRootProjects.Add(project);
 
             // #REVIEW: could the callback just use rootProjects.Last()?
-            workQueue.AddLast(work => AddItemWorkQueueCallback(work, project));
+            mWorkQueue.AddLast(work => AddItemWorkQueueCallback(work, project));
         }
 
         private void AddItemWorkQueueCallback(object work, VssProjectItem project)
         {
-            logger.WriteSectionSeparator();
+            mLogger.WriteSectionSeparator();
             LogStatus(work, "Building revision list");
 
-            logger.WriteLine($"Root project: {project.LogicalPath}");
+            mLogger.WriteLine($"Root project: {project.LogicalPath}");
 
             var stopwatch = Stopwatch.StartNew();
             VssUtil.RecurseItems(project,
                 (VssProjectItem subproject) =>
                 {
-                    if (workQueue.IsAborting)
+                    if (mWorkQueue.IsAborting)
                     {
                         return RecursionStatus.Abort;
                     }
@@ -103,7 +107,7 @@ namespace Hpdi.Vss2Git
                 },
                 (VssProjectItem subproject, VssFileItem file) =>
                 {
-                    if (workQueue.IsAborting)
+                    if (mWorkQueue.IsAborting)
                     {
                         return RecursionStatus.Abort;
                     }
@@ -119,9 +123,9 @@ namespace Hpdi.Vss2Git
                 });
             stopwatch.Stop();
 
-            logger.WriteSectionSeparator();
-            logger.WriteLine("Analysis complete in {0:HH:mm:ss}", new DateTime(stopwatch.ElapsedTicks));
-            logger.WriteLine($"Revisions: {mRevisionCount}");
+            mLogger.WriteSectionSeparator();
+            mLogger.WriteLine("Analysis complete in {0:HH:mm:ss}", new DateTime(stopwatch.ElapsedTicks));
+            mLogger.WriteLine($"Revisions: {mRevisionCount}");
         }
 
         private void ProcessItem(VssItemBase item)

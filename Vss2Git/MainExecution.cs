@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using SourceSafe.Jobs;
 using SourceSafe.Logical.Items;
 
 namespace Hpdi.Vss2Git
@@ -15,7 +16,7 @@ namespace Hpdi.Vss2Git
         private static MainExecution instance = null;
         private static readonly object padlock = new();
 
-        private readonly WorkQueue workQueue = new(1);
+        private readonly TrackedWorkQueue workQueue = new(1);
         private SourceSafe.IO.SimpleLogger logger = SourceSafe.IO.SimpleLogger.Null;
         private RevisionAnalyzer revisionAnalyzer;
         private ChangesetBuilder changesetBuilder;
@@ -177,7 +178,7 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        private void LogException(object sender, ExceptionThrownEventArgs e)
+        private void LogException(object sender, WorkerExceptionThrownEventArgs e)
         {
             string message = SourceSafe.Exceptions.ExceptionFormatter.Format(e.Exception);
 
