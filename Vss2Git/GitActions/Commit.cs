@@ -30,13 +30,14 @@ namespace Hpdi.Vss2Git.GitActions
     class Commit : BranchAction
     {
         private const string DefaultComment = "Vss2Git";
-        private static readonly char[] charsToTrim = { '$', '/', '\\' };
+        private static readonly char[] charsToTrim = ['$', '/', '\\'];
 
         private readonly PseudoChangeset changeset;
         private readonly string authorName;
         private readonly string authorEmail;
         private readonly DateTime utcTime;
         private readonly bool includeVssMetaDataInComments;
+        // #REVIEW this is never read
         private bool needsCommit = false;
 
         private readonly List<VssItemRevision> revisions = [];
@@ -148,7 +149,7 @@ namespace Hpdi.Vss2Git.GitActions
 
         private List<string> BuildCommitMessage(bool firstLineOnly)
         {
-            List<string> message = new List<string>();
+            List<string> message = [];
 
             if (0 < changeset.Comment.Count)
             {

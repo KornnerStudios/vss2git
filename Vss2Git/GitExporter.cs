@@ -24,6 +24,7 @@ using System.Threading;
 using System.Windows.Forms;
 using SourceSafe;
 using SourceSafe.Analysis;
+using SourceSafe.Analysis.PathMapping;
 using SourceSafe.Jobs;
 using SourceSafe.Logical;
 using SourceSafe.Logical.Actions;
@@ -347,7 +348,7 @@ namespace Hpdi.Vss2Git
                 bool isAddAction = false;
                 bool writeProject = false;
                 bool writeFile = false;
-                VssItemInfo itemInfo = null;
+                VssItemPathMappingBase itemInfo = null;
                 switch (actionType)
                 {
                     case VssActionType.Label:
@@ -456,7 +457,7 @@ namespace Hpdi.Vss2Git
 
                                 if (target.IsProject)
                                 {
-                                    var projectInfo = (VssProjectInfo)itemInfo;
+                                    var projectInfo = (VssProjectPathMapping)itemInfo;
 
                                     if (VssActionType.Destroy == actionType || !projectInfo.Destroyed)
                                     {
@@ -536,12 +537,14 @@ namespace Hpdi.Vss2Git
                                 string sourceWorkDirPathAsString = VssPathMapper.WorkDirPathToString(sourceWorkDirPath);
                                 string targetWorkDirPathAsString = VssPathMapper.WorkDirPathToString(targetWorkDirPath);
 
-                                bool destroyed = target.IsProject ? ((VssProjectInfo)itemInfo).Destroyed : pathMapper.GetFileDestroyed(project, target.PhysicalName);
+                                bool destroyed = target.IsProject
+                                    ? ((VssProjectPathMapping)itemInfo).Destroyed
+                                    : pathMapper.GetFileDestroyed(project, target.PhysicalName);
 
                                 if (!destroyed)
                                 {
                                     // renaming a file or a project that contains files?
-                                    if (itemInfo is not VssProjectInfo projectInfo || projectInfo.ContainsFiles())
+                                    if (itemInfo is not VssProjectPathMapping projectInfo || projectInfo.ContainsFiles())
                                     {
                                         if (!DryRun)
                                         {
@@ -552,11 +555,17 @@ namespace Hpdi.Vss2Git
 
                                             if (target.IsProject)
                                             {
-                                                pendingCommit.MoveFileOrDirectory(revision, new GitActions.MoveDirectory(sourceWorkDirPathAsString, targetWorkDirPathAsString, true), message);
+                                                pendingCommit.MoveFileOrDirectory(
+                                                    revision,
+                                                    new GitActions.MoveDirectory(sourceWorkDirPathAsString, targetWorkDirPathAsString, true),
+                                                    message);
                                             }
                                             else
                                             {
-                                                pendingCommit.MoveFileOrDirectory(revision, new GitActions.MoveFile(sourceWorkDirPathAsString, targetWorkDirPathAsString), message);
+                                                pendingCommit.MoveFileOrDirectory(
+                                                    revision,
+                                                    new GitActions.MoveFile(sourceWorkDirPathAsString, targetWorkDirPathAsString),
+                                                    message);
                                             }
                                         }
                                     }
@@ -600,7 +609,7 @@ namespace Hpdi.Vss2Git
                             List<string> sourceLogicalPath = pathMapper.GetProjectLogicalPath(moveFromAction.Name.PhysicalName);
                             List<string> sourceWorkDirPath = pathMapper.GetProjectWorkDirPath(moveFromAction.Name.PhysicalName);
 
-                            VssProjectInfo projectInfo = pathMapper.MoveProjectFrom(project, target, moveFromAction.OriginalProject);
+                            VssProjectPathMapping projectInfo = pathMapper.MoveProjectFrom(project, target, moveFromAction.OriginalProject);
 
                             if (targetLogicalPath != null && targetWorkDirPath != null && !projectInfo.Destroyed)
                             {
@@ -688,7 +697,7 @@ namespace Hpdi.Vss2Git
 
                         mLogger.WriteLine($"{projectDesc}: Move to {moveToAction.NewProject} from {targetLogicalPathAsString}");
 
-                        VssProjectInfo projectInfo = pathMapper.MoveProjectTo(project, target, moveToAction.NewProject);
+                        VssProjectPathMapping projectInfo = pathMapper.MoveProjectTo(project, target, moveToAction.NewProject);
 
                         if (!projectInfo.Destroyed && targetLogicalPath != null && targetWorkDirPath != null)
                         {
@@ -790,7 +799,7 @@ namespace Hpdi.Vss2Git
                             {
                                 GitActions.Commit pendingCommit = GetOrCreatePendingCommitForProject(ref pendingCommits, changeset, pathMapper, project);
 
-                                var projectInfo = (VssProjectInfo)itemInfo;
+                                var projectInfo = (VssProjectPathMapping)itemInfo;
 
                                 if (!projectInfo.Destroyed)
                                 {
@@ -815,7 +824,7 @@ namespace Hpdi.Vss2Git
                     if (writeProject && pathMapper.IsProjectRooted(target.PhysicalName))
                     {
                         // create all contained subdirectories
-                        foreach (VssProjectInfo projectInfo in pathMapper.GetAllProjects(target.PhysicalName))
+                        foreach (VssProjectPathMapping projectInfo in pathMapper.GetAllProjects(target.PhysicalName))
                         {
                             if (!ShouldLogicalPathBeIncluded(pathMapper, true, projectInfo.GetLogicalPath()))
                             {
@@ -838,7 +847,7 @@ namespace Hpdi.Vss2Git
                         }
 
                         // write current rev of all contained files
-                        foreach (VssFileInfo fileInfo in pathMapper.GetAllFiles(target.PhysicalName))
+                        foreach (VssFilePathMapping fileInfo in pathMapper.GetAllFiles(target.PhysicalName))
                         {
                             IEnumerable<Tuple<List<string>, List<string>>> paths = pathMapper.GetFilePaths(fileInfo.PhysicalName, target.PhysicalName, revision.Version, mLogger);
 
@@ -1192,12 +1201,12 @@ namespace Hpdi.Vss2Git
             return tag;
         }
 
-        public void AddCommit()
+        void IGitStatistic.AddCommit()
         {
             ++commitCount;
         }
 
-        public void AddTag()
+        void IGitStatistic.AddTag()
         {
             ++tagCount;
         }
