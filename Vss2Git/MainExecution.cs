@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
+using SourceSafe;
 using SourceSafe.Analysis;
 using SourceSafe.Jobs;
 using SourceSafe.Logical.Items;
@@ -100,7 +101,7 @@ namespace Hpdi.Vss2Git
                 catch (SourceSafe.Logical.VssPathException ex)
                 {
                     // Invalid project path
-                    VssUtil.MarkUnusedVariable(ref ex);
+                    SourceSafeConstants.MarkUnusedVariable(ref ex);
                     throw;
                 }
 
@@ -172,7 +173,7 @@ namespace Hpdi.Vss2Git
             }
             catch (Exception ex)
             {
-                VssUtil.MarkUnusedVariable(ref ex);
+                SourceSafeConstants.MarkUnusedVariable(ref ex);
 
                 CloseLog();
                 throw;

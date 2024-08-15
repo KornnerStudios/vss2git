@@ -380,7 +380,7 @@ namespace Hpdi.Vss2Git
                     case VssActionType.Add:
                     {
                         GitActions.Commit pendingCommit = GetOrCreatePendingCommitForProject(ref pendingCommits, changeset, pathMapper, project);
-                        VssUtil.MarkUnusedVariable(ref pendingCommit);
+                        SourceSafeConstants.MarkUnusedVariable(ref pendingCommit);
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
@@ -399,7 +399,7 @@ namespace Hpdi.Vss2Git
                         var shareAction = (VssShareAction)revision.Action;
 
                         GitActions.Commit pendingCommit = GetOrCreatePendingCommitForProject(ref pendingCommits, changeset, pathMapper, project);
-                        VssUtil.MarkUnusedVariable(ref pendingCommit);
+                        SourceSafeConstants.MarkUnusedVariable(ref pendingCommit);
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
@@ -423,7 +423,7 @@ namespace Hpdi.Vss2Git
                     case VssActionType.Recover:
                     {
                         GitActions.Commit pendingCommit = GetOrCreatePendingCommitForProject(ref pendingCommits, changeset, pathMapper, project);
-                        VssUtil.MarkUnusedVariable(ref pendingCommit);
+                        SourceSafeConstants.MarkUnusedVariable(ref pendingCommit);
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
@@ -716,7 +716,7 @@ namespace Hpdi.Vss2Git
                     case VssActionType.Pin:
                     {
                         GitActions.Commit pendingCommit = GetOrCreatePendingCommitForProject(ref pendingCommits, changeset, pathMapper, project);
-                        VssUtil.MarkUnusedVariable(ref pendingCommit);
+                        SourceSafeConstants.MarkUnusedVariable(ref pendingCommit);
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
@@ -743,7 +743,7 @@ namespace Hpdi.Vss2Git
                     case VssActionType.Branch:
                     {
                         GitActions.Commit pendingCommit = GetOrCreatePendingCommitForProject(ref pendingCommits, changeset, pathMapper, project);
-                        VssUtil.MarkUnusedVariable(ref pendingCommit);
+                        SourceSafeConstants.MarkUnusedVariable(ref pendingCommit);
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
@@ -760,7 +760,7 @@ namespace Hpdi.Vss2Git
                     case VssActionType.Archive:
                     {
                         GitActions.Commit pendingCommit = GetOrCreatePendingCommitForProject(ref pendingCommits, changeset, pathMapper, project);
-                        VssUtil.MarkUnusedVariable(ref pendingCommit);
+                        SourceSafeConstants.MarkUnusedVariable(ref pendingCommit);
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
@@ -774,7 +774,7 @@ namespace Hpdi.Vss2Git
                     case VssActionType.Restore:
                     {
                         GitActions.Commit pendingCommit = GetOrCreatePendingCommitForProject(ref pendingCommits, changeset, pathMapper, project);
-                        VssUtil.MarkUnusedVariable(ref pendingCommit);
+                        SourceSafeConstants.MarkUnusedVariable(ref pendingCommit);
 
                         string projectDesc = GetProjectDescription(pathMapper, revision, project, projectLogicalPath);
 
