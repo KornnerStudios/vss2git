@@ -18,9 +18,10 @@ namespace SourceSafe.Physical.Files.Names
 
             while (reader.Offset < Header.EofOffset)
             {
+                int recordOffset = reader.Offset;
                 NamesRecord record = new();
                 ReadRecord(record);
-                mRecordsByFileOffset[reader.Offset] = record;
+                mRecordsByFileOffset[recordOffset] = record;
             }
         }
 
@@ -45,10 +46,10 @@ namespace SourceSafe.Physical.Files.Names
         public string? TryAndGetProjectOrLongName(int fileOffset, bool isProject)
         {
             string? name = null;
-            if (!mRecordsByFileOffset.TryGetValue(fileOffset, out NamesRecord? record))
+            if (mRecordsByFileOffset.TryGetValue(fileOffset, out NamesRecord? record))
             {
                 NameKind nameKind = isProject ? NameKind.Project : NameKind.Long;
-                name = record!.TryAndGetNameByKind(nameKind);
+                name = record.TryAndGetNameByKind(nameKind);
             }
 
             return name;
