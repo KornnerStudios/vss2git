@@ -140,17 +140,17 @@ namespace Hpdi.VssDump
             string repoPath = args[argIndex];
             SourceSafe.Logical.VssDatabase db = new(repoPath, Encoding.Default);
 
-            TreeDumper tree = null;
+            SourceSafe.Logical.Items.VssItemTreeTextDumper treeDumper = null;
             if (DumpFileHierarchy)
             {
-                tree = new TreeDumper(outputWriter)
+                treeDumper = new(outputWriter)
                 {
                     IncludeRevisions = false,
                 };
 
                 outputWriter.WriteLine("File hierarchy:");
                 outputWriter.WriteLine(Separator);
-                tree.DumpProject(db.RootProject);
+                treeDumper.DumpProject(db.RootProject);
                 outputWriter.WriteLine();
             }
 
@@ -165,9 +165,9 @@ namespace Hpdi.VssDump
                     {
                         string dataFile = Path.GetFileName(dataPath).ToUpper();
                         outputWriter.WriteLine(Separator);
-                        if (tree != null)
+                        if (treeDumper != null)
                         {
-                            bool orphaned = !tree.PhysicalNames.Contains(dataFile);
+                            bool orphaned = !treeDumper.PhysicalNames.Contains(dataFile);
                             outputWriter.WriteLine("{0}{1}", dataPath, orphaned ? " (orphaned)" : "");
                         }
                         else
