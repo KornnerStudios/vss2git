@@ -129,7 +129,7 @@ namespace Hpdi.Vss2Git
 
                 if (!string.IsNullOrEmpty(Settings.GitDirectory))
                 {
-                    var gitExporter = new GitExporter(workQueue, logger,
+                    var gitExporter = new SourceSafe.GitConversion.GitExporter(workQueue, logger,
                         revisionAnalyzer, changesetBuilder);
                     if (!string.IsNullOrEmpty(Settings.DefaultEmailDomain))
                     {

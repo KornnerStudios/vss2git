@@ -226,7 +226,7 @@ namespace SourceSafe.Analysis
             int indent,
             string reason)
         {
-            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
+            string indentStr = IO.OutputUtil.GetIndentString(indent);
 
             DateTime firstRevTime = changeset.Revisions.First().DateTime;
             TimeSpan changeDuration = changeset.DateTime - firstRevTime;

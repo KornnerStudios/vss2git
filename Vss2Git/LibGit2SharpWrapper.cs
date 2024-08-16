@@ -27,7 +27,7 @@ namespace Hpdi.Vss2Git
     /// Wraps execution of LibGit2Sharp and implements the common LibGit2Sharp commands.
     /// </summary>
     /// <author>Dariusz Bywalec</author>
-    sealed class LibGit2SharpWrapper : AbstractGitWrapper
+    sealed class LibGit2SharpWrapper : SourceSafe.GitConversion.AbstractGitWrapper
     {
         LibGit2Sharp.Repository repo = null;
         LibGit2Sharp.StageOptions stageOptions = null;
@@ -291,7 +291,7 @@ namespace Hpdi.Vss2Git
             repo.Tags.Add(name, commit, commiter, comment);
         }
 
-        private static LibGit2Sharp.Commit RetrieveHeadCommit(LibGit2Sharp.IRepository repository)
+        private static LibGit2Sharp.Commit RetrieveHeadCommit(LibGit2Sharp.Repository repository)
         {
             LibGit2Sharp.Branch head = repository.Head;
             LibGit2Sharp.Commit commit = head.Tip;

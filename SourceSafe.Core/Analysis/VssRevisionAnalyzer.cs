@@ -156,7 +156,7 @@ namespace SourceSafe.Analysis
             }
             catch (Physical.Records.RecordExceptionBase e)
             {
-                string message = $"Failed to read revisions for ({item.PhysicalName}): {SourceSafe.Exceptions.ExceptionFormatter.Format(e)}";
+                string message = $"Failed to read revisions for ({item.PhysicalName}): {Exceptions.ExceptionFormatter.Format(e)}";
                 LogException(e, message);
                 ReportError(message);
             }

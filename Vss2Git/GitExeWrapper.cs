@@ -28,7 +28,7 @@ namespace Hpdi.Vss2Git
     /// Wraps execution of Git and implements the common Git commands.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    sealed class GitExeWrapper : AbstractGitWrapper
+    sealed class GitExeWrapper : SourceSafe.GitConversion.AbstractGitWrapper
     {
         public string GitExecutable { get; set; } = "git.exe";
 
@@ -80,7 +80,7 @@ namespace Hpdi.Vss2Git
             {
                 // need to use a temporary file to specify the comment when not
                 // using the system default code page or it contains newlines
-                if (this.CommitEncoding.CodePage != Encoding.Default.CodePage || comment.IndexOf('\n') >= 0)
+                if (this.CommitEncoding.CodePage != Encoding.Default.CodePage || comment.Contains('\n'))
                 {
                     this.Logger.WriteLine("Generating temp file for comment: {0}", comment);
                     tempFile = new TempFile();
@@ -109,20 +109,21 @@ namespace Hpdi.Vss2Git
                 args = GitInitialArguments + " " + args;
             }
 
-            var startInfo = new ProcessStartInfo(GitExecutable, args);
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardInput = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.WorkingDirectory = GetRepoPath();
-            startInfo.CreateNoWindow = true;
+            var startInfo = new ProcessStartInfo(GitExecutable, args)
+            {
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = GetRepoPath(),
+                CreateNoWindow = true
+            };
             return startInfo;
         }
 
         private bool ExecuteUnless(ProcessStartInfo startInfo, string unless)
         {
-            string stdout, stderr;
-            int exitCode = Execute(startInfo, out stdout, out stderr);
+            int exitCode = Execute(startInfo, out string stdout, out string stderr);
             if (exitCode != 0)
             {
                 if (string.IsNullOrEmpty(unless) ||
@@ -155,10 +156,10 @@ namespace Hpdi.Vss2Git
                     var stderrReader = new SourceSafe.IO.AsyncLineReader(process.StandardError.BaseStream);
 
                     var activityEvent = new ManualResetEvent(false);
-                    EventHandler activityHandler = delegate { activityEvent.Set(); };
-                    process.Exited += activityHandler;
-                    stdoutReader.DataReceived += activityHandler;
-                    stderrReader.DataReceived += activityHandler;
+                    void ActivityHandlerLambda(object sender, EventArgs e) { activityEvent.Set(); }
+                    process.Exited += ActivityHandlerLambda;
+                    stdoutReader.DataReceived += ActivityHandlerLambda;
+                    stderrReader.DataReceived += ActivityHandlerLambda;
 
                     var stdoutBuffer = new StringBuilder();
                     var stderrBuffer = new StringBuilder();
@@ -312,8 +313,7 @@ namespace Hpdi.Vss2Git
 
         public override bool FindExecutable()
         {
-            string foundPath;
-            if (FindInPathVar("git.exe", out foundPath))
+            if (FindInPathVar("git.exe", out string foundPath))
             {
                 GitExecutable = foundPath;
                 GitInitialArguments = null;
@@ -449,10 +449,8 @@ namespace Hpdi.Vss2Git
                 throw new ArgumentException($"Specified time {utcTime} is not Utc", nameof(utcTime));
             }
 
-            TempFile commentFile;
-
             string args = "commit";
-            AddComment(comment, ref args, out commentFile);
+            AddComment(comment, ref args, out TempFile commentFile);
 
             using (commentFile)
             {
@@ -479,10 +477,8 @@ namespace Hpdi.Vss2Git
                 throw new ArgumentException($"Specified time {utcTime} is not Utc", nameof(utcTime));
             }
 
-            TempFile commentFile;
-
             string args = "tag";
-            AddComment(comment, ref args, out commentFile);
+            AddComment(comment, ref args, out TempFile commentFile);
 
             // tag names are not quoted because they cannot contain whitespace or quotes
             args += " -- " + name;

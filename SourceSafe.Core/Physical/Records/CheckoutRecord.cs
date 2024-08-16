@@ -77,7 +77,7 @@ namespace SourceSafe.Physical.Records
 
         public bool Exclusive => (Flags & 0x40) != 0;
 
-        public override void Read(SourceSafe.IO.VssBufferReader reader, RecordHeader header)
+        public override void Read(IO.VssBufferReader reader, RecordHeader header)
         {
             base.Read(reader, header);
 
@@ -97,7 +97,7 @@ namespace SourceSafe.Physical.Records
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
+            string indentStr = IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine($"User: {User} @ {CheckOutDateTime}");

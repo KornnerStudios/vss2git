@@ -42,7 +42,7 @@ namespace Hpdi.Vss2Git
                 WriteStoredSettings();
                 PopulateExecutionSettings();
 
-                AbstractGitWrapper git = new GitExeWrapper(string.Empty, null);
+                SourceSafe.GitConversion.AbstractGitWrapper git = new GitExeWrapper(string.Empty, null);
                 while (!git.FindExecutable())
                 {
                     DialogResult button = MessageBox.Show("Git not found in PATH. " +
@@ -72,7 +72,7 @@ namespace Hpdi.Vss2Git
 
         private void StatusTimer_Tick(object sender, EventArgs e)
         {
-            var mainExec = MainExecution.Instance;
+            MainExecution mainExec = MainExecution.Instance;
 
             statusLabel.Text = mainExec.WorkQueueLastStatus ?? "Idle";
             timeLabel.Text = string.Format("Elapsed: {0:HH:mm:ss}",

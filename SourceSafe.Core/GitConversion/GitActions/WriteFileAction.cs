@@ -1,33 +1,12 @@
-﻿/* Copyright 2017, Trapeze Poland sp. z o.o.
- *
- * Author: Dariusz Bywalec
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.IO;
-using SourceSafe;
-using SourceSafe.Logical;
+﻿using SourceSafe.Logical;
 using SourceSafe.Logical.Items;
 
-namespace Hpdi.Vss2Git.GitActions
+namespace SourceSafe.GitConversion.GitActions
 {
     /// <summary>
     /// Represents a VSS-revision-to-git file writer action.
     /// </summary>
-    /// <author>Dariusz Bywalec</author>
-    sealed class WriteFile : IGitAction
+    sealed class WriteFileAction : IGitAction
     {
         public static bool SleepThreadBeforeSetLastWriteTimeUtc { get; set; } = true;
 
@@ -36,7 +15,11 @@ namespace Hpdi.Vss2Git.GitActions
         private readonly int mVersion;
         private readonly string mDestinationPath;
 
-        public WriteFile(VssDatabase database, string physicalName, int version, string destinationPath)
+        public WriteFileAction(
+            VssDatabase database,
+            string physicalName,
+            int version,
+            string destinationPath)
         {
             mDatabase = database;
             mPhysicalName = physicalName;
@@ -45,7 +28,7 @@ namespace Hpdi.Vss2Git.GitActions
         }
 
         public bool Run(
-            SourceSafe.IO.SimpleLogger logger,
+            IO.SimpleLogger logger,
             IGitWrapper git,
             IGitStatistic stat)
         {
@@ -53,7 +36,7 @@ namespace Hpdi.Vss2Git.GitActions
 
             VssFileItem item;
             VssFileItemRevision revision;
-            Stream contents = null;
+            Stream? contents = null;
             try
             {
                 item = (VssFileItem)mDatabase.GetItemByPhysicalName(mPhysicalName);
@@ -63,13 +46,13 @@ namespace Hpdi.Vss2Git.GitActions
             catch (Exception e)
             {
                 // log an error for missing data files or versions, but keep processing
-                string message = SourceSafe.Exceptions.ExceptionFormatter.Format(e);
+                string message = Exceptions.ExceptionFormatter.Format(e);
                 logger.WriteLine($"ERROR: {message}");
                 logger.WriteLine(e);
                 return false;
             }
 
-            if (null != contents)
+            if (contents != null)
             {
                 // propagate exceptions here (e.g. disk full) to abort/retry/ignore
                 using (contents)
@@ -107,7 +90,7 @@ namespace Hpdi.Vss2Git.GitActions
             catch (Exception e)
             {
                 // log an error for missing data files or versions, but keep processing
-                string message = SourceSafe.Exceptions.ExceptionFormatter.Format(e);
+                string message = Exceptions.ExceptionFormatter.Format(e);
                 logger.WriteLine($"ERROR: {message}");
                 logger.WriteLine(e);
                 return false;
@@ -118,9 +101,12 @@ namespace Hpdi.Vss2Git.GitActions
             return true;
         }
 
-        private static void WriteStream(Stream inputStream, string path)
+        private static void WriteStream(
+            Stream inputStream,
+            string path)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            string? directoryName = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(directoryName!);
 
             using (var outputStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
             {

@@ -49,7 +49,7 @@ namespace SourceSafe.Physical.Files
                 }
                 else if (recordHeader.Length < 0)
                 {
-                    throw new SourceSafe.Physical.Records.RecordTruncatedException(
+                    throw new Records.RecordTruncatedException(
                         $"Record length is negative: {recordHeader.Length} at {recordHeader.Offset:X8} in {Filename}");
                 }
                 else

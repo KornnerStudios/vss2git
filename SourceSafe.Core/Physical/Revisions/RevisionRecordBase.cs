@@ -133,7 +133,7 @@ namespace SourceSafe.Physical.Revisions
 
         public override void Dump(TextWriter writer, int indent)
         {
-            string indentStr = SourceSafe.IO.OutputUtil.GetIndentString(indent);
+            string indentStr = IO.OutputUtil.GetIndentString(indent);
 
             writer.Write(indentStr);
             writer.WriteLine("Prev rev offset: {0:X6}", PrevRevOffset);

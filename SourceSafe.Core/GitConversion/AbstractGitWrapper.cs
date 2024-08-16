@@ -1,49 +1,31 @@
-﻿/* Copyright 2017, Trapeze Poland sp. z o.o.
- *
- * Author: Dariusz Bywalec
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
 
-namespace Hpdi.Vss2Git
+namespace SourceSafe.GitConversion
 {
     /// <summary>
     /// Wraps common execution of Git.
     /// </summary>
-    /// <author>Dariusz Bywalec</author>
-    abstract class AbstractGitWrapper : IGitWrapper
+    public abstract class AbstractGitWrapper : IGitWrapper
     {
-        private readonly string repoPath = "";
-        private bool needsCommit = false;
+        private readonly string mRepoPath = "";
+        private bool mNeedsCommit = false;
         public const string DefaultCheckoutBranch = "main"; // default Git repo branch
 
         public bool IncludeIgnoredFiles { get; set; }
 
-        public SourceSafe.IO.SimpleLogger Logger { get; } = null;
+        public IO.SimpleLogger? Logger { get; } = null;
 
         public Stopwatch Stopwatch { get; } = new Stopwatch();
         public bool ShellQuoting { get; set; } = false;
 
         public Encoding CommitEncoding { get; set; } = Encoding.UTF8;
 
-        public AbstractGitWrapper(string repoPath, SourceSafe.IO.SimpleLogger logger)
+        public AbstractGitWrapper(
+            string repoPath,
+            IO.SimpleLogger logger)
         {
-            this.repoPath = repoPath;
+            mRepoPath = repoPath;
             Logger = logger;
         }
 
@@ -63,12 +45,12 @@ namespace Hpdi.Vss2Git
 
         protected string QuoteRelativePath(string path)
         {
-            if (path.StartsWith(repoPath))
+            if (path.StartsWith(mRepoPath))
             {
-                path = path.Substring(repoPath.Length);
+                path = path[mRepoPath.Length..];
                 if (path.StartsWith('\\') || path.StartsWith('/'))
                 {
-                    path = path.Substring(1);
+                    path = path[1..];
                 }
             }
             return Quote(path);
@@ -98,7 +80,7 @@ namespace Hpdi.Vss2Git
                 return "\"\"";
             }
 
-            StringBuilder buf = null;
+            StringBuilder? buf = null;
             for (int i = 0; i < arg.Length; ++i)
             {
                 char c = arg[i];
@@ -131,19 +113,23 @@ namespace Hpdi.Vss2Git
                 (ShellQuoting && (c == '&' || c == '|' || c == '<' || c == '>' || c == '^' || c == '%'));
         }
 
-        public abstract bool DoCommit(string authorName, string authorEmail, string comment, DateTime utcTime);
+        public abstract bool DoCommit(
+            string authorName,
+            string authorEmail,
+            string comment,
+            DateTime utcTime);
 
         public string GetRepoPath()
         {
-            return repoPath;
+            return mRepoPath;
         }
         public bool NeedsCommit()
         {
-            return needsCommit;
+            return mNeedsCommit;
         }
         public void SetNeedsCommit()
         {
-            needsCommit = true;
+            mNeedsCommit = true;
         }
 
         TimeSpan IGitWrapper.ElapsedTime()
@@ -168,26 +154,40 @@ namespace Hpdi.Vss2Git
         public abstract void RemoveFile(string path);
         public abstract void RemoveDir(string path, bool recursive);
         public abstract void RemoveEmptyDir(string path);
-        public abstract void MoveFile(string sourcePath, string destPath);
-        public abstract void MoveDir(string sourcePath, string destPath);
-        public abstract void MoveEmptyDir(string sourcePath, string destPath);
-        public bool Commit(string authorName, string authorEmail, string comment, DateTime utcTime)
+        public abstract void MoveFile(
+            string sourcePath,
+            string destinationPath);
+        public abstract void MoveDir(
+            string sourcePath,
+            string destinationPath);
+        public abstract void MoveEmptyDir(
+            string sourcePath,
+            string destinationPath);
+        public bool Commit(
+            string authorName,
+            string authorEmail,
+            string comment,
+            DateTime utcTime)
         {
             if (utcTime.Kind != DateTimeKind.Utc)
             {
                 throw new ArgumentException($"Specified time {utcTime} is not Utc", nameof(utcTime));
             }
 
-            if (!needsCommit)
+            if (!mNeedsCommit)
             {
                 return false;
             }
 
-            needsCommit = false;
+            mNeedsCommit = false;
 
             return DoCommit(authorName, authorEmail, comment, utcTime);
         }
-        public abstract void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime utcTime);
-
-    }
+        public abstract void Tag(
+            string name,
+            string taggerName,
+            string taggerEmail,
+            string comment,
+            DateTime utcTime);
+    };
 }

@@ -67,31 +67,31 @@ namespace SourceSafe.Analysis.PathMapping
             mPhysicalNameToRootInfo[projectPhysicalName] = projectInfo;
         }
 
-        public IEnumerable<VssFilePathMapping>? GetAllFiles(
+        public IEnumerable<VssFilePathMapping> GetAllFiles(
             string projectPhysicalName)
         {
             if (mPhysicalNameToProjectInfo.TryGetValue(projectPhysicalName, out VssProjectPathMapping? projectInfo))
             {
                 return projectInfo.GetAllFiles();
             }
-            return null;
+            return [];
         }
 
-        public IEnumerable<VssProjectPathMapping>? GetAllProjects(
+        public IEnumerable<VssProjectPathMapping> GetAllProjects(
             string projectPhysicalName)
         {
             if (mPhysicalNameToProjectInfo.TryGetValue(projectPhysicalName, out VssProjectPathMapping? projectInfo))
             {
                 return projectInfo.GetAllProjects();
             }
-            return null;
+            return [];
         }
 
         public IEnumerable<Tuple<List<string>, List<string>>> GetFilePaths(
             string filePhysicalName,
-            string underProject,
+            string? underProject,
             int version,
-            SourceSafe.IO.SimpleLogger logger)
+            IO.SimpleLogger logger)
         {
             var result = new List<Tuple<List<string>, List<string>>>();
             if (mPhysicalNameToFileInfo.TryGetValue(filePhysicalName, out VssFilePathMapping? fileInfo))
@@ -572,12 +572,14 @@ namespace SourceSafe.Analysis.PathMapping
             return Path.Combine(workingRoot, relPath);
         }
 
-        public static string LogicalPathToString(IEnumerable<string> path)
+        public static string LogicalPathToString(
+            IEnumerable<string>? path)
         {
-            return String.Join(SourceSafeConstants.ProjectSeparator, path);
+            return String.Join(SourceSafeConstants.ProjectSeparator, path ?? []);
         }
 
-        public static string WorkDirPathToString(IEnumerable<string> path)
+        public static string WorkDirPathToString(
+            IEnumerable<string> path)
         {
             string result = "";
 
@@ -590,7 +592,8 @@ namespace SourceSafe.Analysis.PathMapping
         }
 
         public const string RelativeWorkDirPrefix = "<WorkDir>";
-        public static string RelativeWorkDirPathToString(IEnumerable<string> path)
+        public static string RelativeWorkDirPathToString(
+            IEnumerable<string> path)
         {
             string result = RelativeWorkDirPrefix;
 
