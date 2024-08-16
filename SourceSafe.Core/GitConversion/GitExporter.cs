@@ -1143,7 +1143,7 @@ namespace SourceSafe.GitConversion
             List<string>? _/*logicalPath*/)
         {
             // #REVIEW this needs to be more robust, but we cannot call IGitWrapper.GetDefaultBranch() from here
-            const string pendingBranch = AbstractGitWrapper.DefaultCheckoutBranch;
+            const string pendingBranch = Wrappers.AbstractGitWrapper.DefaultCheckoutBranch;
 
             if (!pendingCommits.TryGetValue(pendingBranch, out GitActions.CommitAction? pendingCommit))
             {

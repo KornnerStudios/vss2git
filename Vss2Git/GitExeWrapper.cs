@@ -28,7 +28,7 @@ namespace Hpdi.Vss2Git
     /// Wraps execution of Git and implements the common Git commands.
     /// </summary>
     /// <author>Trevor Robinson</author>
-    sealed class GitExeWrapper : SourceSafe.GitConversion.AbstractGitWrapper
+    sealed class GitExeWrapper : SourceSafe.GitConversion.Wrappers.AbstractGitWrapper
     {
         public string GitExecutable { get; set; } = "git.exe";
 

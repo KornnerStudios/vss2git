@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text;
 
-namespace SourceSafe.GitConversion
+namespace SourceSafe.GitConversion.Wrappers
 {
     /// <summary>
     /// Wraps common execution of Git.
@@ -110,7 +110,7 @@ namespace SourceSafe.GitConversion
         private bool NeedsQuoting(char c)
         {
             return char.IsWhiteSpace(c) || c == QuoteChar ||
-                (ShellQuoting && (c == '&' || c == '|' || c == '<' || c == '>' || c == '^' || c == '%'));
+                ShellQuoting && (c == '&' || c == '|' || c == '<' || c == '>' || c == '^' || c == '%');
         }
 
         public abstract bool DoCommit(

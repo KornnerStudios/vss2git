@@ -27,7 +27,7 @@ namespace Hpdi.Vss2Git
     /// Wraps execution of LibGit2Sharp and implements the common LibGit2Sharp commands.
     /// </summary>
     /// <author>Dariusz Bywalec</author>
-    sealed class LibGit2SharpWrapper : SourceSafe.GitConversion.AbstractGitWrapper
+    sealed class LibGit2SharpWrapper : SourceSafe.GitConversion.Wrappers.AbstractGitWrapper
     {
         LibGit2Sharp.Repository repo = null;
         LibGit2Sharp.StageOptions stageOptions = null;
