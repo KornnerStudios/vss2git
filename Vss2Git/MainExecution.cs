@@ -152,7 +152,7 @@ namespace Hpdi.Vss2Git
                     gitExporter.UserToEmailDictionaryFile = Settings.EmailDictionaryFile;
                     gitExporter.IncludeVssMetaDataInComments = Settings.IncludeVssMetaDataInComments;
 
-                    var git = new LibGit2SharpWrapper(Settings.GitDirectory, logger);
+                    var git = new SourceSafe.GitConversion.Wrappers.LibGit2SharpWrapper(Settings.GitDirectory, logger);
                     if (!Settings.TranscodeComments)
                     {
                         git.CommitEncoding = encoding;

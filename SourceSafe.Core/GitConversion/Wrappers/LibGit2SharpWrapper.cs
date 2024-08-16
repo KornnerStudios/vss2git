@@ -1,43 +1,21 @@
-﻿/* Copyright 2017, Trapeze Poland sp. z o.o.
- *
- * Author: Dariusz Bywalec
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using SourceSafe;
-
-namespace Hpdi.Vss2Git
+﻿
+namespace SourceSafe.GitConversion.Wrappers
 {
     /// <summary>
     /// Wraps execution of LibGit2Sharp and implements the common LibGit2Sharp commands.
     /// </summary>
-    /// <author>Dariusz Bywalec</author>
-    sealed class LibGit2SharpWrapper : SourceSafe.GitConversion.Wrappers.AbstractGitWrapper
+    public sealed class LibGit2SharpWrapper : AbstractGitWrapper
     {
-        LibGit2Sharp.Repository repo = null;
-        LibGit2Sharp.StageOptions stageOptions = null;
+        LibGit2Sharp.Repository? repo = null;
+        LibGit2Sharp.StageOptions? stageOptions = null;
 
-        public LibGit2SharpWrapper(string repoPath, SourceSafe.IO.SimpleLogger logger)
+        public LibGit2SharpWrapper(string repoPath, IO.SimpleLogger logger)
             : base(repoPath, logger)
         {
         }
 
-        /*protected*/ static void DeleteDirectory(string path)
+        /*protected*/
+        static void DeleteDirectory(string path)
         {
             // this method should be used with caution - therefore it is protected
             if (!Directory.Exists(path))
@@ -97,7 +75,7 @@ namespace Hpdi.Vss2Git
 
         public override void Exit()
         {
-            if (null != repo)
+            if (repo != null)
             {
                 repo.Dispose();
                 repo = null;
@@ -108,7 +86,7 @@ namespace Hpdi.Vss2Git
         {
             if (CommitEncoding.WebName != "utf-8")
             {
-                repo.Config.Set<string>("i18n.commitencoding", CommitEncoding.WebName);
+                repo!.Config.Set<string>("i18n.commitencoding", CommitEncoding.WebName);
             }
 
             if (!LibGit2Sharp.Repository.IsValid(GetRepoPath()))
@@ -178,44 +156,45 @@ namespace Hpdi.Vss2Git
             // do nothing - remove only on file system - git doesn't care about directories with no files
         }
 
-        public override void MoveFile(string sourcePath, string destPath)
+        public override void MoveFile(string sourcePath, string destinationPath)
         {
-            LibGit2Sharp.Commands.Move(repo, sourcePath, destPath);
+            LibGit2Sharp.Commands.Move(repo, sourcePath, destinationPath);
 
             SetNeedsCommit();
         }
 
-        public override void MoveDir(string sourcePath, string destPath)
+        public override void MoveDir(string sourcePath, string destinationPath)
         {
             bool needsCommit = false;
 
             List<string> sourceFiles = [];
-            List<string> destFiles = [];
+            List<string> destinationFiles = [];
 
             foreach (string file in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories))
             {
                 sourceFiles.Add(file);
 
-                string destFile = file.Replace(sourcePath, destPath);
+                string destinationFile = file.Replace(sourcePath, destinationPath);
 
-                destFiles.Add(destFile);
+                destinationFiles.Add(destinationFile);
 
-                Directory.CreateDirectory(Path.GetDirectoryName(destFile));
+                string destinationDir = Path.GetDirectoryName(destinationFile)!;
+                Directory.CreateDirectory(destinationDir);
 
                 needsCommit |= true;
             }
 
-            if (sourceFiles.Count > 0 && destFiles.Count > 0)
+            if (sourceFiles.Count > 0 && destinationFiles.Count > 0)
             {
-                LibGit2Sharp.Commands.Move(repo, sourceFiles, destFiles);
+                LibGit2Sharp.Commands.Move(repo, sourceFiles, destinationFiles);
             }
-            else if (sourceFiles.Count == 0 && destFiles.Count == 0)
+            else if (sourceFiles.Count == 0 && destinationFiles.Count == 0)
             {
-                MoveEmptyDir(sourcePath, destPath);
+                MoveEmptyDir(sourcePath, destinationPath);
             }
             else
             {
-                throw new InvalidOperationException($"MOVEDIRWTF: SrcCount={sourceFiles.Count} DstCount={destFiles.Count}");
+                throw new InvalidOperationException($"MOVEDIRWTF: SrcCount={sourceFiles.Count} DstCount={destinationFiles.Count}");
             }
 
             try
@@ -223,7 +202,7 @@ namespace Hpdi.Vss2Git
                 //Delete all child Directories if they are empty
                 if (Directory.Exists(sourcePath))
                 {
-                    string[] files = null;
+                    string[]? files = null;
 
                     foreach (string subdirectory in Directory.GetDirectories(sourcePath))
                     {
@@ -247,7 +226,7 @@ namespace Hpdi.Vss2Git
             }
             catch (IOException e)
             {
-                this.Logger.WriteLine($"Deleting of empty directories failed: {e.Message}");
+                Logger.WriteLine($"Deleting of empty directories failed: {e.Message}");
             }
 
             if (needsCommit)
@@ -256,10 +235,10 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        public override void MoveEmptyDir(string sourcePath, string destPath)
+        public override void MoveEmptyDir(string sourcePath, string destinationPath)
         {
             // move only on file system - git doesn't care about directories with no files
-            Directory.Move(sourcePath, destPath);
+            Directory.Move(sourcePath, destinationPath);
         }
 
         public override bool DoCommit(string authorName, string authorEmail, string comment, DateTime utcTime)
@@ -274,7 +253,7 @@ namespace Hpdi.Vss2Git
             LibGit2Sharp.Signature committer = author;
 
             // Commit to the repository
-            repo.Commit(comment, author, committer, default);
+            repo!.Commit(comment, author, committer, default);
 
             return true;
         }
@@ -286,9 +265,9 @@ namespace Hpdi.Vss2Git
                 throw new ArgumentException($"Specified time {utcTime} is not Utc", nameof(utcTime));
             }
 
-            var commiter = new LibGit2Sharp.Signature(taggerName, taggerEmail, utcTime);
-            LibGit2Sharp.Commit commit = RetrieveHeadCommit(repo);
-            repo.Tags.Add(name, commit, commiter, comment);
+            var tagger = new LibGit2Sharp.Signature(taggerName, taggerEmail, utcTime);
+            LibGit2Sharp.Commit commit = RetrieveHeadCommit(repo!);
+            repo!.Tags.Add(name, commit, tagger, comment);
         }
 
         private static LibGit2Sharp.Commit RetrieveHeadCommit(LibGit2Sharp.Repository repository)
@@ -317,6 +296,5 @@ namespace Hpdi.Vss2Git
 
             throw new LibGit2Sharp.NotFoundException(messageFormat, identifier);
         }
-
-    }
+    };
 }

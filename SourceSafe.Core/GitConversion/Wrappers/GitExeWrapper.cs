@@ -1,90 +1,45 @@
-﻿/* Copyright 2009 HPDI, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
-using System.Threading;
-using SourceSafe;
 
-namespace Hpdi.Vss2Git
+namespace SourceSafe.GitConversion.Wrappers
 {
     /// <summary>
     /// Wraps execution of Git and implements the common Git commands.
     /// </summary>
-    /// <author>Trevor Robinson</author>
-    sealed class GitExeWrapper : SourceSafe.GitConversion.Wrappers.AbstractGitWrapper
+    public sealed partial class GitExeWrapper : AbstractGitWrapper
     {
         public string GitExecutable { get; set; } = "git.exe";
 
-        public string GitInitialArguments { get; set; } = null;
+        public string? GitInitialArguments { get; set; } = null;
 
         public GitExeWrapper(string repoPath, SourceSafe.IO.SimpleLogger logger)
             : base(repoPath, logger)
         {
         }
 
-        private void SetConfig(string name, string value)
+        private void SetConfig(
+            string name,
+            string value)
         {
-            GitExec("config " + name + " " + Quote(value));
+            GitExec($"config {name} {Quote(value)}");
         }
 
-        sealed class TempFile : IDisposable
-        {
-            private readonly FileStream fileStream;
-
-            public string Name { get; }
-
-            public TempFile()
-            {
-                Name = Path.GetTempFileName();
-                fileStream = new FileStream(Name, FileMode.Truncate, FileAccess.Write, FileShare.Read);
-            }
-
-            public void Write(string text, Encoding encoding)
-            {
-                byte[] bytes = encoding.GetBytes(text);
-                fileStream.Write(bytes, 0, bytes.Length);
-                fileStream.Flush();
-            }
-
-            public void Dispose()
-            {
-                fileStream?.Dispose();
-                if (Name != null)
-                {
-                    File.Delete(Name);
-                }
-            }
-        }
-
-        private void AddComment(string comment, ref string args, out TempFile tempFile)
+        private void AddComment(
+            string comment,
+            ref string args,
+            out TempFile? tempFile)
         {
             tempFile = null;
             if (!string.IsNullOrEmpty(comment))
             {
                 // need to use a temporary file to specify the comment when not
                 // using the system default code page or it contains newlines
-                if (this.CommitEncoding.CodePage != Encoding.Default.CodePage || comment.Contains('\n'))
+                if (CommitEncoding.CodePage != Encoding.Default.CodePage || comment.Contains('\n'))
                 {
-                    this.Logger.WriteLine("Generating temp file for comment: {0}", comment);
+                    Logger.WriteLine("Generating temp file for comment: {0}", comment);
                     tempFile = new TempFile();
-                    tempFile.Write(comment, this.CommitEncoding);
+                    tempFile.Write(comment, CommitEncoding);
 
                     // temporary path might contain spaces (e.g. "Documents and Settings")
                     args += " -F " + Quote(tempFile.Name);
@@ -96,13 +51,15 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        private void GitExec(string args)
+        private void GitExec(
+            string args)
         {
             ProcessStartInfo startInfo = GetStartInfo(args);
             ExecuteUnless(startInfo, null);
         }
 
-        private ProcessStartInfo GetStartInfo(string args)
+        private ProcessStartInfo GetStartInfo(
+            string args)
         {
             if (!string.IsNullOrEmpty(GitInitialArguments))
             {
@@ -121,7 +78,9 @@ namespace Hpdi.Vss2Git
             return startInfo;
         }
 
-        private bool ExecuteUnless(ProcessStartInfo startInfo, string unless)
+        private bool ExecuteUnless(
+            ProcessStartInfo startInfo,
+            string? unless)
         {
             int exitCode = Execute(startInfo, out string stdout, out string stderr);
             if (exitCode != 0)
@@ -136,27 +95,32 @@ namespace Hpdi.Vss2Git
             return exitCode == 0;
         }
 
-        private static void FailExitCode(string exec, string args, string stdout, string stderr, int exitCode)
+        private static void FailExitCode(
+            string exec,
+            string args,
+            string stdout,
+            string stderr,
+            int exitCode)
         {
-            throw new SourceSafe.Exceptions.ExternalProcessExitException(
+            throw new Exceptions.ExternalProcessExitException(
                 $"git returned exit code {exitCode}",
                 exec, args, stdout, stderr);
         }
 
         private int Execute(ProcessStartInfo startInfo, out string stdout, out string stderr)
         {
-            this.Logger.WriteLine($"Executing: {startInfo.FileName} {startInfo.Arguments}");
-            this.Stopwatch.Start();
+            Logger.WriteLine($"Executing: {startInfo.FileName} {startInfo.Arguments}");
+            Stopwatch.Start();
             try
             {
-                using (var process = Process.Start(startInfo))
+                using (Process process = Process.Start(startInfo)!)
                 {
                     process.StandardInput.Close();
                     var stdoutReader = new SourceSafe.IO.AsyncLineReader(process.StandardOutput.BaseStream);
                     var stderrReader = new SourceSafe.IO.AsyncLineReader(process.StandardError.BaseStream);
 
                     var activityEvent = new ManualResetEvent(false);
-                    void ActivityHandlerLambda(object sender, EventArgs e) { activityEvent.Set(); }
+                    void ActivityHandlerLambda(object? sender, EventArgs e) { activityEvent.Set(); }
                     process.Exited += ActivityHandlerLambda;
                     stdoutReader.DataReceived += ActivityHandlerLambda;
                     stderrReader.DataReceived += ActivityHandlerLambda;
@@ -169,7 +133,7 @@ namespace Hpdi.Vss2Git
 
                         while (true)
                         {
-                            string line = stdoutReader.ReadLine();
+                            string? line = stdoutReader.ReadLine();
                             if (line != null)
                             {
                                 line = line.TrimEnd();
@@ -178,7 +142,7 @@ namespace Hpdi.Vss2Git
                                     stdoutBuffer.AppendLine();
                                 }
                                 stdoutBuffer.Append(line);
-                                this.Logger.Write('>');
+                                Logger.Write('>');
                             }
                             else
                             {
@@ -191,14 +155,14 @@ namespace Hpdi.Vss2Git
                                         stderrBuffer.AppendLine();
                                     }
                                     stderrBuffer.Append(line);
-                                    this.Logger.Write('!');
+                                    Logger.Write('!');
                                 }
                                 else
                                 {
                                     break;
                                 }
                             }
-                            this.Logger.WriteLine(line);
+                            Logger.WriteLine(line);
                         }
 
                         if (process.HasExited)
@@ -216,23 +180,25 @@ namespace Hpdi.Vss2Git
             }
             catch (FileNotFoundException e)
             {
-                throw new SourceSafe.Exceptions.ExternalProcessException("Executable not found.",
+                throw new Exceptions.ExternalProcessException("Executable not found.",
                     e, startInfo.FileName, startInfo.Arguments);
             }
             catch (Win32Exception e)
             {
-                throw new SourceSafe.Exceptions.ExternalProcessException("Error executing external process.",
+                throw new Exceptions.ExternalProcessException("Error executing external process.",
                     e, startInfo.FileName, startInfo.Arguments);
             }
             finally
             {
-                this.Stopwatch.Stop();
+                Stopwatch.Stop();
             }
         }
 
-        private static bool FindInPathVar(string filename, out string foundPath)
+        private static bool FindInPathVar(
+            string filename,
+            out string? foundPath)
         {
-            string path = Environment.GetEnvironmentVariable("PATH");
+            string? path = Environment.GetEnvironmentVariable("PATH");
             if (!string.IsNullOrEmpty(path))
             {
                 return FindInPaths(filename, path.Split(Path.PathSeparator), out foundPath);
@@ -241,7 +207,10 @@ namespace Hpdi.Vss2Git
             return false;
         }
 
-        private static bool FindInPaths(string filename, IEnumerable<string> searchPaths, out string foundPath)
+        private static bool FindInPaths(
+            string filename,
+            IEnumerable<string> searchPaths,
+            out string? foundPath)
         {
             foreach (string searchPath in searchPaths)
             {
@@ -256,7 +225,8 @@ namespace Hpdi.Vss2Git
             return false;
         }
 
-        /*protected virtual*/ void ValidateRepoPath()
+        /*protected virtual*/
+        void ValidateRepoPath()
         {
             const string metaDir = ".git";
             string[] files = Directory.GetFiles(GetRepoPath());
@@ -279,7 +249,8 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        /*protected*/ static void DeleteDirectory(string path)
+        /*protected*/
+        static void DeleteDirectory(string path)
         {
             // this method should be used with caution - therefore it is protected
             if (!Directory.Exists(path))
@@ -313,18 +284,18 @@ namespace Hpdi.Vss2Git
 
         public override bool FindExecutable()
         {
-            if (FindInPathVar("git.exe", out string foundPath))
+            if (FindInPathVar("git.exe", out string? foundPath))
             {
-                GitExecutable = foundPath;
+                GitExecutable = foundPath!;
                 GitInitialArguments = null;
-                this.ShellQuoting = false;
+                ShellQuoting = false;
                 return true;
             }
-            if (FindInPathVar("git.cmd", out foundPath))
+            if (FindInPathVar("git.cmd", out _))
             {
                 GitExecutable = "cmd.exe";
                 GitInitialArguments = "/c git";
-                this.ShellQuoting = true;
+                ShellQuoting = true;
                 return true;
             }
             return false;
@@ -356,7 +327,7 @@ namespace Hpdi.Vss2Git
 
         public override bool Add(string path)
         {
-            ProcessStartInfo startInfo = GetStartInfo("add -- " + QuoteRelativePath(path));
+            ProcessStartInfo startInfo = GetStartInfo($"add -- {QuoteRelativePath(path)}");
 
             // add fails if there are no files (directories don't count)
             bool result = ExecuteUnless(startInfo, "did not match any files");
@@ -403,7 +374,10 @@ namespace Hpdi.Vss2Git
 
             // add fails if there are no files (directories don't count)
             bool result = ExecuteUnless(startInfo, "did not match any files");
-            if (result) SetNeedsCommit();
+            if (result)
+            {
+                SetNeedsCommit();
+            }
             return result;
         }
 
@@ -415,7 +389,7 @@ namespace Hpdi.Vss2Git
 
         public override void RemoveDir(string path, bool recursive)
         {
-            GitExec("rm " + (recursive ? "-r -f " : "") + "-- " + QuoteRelativePath(path));
+            GitExec($"rm {(recursive ? "-r -f " : "")}-- {QuoteRelativePath(path)}");
             SetNeedsCommit();
         }
 
@@ -424,25 +398,35 @@ namespace Hpdi.Vss2Git
             // do nothing - remove only on file system - git doesn't care about directories with no files
         }
 
-        public override void MoveFile(string sourcePath, string destPath)
+        public override void MoveFile(
+            string sourcePath,
+            string destinationPath)
         {
-            GitExec("mv -- " + QuoteRelativePath(sourcePath) + " " + QuoteRelativePath(destPath));
+            GitExec($"mv -- {QuoteRelativePath(sourcePath)} {QuoteRelativePath(destinationPath)}");
             SetNeedsCommit();
         }
 
-        public override void MoveDir(string sourcePath, string destPath)
+        public override void MoveDir(
+            string sourcePath,
+            string destinationPath)
         {
-            GitExec("mv -- " + QuoteRelativePath(sourcePath) + " " + QuoteRelativePath(destPath));
+            GitExec($"mv -- {QuoteRelativePath(sourcePath)} {QuoteRelativePath(destinationPath)}");
             SetNeedsCommit();
         }
 
-        public override void MoveEmptyDir(string sourcePath, string destPath)
+        public override void MoveEmptyDir(
+            string sourcePath,
+            string destinationPath)
         {
             // move only on file system - git doesn't care about directories with no files
-            Directory.Move(sourcePath, destPath);
+            Directory.Move(sourcePath, destinationPath);
         }
 
-        public override bool DoCommit(string authorName, string authorEmail, string comment, DateTime utcTime)
+        public override bool DoCommit(
+            string authorName,
+            string authorEmail,
+            string comment,
+            DateTime utcTime)
         {
             if (utcTime.Kind != DateTimeKind.Utc)
             {
@@ -450,7 +434,7 @@ namespace Hpdi.Vss2Git
             }
 
             string args = "commit";
-            AddComment(comment, ref args, out TempFile commentFile);
+            AddComment(comment, ref args, out TempFile? commentFile);
 
             using (commentFile)
             {
@@ -470,7 +454,12 @@ namespace Hpdi.Vss2Git
             }
         }
 
-        public override void Tag(string name, string taggerName, string taggerEmail, string comment, DateTime utcTime)
+        public override void Tag(
+            string name,
+            string taggerName,
+            string taggerEmail,
+            string comment,
+            DateTime utcTime)
         {
             if (utcTime.Kind != DateTimeKind.Utc)
             {
@@ -478,7 +467,7 @@ namespace Hpdi.Vss2Git
             }
 
             string args = "tag";
-            AddComment(comment, ref args, out TempFile commentFile);
+            AddComment(comment, ref args, out TempFile? commentFile);
 
             // tag names are not quoted because they cannot contain whitespace or quotes
             args += " -- " + name;
@@ -493,5 +482,5 @@ namespace Hpdi.Vss2Git
                 ExecuteUnless(startInfo, null);
             }
         }
-    }
+    };
 }

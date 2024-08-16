@@ -43,7 +43,7 @@ namespace Hpdi.Vss2Git
                 PopulateExecutionSettings();
 
                 SourceSafe.GitConversion.Wrappers.AbstractGitWrapper git =
-                    new GitExeWrapper(string.Empty, null);
+                    new SourceSafe.GitConversion.Wrappers.GitExeWrapper(string.Empty, SourceSafe.IO.SimpleLogger.Null);
                 while (!git.FindExecutable())
                 {
                     DialogResult button = MessageBox.Show("Git not found in PATH. " +

@@ -14,7 +14,7 @@ namespace SourceSafe.GitConversion.Wrappers
 
         public bool IncludeIgnoredFiles { get; set; }
 
-        public IO.SimpleLogger? Logger { get; } = null;
+        public IO.SimpleLogger Logger { get; }
 
         public Stopwatch Stopwatch { get; } = new Stopwatch();
         public bool ShellQuoting { get; set; } = false;
