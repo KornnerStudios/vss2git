@@ -10,7 +10,9 @@ namespace SourceSafe
     {
         public delegate T TransformFunction<F, T>(F obj);
 
-        public static IEnumerable<T> Transform<F, T>(IEnumerable<F> items, TransformFunction<F, T> func)
+        public static IEnumerable<T> Transform<F, T>(
+            IEnumerable<F> items,
+            TransformFunction<F, T> func)
         {
             foreach (F item in items)
             {
@@ -18,7 +20,10 @@ namespace SourceSafe
             }
         }
 
-        public static void Join(StringBuilder buf, string separator, IEnumerable items)
+        public static void Join(
+            StringBuilder buf,
+            string separator,
+            IEnumerable items)
         {
             bool first = true;
             foreach (object item in items)
@@ -33,6 +38,22 @@ namespace SourceSafe
                 }
                 buf.Append(item);
             }
+        }
+
+        public static string FormatCollection<T>(
+            IEnumerable<T> collection,
+            string separator = ", ")
+        {
+            StringBuilder buf = new();
+            foreach (T item in collection)
+            {
+                if (buf.Length > 0)
+                {
+                    buf.Append(separator);
+                }
+                buf.Append(item);
+            }
+            return buf.ToString();
         }
     };
 }

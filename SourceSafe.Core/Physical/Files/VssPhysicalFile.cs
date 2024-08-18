@@ -15,8 +15,7 @@ namespace SourceSafe.Physical.Files
     /// <summary>
     /// Represents a file containing VSS project/file records.
     /// </summary>
-    public // #TODO temporary until VssDatabase is in this assembly
-    /*internal*/ class VssPhysicalFile : VssRecordFileBase
+    internal class VssPhysicalFile : VssRecordFileBase
     {
         const string FILE_SIGNATUIRE = "SourceSafe@Microsoft";
 
@@ -113,7 +112,7 @@ namespace SourceSafe.Physical.Files
             }
 #endif // LAST_REVISION_OFFSET_CHECK_ENABLED
 
-            reader.Offset = revision.Header!.Offset + revision.Header.Length + Records.RecordHeader.LENGTH;
+            reader.Offset = revision.Header.Offset + revision.Header.Length + Records.RecordHeader.LENGTH;
             return GetNextRecord(CreateRevisionRecord, true);
         }
 

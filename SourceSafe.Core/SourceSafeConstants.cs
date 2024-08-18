@@ -1,6 +1,4 @@
-﻿// #TODO temporarily expose to VssDump project
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("VssDump")]
-
+﻿
 namespace SourceSafe
 {
     public static class SourceSafeConstants
@@ -13,6 +11,7 @@ namespace SourceSafe
         public const string ProjectSpecPrefix = RootProjectName + ProjectSeparator;
 
         public const string IniFile = "srcsafe.ini";
+        public const string UsersIniFile = "users.txt";
 
         public static readonly DateTime UnixLocalTimeEpoch =
             new(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);

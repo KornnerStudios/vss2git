@@ -1,10 +1,9 @@
 ﻿
 namespace SourceSafe.Physical.Files.Names
 {
-    public // #TODO temporary until VssDatabase is moved to SourceSafe.Core
-    /*internal*/ sealed class VssNamesDatFile : VssRecordFileBase
+    internal sealed class VssNamesDatFile : VssRecordFileBase
     {
-        internal /*public*/ NamesHeaderRecord Header { get; } = new();
+        public NamesHeaderRecord Header { get; } = new();
         private readonly Dictionary<int, NamesRecord> mRecordsByFileOffset = [];
 
         public VssNamesDatFile(string filename, System.Text.Encoding encoding)
@@ -25,7 +24,7 @@ namespace SourceSafe.Physical.Files.Names
             }
         }
 
-        internal /*public*/ NamesRecord GetNameRecordByFileOffset(int fileOffset)
+        public NamesRecord GetNameRecordByFileOffset(int fileOffset)
         {
             ArgumentOutOfRangeException.ThrowIfNegative(fileOffset);
             ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(fileOffset, Header.EofOffset);
@@ -38,7 +37,7 @@ namespace SourceSafe.Physical.Files.Names
             return record;
         }
 
-        internal /*public*/ IEnumerable<NamesRecord> GetRecords()
+        public IEnumerable<NamesRecord> GetRecords()
         {
             return mRecordsByFileOffset.Values;
         }

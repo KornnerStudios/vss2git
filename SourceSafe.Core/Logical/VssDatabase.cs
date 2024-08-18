@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Cryptography;
+using System.Text;
 using SourceSafe.Physical.Files;
 using SourceSafe.Physical.Records;
 
@@ -7,12 +8,16 @@ namespace SourceSafe.Logical
     public sealed class VssDatabase
     {
         private readonly Physical.Files.Names.VssNamesDatFile mNameFile;
+        private readonly HashSet<string> mKnownUserNames = [];
 
         public string BasePath { get; init; }
 
         public string IniPath { get; init; }
+        public string UsersIniPath { get; init; }
 
         public string DataPath { get; init; }
+
+        public IReadOnlySet<string> KnownUserNames => mKnownUserNames;
 
         public Items.VssProjectItem RootProject { get; init; }
 
@@ -91,20 +96,49 @@ namespace SourceSafe.Logical
             return File.Exists(physicalPath);
         }
 
-        public VssDatabase(string path, Encoding encoding)
+        public VssDatabase(string repositoryPath, Encoding encoding)
         {
-            BasePath = path;
+            BasePath = repositoryPath;
             Encoding = encoding;
 
-            IniPath = Path.Combine(path, SourceSafeConstants.IniFile);
-            IO.SimpleIniReader iniReader = new(IniPath);
-            iniReader.Parse();
+            #region Read srcsafe.ini
+            {
+                IniPath = Path.Combine(repositoryPath, SourceSafeConstants.IniFile);
+                IO.SimpleIniReader srcSafeIni = new(IniPath);
+                srcSafeIni.Parse();
 
-            DataPath = Path.Combine(path, iniReader.GetValue("Data_Path", "data"));
+                string dataPathInIni = srcSafeIni.GetValue("Data_Path", "data");
+                DataPath = Path.Combine(repositoryPath, dataPathInIni);
+            }
+            #endregion
 
-            string namesPath = Path.Combine(DataPath, "names.dat");
-            mNameFile = new Physical.Files.Names.VssNamesDatFile(namesPath, encoding);
-            mNameFile.ReadHeaderAndNames();
+            #region Read names.dat
+            {
+                string namesPath = Path.Combine(DataPath, "names.dat");
+                mNameFile = new Physical.Files.Names.VssNamesDatFile(namesPath, encoding);
+                mNameFile.ReadHeaderAndNames();
+            }
+            #endregion
+
+            #region Read users.txt
+            {
+                UsersIniPath = Path.Combine(repositoryPath, SourceSafeConstants.UsersIniFile);
+                IO.SimpleIniReader usersIni = new(UsersIniPath);
+                usersIni.Parse();
+
+                // unlike the um.dat file, the users.txt entries are not alphabetized.
+                // Example entry format: "Admin = users\admin\ss.ini".
+                // #NOTE There may have been a bug in VSS where renaming a user added a new (empty) folder
+                // with the new user name, but did not remove the old folder and instead saved to the
+                // old user name's folder and ss.ini. I've seen this in at least one repository.
+                if (usersIni.Entries.Count > 0)
+                {
+                    List<string> usersFromIni = usersIni.Entries.Keys.ToList();
+                    usersFromIni.Sort();
+                    mKnownUserNames = new(usersFromIni);
+                }
+            }
+            #endregion
 
             RootProject = OpenProject(null, SourceSafeConstants.RootPhysicalFile, SourceSafeConstants.RootProjectName);
         }
@@ -140,7 +174,11 @@ namespace SourceSafe.Logical
 
         internal string GetDataPath(string physicalName)
         {
-            return Path.Combine(Path.Combine(DataPath, physicalName.Substring(0, 1)), physicalName);
+            // e.g., <repo>\data\y\yaaaaaaa
+            string physicalNameFirstLetter = physicalName[..1];
+            string physicalRootFolder = Path.Combine(DataPath, physicalNameFirstLetter);
+            string physicalFilePath = Path.Combine(physicalRootFolder, physicalName);
+            return physicalFilePath;
         }
 
         internal string GetFullName(Physical.VssName name)

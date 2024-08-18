@@ -140,12 +140,22 @@ namespace SourceSafe.Physical.Revisions
             writer.Write(indentStr);
             writer.WriteLine("#{0:D3} {1} by '{2}' at {3}",
                 Revision, Action, User, DateTime);
-            writer.Write(indentStr);
-            writer.WriteLine("Label: {0}", Label);
-            writer.Write(indentStr);
-            writer.WriteLine("Comment: length {0}, offset {1:X6}", CommentLength, CommentOffset);
-            writer.Write(indentStr);
-            writer.WriteLine("Label comment: length {0}, offset {1:X6}", LabelCommentLength, LabelCommentOffset);
+            // #TODO use a verbose flag to dump the label and comments
+            if (!string.IsNullOrEmpty(Label))
+            {
+                writer.Write(indentStr);
+                writer.WriteLine("Label: {0}", Label);
+            }
+            if (CommentLength > 0)
+            {
+                writer.Write(indentStr);
+                writer.WriteLine("Comment: length {0}, offset {1:X6}", CommentLength, CommentOffset);
+            }
+            if (LabelCommentLength > 0)
+            {
+                writer.Write(indentStr);
+                writer.WriteLine("Label comment: length {0}, offset {1:X6}", LabelCommentLength, LabelCommentOffset);
+            }
         }
     };
 }

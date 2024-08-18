@@ -6,22 +6,20 @@ namespace SourceSafe.IO
     /// </summary>
     public sealed class SimpleIniReader
     {
-        private readonly Dictionary<string, string> entries = [];
+        public string FileName { get; }
+        public Dictionary<string, string> Entries { get; } = [];
 
-        public SimpleIniReader(string filename)
+        public SimpleIniReader(string fileName)
         {
-            Filename = filename;
+            FileName = fileName;
         }
-
-        public string Filename { get; }
 
         public void Parse()
         {
-            entries.Clear();
+            Entries.Clear();
 
-            using var reader = new StreamReader(Filename);
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            using var reader = new StreamReader(FileName);
+            for (string? line; (line = reader.ReadLine()) != null; )
             {
                 line = line.Trim();
                 if (line.Length > 0 && !line.StartsWith(';'))
@@ -31,7 +29,7 @@ namespace SourceSafe.IO
                     {
                         string key = line[..separator].Trim();
                         string value = line[(separator + 1)..].Trim();
-                        entries[key] = value;
+                        Entries[key] = value;
                     }
                 }
             }
@@ -39,7 +37,7 @@ namespace SourceSafe.IO
 
         public string GetValue(string key, string defaultValue)
         {
-            return entries.TryGetValue(key, out string? result)
+            return Entries.TryGetValue(key, out string? result)
                 ? result
                 : defaultValue;
         }
