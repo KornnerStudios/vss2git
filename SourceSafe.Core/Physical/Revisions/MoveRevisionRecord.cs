@@ -18,15 +18,15 @@ namespace SourceSafe.Physical.Revisions
             Physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            base.Dump(writer, indent);
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
+            base.Dump(textDumper);
 
-            writer.Write(indentStr);
-            writer.WriteLine($"Project path: {ProjectPath}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Name: {Name.ShortName} ({Physical})");
+            if (textDumper.VerboseFilter(!string.IsNullOrEmpty(ProjectPath)))
+            {
+                textDumper.WriteLine($"Project path: {ProjectPath}");
+            }
+            textDumper.WriteLine($"Name: {Name.ShortName} ({Physical})");
         }
     };
 }

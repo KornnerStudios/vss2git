@@ -18,12 +18,12 @@ namespace SourceSafe.Physical.Records
             Comment = reader.ReadString(reader.RemainingSize);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.WriteLine("{0}", Comment);
+            if (textDumper.VerboseFilter(!string.IsNullOrEmpty(Comment)))
+            {
+                textDumper.WriteLine(Comment);
+            }
         }
     };
 }

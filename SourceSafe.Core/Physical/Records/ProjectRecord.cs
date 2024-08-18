@@ -22,14 +22,10 @@ namespace SourceSafe.Physical.Records
             ProjectFile = reader.ReadString(12);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.WriteLine("Project file: {0}", ProjectFile);
-            writer.Write(indentStr);
-            writer.WriteLine("Prev project offset: {0:X6}", PrevProjectOffset);
+            textDumper.WriteLine($"Project file: {ProjectFile}");
+            textDumper.WriteLine($"Prev project offset: {PrevProjectOffset:X6}");
         }
     };
 }

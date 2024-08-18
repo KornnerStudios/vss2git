@@ -12,6 +12,9 @@ namespace SourceSafe.Analysis
         public bool DumpRecordHeaders { get; set; }
             = true;
 
+        public bool DumpVerboseData { get; set; }
+            = false;
+
         public Action<TextWriter, Exception>? WriteExceptionCallback { get; init; } = null;
 
         readonly TextWriter mWriter;
@@ -40,6 +43,34 @@ namespace SourceSafe.Analysis
             mWriter.Write(indentStr);
         }
         #endregion
+
+        public void Write(string text)
+        {
+            mWriter.Write(text);
+        }
+
+        public void WriteLine(string line)
+        {
+            WriteIndent();
+            mWriter.WriteLine(line);
+        }
+
+        public void WriteLine() => mWriter.WriteLine();
+
+        public void WriteNonIndentedLine(string line)
+        {
+            mWriter.WriteLine(line);
+        }
+
+        public bool VerboseFilter(bool verboseCondition)
+        {
+            if (DumpVerboseData)
+            {
+                return true;
+            }
+
+            return verboseCondition;
+        }
 
         public void DumpAllPossiblePhysicalFiles(
             string repositoryDataPath,
@@ -145,20 +176,20 @@ namespace SourceSafe.Analysis
 
             if (DumpRecordHeaders)
             {
-                namesDatFile.Header.Header.Dump(mWriter, IndentLevel);
+                namesDatFile.Header.Header.Dump(this);
             }
-            namesDatFile.Header.Dump(mWriter, IndentLevel);
+            namesDatFile.Header.Dump(this);
 
             IncreaseIndent();
             foreach (Physical.Files.Names.NamesRecord record in namesDatFile.GetRecords())
             {
                 if (DumpRecordHeaders)
                 {
-                    record.Header.Dump(mWriter, IndentLevel);
+                    record.Header.Dump(this);
                 }
 
                 IncreaseIndent();
-                record.Dump(mWriter, IndentLevel);
+                record.Dump(this);
                 DecreaseIndent();
             }
             DecreaseIndent();

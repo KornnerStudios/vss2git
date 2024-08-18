@@ -19,6 +19,6 @@ namespace SourceSafe.Physical.Records
             mHeader = header;
         }
 
-        public abstract void Dump(TextWriter writer, int indent);
+        public abstract void Dump(Analysis.AnalysisTextDumper textDumper);
     };
 }

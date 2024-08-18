@@ -69,20 +69,15 @@ namespace SourceSafe.Physical.Records
             ActualCrc = reader.Crc16(Length);
         }
 
-        public void Dump(TextWriter writer, int indent)
+        public void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            if (indent > 0)
-            {
-                for (int x = 0; x < indent; x++)
-                    writer.Write('\t');
-            }
-
-            writer.Write($"Signature: {Signature} - Offset: {Offset:X8} - Length: {Length:X8}");
+            textDumper.WriteIndent();
+            textDumper.Write($"Signature: {Signature} - Offset: {Offset:X8} - Length: {Length:X8}");
             if (!IsCrcValid)
             {
-                writer.Write($" - INVALID CRC: expected={FileCrc:X4} actual={ActualCrc:X4})");
+                textDumper.Write($" - INVALID CRC: expected={FileCrc:X4} actual={ActualCrc:X4})");
             }
-            writer.WriteLine();
+            textDumper.WriteLine();
         }
     };
 }

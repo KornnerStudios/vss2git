@@ -18,15 +18,12 @@ namespace SourceSafe.Physical.Revisions
             BranchFile = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            base.Dump(writer, indent);
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
+            base.Dump(textDumper);
 
-            writer.Write(indentStr);
-            writer.WriteLine($"Name: {Name.ShortName} ({Physical})");
-            writer.Write(indentStr);
-            writer.WriteLine($"Branched from file: {BranchFile}");
+            textDumper.WriteLine($"Name: {Name.ShortName} ({Physical})");
+            textDumper.WriteLine($"Branched from file: {BranchFile}");
         }
     };
 }

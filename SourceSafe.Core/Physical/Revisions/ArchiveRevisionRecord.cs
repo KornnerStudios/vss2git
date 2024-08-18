@@ -20,15 +20,12 @@ namespace SourceSafe.Physical.Revisions
             reader.SkipUnknown(4); // ?
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            base.Dump(writer, indent);
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
+            base.Dump(textDumper);
 
-            writer.Write(indentStr);
-            writer.WriteLine("Name: {0} ({1})", Name.ShortName, Physical);
-            writer.Write(indentStr);
-            writer.WriteLine("Archive path: {0}", ArchivePath);
+            textDumper.WriteLine($"Name: {Name.ShortName} ({Physical})");
+            textDumper.WriteLine($"Archive path: {ArchivePath}");
         }
     };
 }

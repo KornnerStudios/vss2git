@@ -14,13 +14,19 @@ namespace SourceSafe.Physical.Revisions
             Physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            base.Dump(writer, indent);
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
+            base.Dump(textDumper);
 
-            writer.Write(indentStr);
-            writer.WriteLine($"Name: {Name.ShortName} ({Physical})");
+            if (string.IsNullOrEmpty(Name.ShortName) && string.IsNullOrEmpty(Physical))
+            {
+                // Should be expected for CreateProject
+                textDumper.WriteLine($"Name: NONE!");
+            }
+            else
+            {
+                textDumper.WriteLine($"Name: {Name.ShortName} ({Physical})");
+            }
         }
     };
 }

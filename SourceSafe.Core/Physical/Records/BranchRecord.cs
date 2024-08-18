@@ -22,14 +22,10 @@ namespace SourceSafe.Physical.Records
             BranchFile = reader.ReadString(12);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.WriteLine("Prev branch offset: {0:X6}", PrevBranchOffset);
-            writer.Write(indentStr);
-            writer.WriteLine("Branch file: {0}", BranchFile);
+            textDumper.WriteLine($"Prev branch offset: {PrevBranchOffset:X6}");
+            textDumper.WriteLine($"Branch file: {BranchFile}");
         }
     };
 }

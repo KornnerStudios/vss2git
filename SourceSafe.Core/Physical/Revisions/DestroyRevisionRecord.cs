@@ -19,17 +19,16 @@ namespace SourceSafe.Physical.Revisions
             Physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            base.Dump(writer, indent);
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
+            base.Dump(textDumper);
 
-            writer.Write(indentStr);
-            writer.WriteLine($"Name: {Name.ShortName} ({Physical})");
+            textDumper.WriteLine($"Name: {Name.ShortName} ({Physical})");
             if (unkShort != 0)
             {
-                writer.Write(IO.OutputUtil.GetIndentString(indent + 1));
-                writer.WriteLine($"Unknown: {unkShort}");
+                textDumper.IncreaseIndent();
+                textDumper.WriteLine($"Unknown: {unkShort}");
+                textDumper.DecreaseIndent();
             }
         }
     };

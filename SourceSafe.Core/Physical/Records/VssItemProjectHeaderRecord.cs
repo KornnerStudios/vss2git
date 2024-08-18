@@ -27,19 +27,14 @@ namespace SourceSafe.Physical.Records
             Subprojects = reader.ReadInt16();
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            base.Dump(writer, indent);
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
+            base.Dump(textDumper);
 
-            writer.Write(indentStr);
-            writer.WriteLine("Parent project: {0}", ParentProject);
-            writer.Write(indentStr);
-            writer.WriteLine("Parent file: {0}", ParentFile);
-            writer.Write(indentStr);
-            writer.WriteLine("Total items: {0}", TotalItems);
-            writer.Write(indentStr);
-            writer.WriteLine("Subprojects: {0}", Subprojects);
+            textDumper.WriteLine($"Parent project: {ParentProject}");
+            textDumper.WriteLine($"Parent file: {ParentFile}");
+            textDumper.WriteLine($"Total items: {TotalItems}");
+            textDumper.WriteLine($"Subprojects: {Subprojects}");
         }
     };
 }

@@ -72,24 +72,15 @@ namespace SourceSafe.Physical.Records
             reader.SkipAssumedToBeAllZeros(16);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.WriteLine($"Item Type: {ItemType} - Revisions: {Revisions} - Name: {Name.ShortName}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Name offset: {Name.NameFileOffset:X6}");
-            writer.Write(indentStr);
-            writer.WriteLine($"First revision: #{FirstRevision:D3}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Data extension: {DataExt}");
-            writer.Write(indentStr);
-            writer.WriteLine($"First/last rev offset: {FirstRevOffset:X6}/{LastRevOffset:X6}");
-            writer.Write(indentStr);
-            writer.WriteLine($"EOF offset: {EofOffset:X6}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Rights offset: {RightsOffset:X8}");
+            textDumper.WriteLine($"Item Type: {ItemType} - Revisions: {Revisions} - Name: {Name.ShortName}");
+            textDumper.WriteLine($"Name offset: {Name.NameFileOffset:X6}");
+            textDumper.WriteLine($"First revision: #{FirstRevision:D3}");
+            textDumper.WriteLine($"Data extension: {DataExt}");
+            textDumper.WriteLine($"First/last rev offset: {FirstRevOffset:X6}/{LastRevOffset:X6}");
+            textDumper.WriteLine($"EOF offset: {EofOffset:X6}");
+            textDumper.WriteLine($"Rights offset: {RightsOffset:X8}");
         }
     };
 }

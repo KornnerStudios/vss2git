@@ -62,13 +62,11 @@ namespace SourceSafe.Physical.Files.Names
             }
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
             for (int i = 0; i < mEntries.Length; ++i)
             {
-                writer.Write(indentStr);
-                writer.WriteLine($"{mEntries[i].Kind} name: {mEntries[i].Name}");
+                textDumper.WriteLine($"{mEntries[i].Kind} name: {mEntries[i].Name}");
             }
         }
     };

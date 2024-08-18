@@ -95,33 +95,21 @@ namespace SourceSafe.Physical.Records
             Checkouts = reader.ReadInt32();
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.WriteLine($"User: {User} @ {CheckOutDateTime}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Working: {WorkingDir}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Machine: {Machine}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Project: {Project}");
+            textDumper.WriteLine($"User: {User} @ {CheckOutDateTime}");
+            textDumper.WriteLine($"Working: {WorkingDir}");
+            textDumper.WriteLine($"Machine: {Machine}");
+            textDumper.WriteLine($"Project: {Project}");
             if (!string.IsNullOrEmpty(Comment))
             {
-                writer.Write(indentStr);
-                writer.WriteLine($"Comment: {Comment}");
+                textDumper.WriteLine($"Comment: {Comment}");
             }
-            writer.Write(indentStr);
-            writer.WriteLine($"Revision: #{Revision:D3}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Flags: {Flags:X4}{(Exclusive ? " (exclusive)" : "")}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Prev checkout offset: {PrevCheckoutOffset:X6}");
-            writer.Write(indentStr);
-            writer.WriteLine($"This checkout offset: {ThisCheckoutOffset:X6}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Checkouts: {Checkouts}");
+            textDumper.WriteLine($"Revision: #{Revision:D3}");
+            textDumper.WriteLine($"Flags: {Flags:X4}{(Exclusive ? " (exclusive)" : "")}");
+            textDumper.WriteLine($"Prev checkout offset: {PrevCheckoutOffset:X6}");
+            textDumper.WriteLine($"This checkout offset: {ThisCheckoutOffset:X6}");
+            textDumper.WriteLine($"Checkouts: {Checkouts}");
         }
     };
 }

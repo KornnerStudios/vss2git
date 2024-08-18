@@ -82,33 +82,24 @@ namespace SourceSafe.Physical.Records
             reader.ReadInt16(); // projectCount
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            base.Dump(writer, indent);
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
+            base.Dump(textDumper);
 
-            writer.Write(indentStr);
-            writer.WriteLine($"Flags: {Flags}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Branched from file: {BranchFile}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Branch offset: {BranchOffset:X6}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Branch count: {BranchCount}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Project offset: {ProjectOffset:X6}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Project count: {ProjectCount}");
-            writer.Write(indentStr);
-            writer.WriteLine($"First/last checkout offset: {FirstCheckoutOffset:X6}/{LastCheckoutOffset:X6}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Data CRC: {DataCrc:X8}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Last revision time: {LastRevDateTime}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Modification time: {ModificationDateTime}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Creation time: {CreationDateTime}");
+            textDumper.WriteLine($"Flags: {Flags}");
+            if (textDumper.VerboseFilter(!string.IsNullOrEmpty(BranchFile) || BranchOffset != 0))
+            {
+                textDumper.WriteLine($"Branched from file: {BranchFile}");
+                textDumper.WriteLine($"Branch offset: {BranchOffset:X6}");
+                textDumper.WriteLine($"Branch count: {BranchCount}");
+            }
+            textDumper.WriteLine($"Project offset: {ProjectOffset:X6}");
+            textDumper.WriteLine($"Project count: {ProjectCount}");
+            textDumper.WriteLine($"First/last checkout offset: {FirstCheckoutOffset:X6}/{LastCheckoutOffset:X6}");
+            textDumper.WriteLine($"Data CRC: {DataCrc:X8}");
+            textDumper.WriteLine($"Last revision time: {LastRevDateTime}");
+            textDumper.WriteLine($"Modification time: {ModificationDateTime}");
+            textDumper.WriteLine($"Creation time: {CreationDateTime}");
         }
     };
 }

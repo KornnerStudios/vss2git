@@ -79,14 +79,12 @@ namespace SourceSafe.Physical.DeltaDiff
         }
 
         public static bool IncludeDataBytesInDump { get; set; } = false;
-        public void Dump(TextWriter writer, int indent)
+        public void Dump(Analysis.AnalysisTextDumper textDumper)
         {
             const int MAX_DATA_DUMP = 40;
 
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.Write($"Offset={Offset:X8}, Length={Length:X4}, {Command}");
+            textDumper.WriteIndent();
+            textDumper.Write($"Offset={Offset:X8}, Length={Length:X4}, {Command}");
             if (IncludeDataBytesInDump && data.Array != null)
             {
                 int dumpLength = data.Count;
@@ -103,9 +101,9 @@ namespace SourceSafe.Physical.DeltaDiff
                     byte b = data.Array[data.Offset + i];
                     buf.Append(b >= 0x20 && b <= 0x7E ? (char)b : '.');
                 }
-                writer.Write(", Data: {0}{1}", buf.ToString(), truncated ? "..." : "");
+                textDumper.Write($", Data: {buf}{(truncated ? "..." : "")}");
             }
-            writer.WriteLine();
+            textDumper.WriteLine();
         }
     };
 }

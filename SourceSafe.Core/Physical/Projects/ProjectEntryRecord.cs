@@ -36,16 +36,11 @@ namespace SourceSafe.Physical.Projects
             Physical = reader.ReadString(10);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.WriteLine($"Item Type: {ItemType} - Name: {Name.ShortName} ({Physical})");
-            writer.Write(indentStr);
-            writer.WriteLine($"Flags: {Flags}");
-            writer.Write(indentStr);
-            writer.WriteLine($"Pinned version: {PinnedVersion}");
+            textDumper.WriteLine($"Item Type: {ItemType} - Name: {Name.ShortName} ({Physical})");
+            textDumper.WriteLine($"Flags: {Flags}");
+            textDumper.WriteLine($"Pinned version: {PinnedVersion}");
         }
     };
 }

@@ -32,9 +32,9 @@ namespace SourceSafe.Analysis
 
             if (DumpRecordHeaders)
             {
-                physicalFile.Header.Header.Dump(mWriter, IndentLevel);
+                physicalFile.Header.Header.Dump(this);
             }
-            physicalFile.Header.Dump(mWriter, IndentLevel);
+            physicalFile.Header.Dump(this);
 
             IncreaseIndent();
             Physical.Records.VssRecordBase? record = physicalFile.GetNextRecord(true);
@@ -44,11 +44,11 @@ namespace SourceSafe.Analysis
                 revisionIndex++;
                 if (DumpRecordHeaders)
                 {
-                    record.Header.Dump(mWriter, IndentLevel);
+                    record.Header.Dump(this);
                 }
 
                 IncreaseIndent();
-                record.Dump(mWriter, IndentLevel);
+                record.Dump(this);
                 DecreaseIndent();
 
                 #region Track encountered revision actions

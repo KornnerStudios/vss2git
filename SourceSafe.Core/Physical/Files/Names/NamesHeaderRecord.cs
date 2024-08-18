@@ -21,12 +21,9 @@ namespace SourceSafe.Physical.Files.Names
             reader.SkipAssumedToBeAllZeros(60); // remaining reserved; always 0
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.WriteLine($"EOF offset: {EofOffset:X6}");
+            textDumper.WriteLine($"EOF offset: {EofOffset:X6}");
         }
     };
 }

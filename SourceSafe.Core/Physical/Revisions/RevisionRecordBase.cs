@@ -131,30 +131,21 @@ namespace SourceSafe.Physical.Revisions
             LabelCommentLength = reader.ReadInt16();
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
-
-            writer.Write(indentStr);
-            writer.WriteLine("Prev rev offset: {0:X6}", PrevRevOffset);
-            writer.Write(indentStr);
-            writer.WriteLine("#{0:D3} {1} by '{2}' at {3}",
-                Revision, Action, User, DateTime);
-            // #TODO use a verbose flag to dump the label and comments
-            if (!string.IsNullOrEmpty(Label))
+            textDumper.WriteLine($"Prev rev offset: {PrevRevOffset:X6}");
+            textDumper.WriteLine($"#{Revision:D3} {Action} by '{User}' at {DateTime}");
+            if (textDumper.VerboseFilter(!string.IsNullOrEmpty(Label)))
             {
-                writer.Write(indentStr);
-                writer.WriteLine("Label: {0}", Label);
+                textDumper.WriteLine($"Label: {Label}");
             }
-            if (CommentLength > 0)
+            if (textDumper.VerboseFilter(CommentLength > 0))
             {
-                writer.Write(indentStr);
-                writer.WriteLine("Comment: length {0}, offset {1:X6}", CommentLength, CommentOffset);
+                textDumper.WriteLine($"Comment: length {CommentLength}, offset {CommentOffset:X6}");
             }
-            if (LabelCommentLength > 0)
+            if (textDumper.VerboseFilter(LabelCommentLength > 0))
             {
-                writer.Write(indentStr);
-                writer.WriteLine("Label comment: length {0}, offset {1:X6}", LabelCommentLength, LabelCommentOffset);
+                textDumper.WriteLine($"Label comment: length {LabelCommentLength}, offset {LabelCommentOffset:X6}");
             }
         }
     };

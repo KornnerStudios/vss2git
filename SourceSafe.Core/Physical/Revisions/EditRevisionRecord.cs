@@ -25,20 +25,22 @@ namespace SourceSafe.Physical.Revisions
             ProjectPath = reader.ReadString(260);
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            base.Dump(writer, indent);
-            string indentStr = IO.OutputUtil.GetIndentString(indent);
+            base.Dump(textDumper);
 
-            writer.Write(indentStr);
-            writer.WriteLine("Prev delta offset: {0:X6}", PrevDeltaOffset);
+            if (textDumper.VerboseFilter(PrevDeltaOffset != 0))
+            {
+                textDumper.WriteLine($"Prev delta offset: {PrevDeltaOffset:X6}");
+            }
             if (Unknown5C != 0)
             {
-                writer.Write(indentStr);
-                writer.WriteLine("Unknown delta offset: {0:X8}", Unknown5C);
+                textDumper.WriteLine($"Unknown delta offset: {Unknown5C:X8}");
             }
-            writer.Write(indentStr);
-            writer.WriteLine("Project path: {0}", ProjectPath);
+            if (!string.IsNullOrEmpty(ProjectPath))
+            {
+                textDumper.WriteLine($"Project path: {ProjectPath}");
+            }
         }
     };
 }

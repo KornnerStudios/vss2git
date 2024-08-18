@@ -48,11 +48,11 @@ namespace SourceSafe.Physical.DeltaDiff
 #endif // DEBUG
         }
 
-        public override void Dump(TextWriter writer, int indent)
+        public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
             foreach (DeltaOperation operation in operations)
             {
-                operation.Dump(writer, indent);
+                operation.Dump(textDumper);
             }
         }
     };
