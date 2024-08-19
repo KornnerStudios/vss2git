@@ -11,6 +11,8 @@ namespace SourceSafe.Analysis
 
         public bool DumpRecordHeaders { get; set; }
             = true;
+        public bool DumpDeltaRecordOperations { get; set; }
+            = true;
 
         public bool DumpVerboseData { get; set; }
             = false;

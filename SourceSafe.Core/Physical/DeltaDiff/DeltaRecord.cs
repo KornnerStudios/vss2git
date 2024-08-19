@@ -46,9 +46,12 @@ namespace SourceSafe.Physical.DeltaDiff
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            foreach (DeltaOperation operation in operations)
+            if (textDumper.DumpDeltaRecordOperations)
             {
-                operation.Dump(textDumper);
+                foreach (DeltaOperation operation in operations)
+                {
+                    operation.Dump(textDumper);
+                }
             }
         }
     };

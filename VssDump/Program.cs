@@ -22,6 +22,9 @@ namespace Hpdi.VssDump
 {
     public sealed class VssDumpOptions
     {
+        public string RepositoryPath { get; set; }
+            = @"";
+
         public string OutputFileName { get; set; }
             = @"";
 
@@ -29,6 +32,8 @@ namespace Hpdi.VssDump
             = null;
 
         public bool DumpRecordHeaders { get; set; }
+            = true;
+        public bool DumpDeltaRecordOperations { get; set; }
             = true;
 
         public bool DumpKnownUserNames { get; set; }
@@ -71,11 +76,8 @@ namespace Hpdi.VssDump
     {
         static bool ParseArgs(
             string[] args,
-            out string repoPath,
             ref VssDumpOptions dumpOptions)
         {
-            repoPath = null;
-
             bool invalidArg = false;
             int argIndex = 0;
             while (argIndex < args.Length && args[argIndex].StartsWith('/'))
@@ -125,7 +127,7 @@ namespace Hpdi.VssDump
                             goto InvalidArg;
                         }
 
-                        break;
+                        return true; // json file should contain the full suite of options
                     }
                     #endregion
 
@@ -201,7 +203,7 @@ namespace Hpdi.VssDump
                 return false;
             }
 
-            repoPath = args[argIndex];
+            dumpOptions.RepositoryPath = args[argIndex];
 
             return true;
         }
@@ -210,6 +212,7 @@ namespace Hpdi.VssDump
         {
             var dumpOptions = new VssDumpOptions()
             {
+                RepositoryPath = @"",
                 OutputFileName = @"",
                 EncodingNameOrCodePage = null,
                 DumpRecordHeaders = true,
@@ -222,7 +225,7 @@ namespace Hpdi.VssDump
                 ],
             };
 
-            if (!ParseArgs(args, out string repoPath, ref dumpOptions))
+            if (!ParseArgs(args, ref dumpOptions))
             {
                 return;
             }
@@ -242,12 +245,14 @@ namespace Hpdi.VssDump
             }
             #endregion
 
-            SourceSafe.Logical.VssDatabase db = new(repoPath, Encoding.Default);
+            // GetFullPath will also normalize the path (namely, use backslashes)
+            SourceSafe.Logical.VssDatabase db = new(System.IO.Path.GetFullPath(dumpOptions.RepositoryPath), Encoding.Default);
 
             #region Setup AnalysisTextDumper
             SourceSafe.Analysis.AnalysisTextDumper analysisTextDumper = new(outputWriter)
             {
                 DumpRecordHeaders = dumpOptions.DumpRecordHeaders,
+                DumpDeltaRecordOperations = dumpOptions.DumpDeltaRecordOperations,
                 WriteExceptionCallback = WriteException,
             };
             SourceSafe.Analysis.AnalysisTextDumper.DumpFileHierarchyAdditionalResults
