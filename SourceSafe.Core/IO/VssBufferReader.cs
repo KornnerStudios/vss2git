@@ -20,16 +20,26 @@ namespace SourceSafe.IO
         private readonly Encoding mEncoding;
         private readonly ArraySegment<byte> mDataSegment;
         private int mOffset;
+
         public string FileName { get; private set; }
+        public string FileSegementDescription { get; }
+        public string FileNameAndSegment => $"{FileName}__{FileSegementDescription}";
+
         public bool ValidateAssumedToBeAllZerosAreAllZeros { get; set; }
             = ValidateAssumedToBeAllZerosAreAllZerosDefault;
 
-        public VssBufferReader(Encoding encoding, ArraySegment<byte> data, string fileName)
+        public VssBufferReader(
+            Encoding encoding,
+            ArraySegment<byte> data,
+            string fileName,
+            string fileSegmentDescription = "")
         {
             mDataSegment = data;
 
             mEncoding = encoding;
+
             FileName = fileName;
+            FileSegementDescription = fileSegmentDescription;
         }
 
         public int Offset
@@ -90,7 +100,7 @@ namespace SourceSafe.IO
                 if (nonZeroBytesCount > 0)
                 {
                     throw new InvalidOperationException(
-                        $"Expected {bytes} bytes to be all zeros, but {nonZeroBytesCount} were not at offset {Offset:X8} in {FileName}");
+                        $"Expected {bytes} bytes to be all zeros, but {nonZeroBytesCount} were not at offset {Offset:X8} in {FileNameAndSegment}");
                 }
             }
             mOffset += bytes;
@@ -134,21 +144,38 @@ namespace SourceSafe.IO
             return new Physical.VssName(ReadInt16(), ReadString(Physical.VssName.ShortNameLength), ReadInt32());
         }
 
-        public string ReadString(int fieldSize)
+        public string ReadPhysicalNameString8()
+            => ReadStringAndVerifyValidAscii(8);
+        public string ReadPhysicalNameString10()
+            => ReadStringAndVerifyValidAscii(10);
+
+        public string ReadFileNameString()
+            => ReadStringAndVerifyValidAscii(260);
+
+        public string ReadStringAndVerifyValidAscii(int fieldSize)
+            => ReadString(fieldSize, verifyValidAscii: true);
+        public string ReadString(int fieldSize, bool verifyValidAscii = false)
         {
             CheckRead(fieldSize);
 
             int count = 0;
             for (int i = 0; i < fieldSize; ++i)
             {
-                if (mDataSegment[Offset + i] == 0)
+                byte currentByte = mDataSegment[Offset + i];
+                if (currentByte == 0)
+                {
+                    break;
+                }
+                if (verifyValidAscii && !char.IsAscii((char)currentByte))
                 {
                     break;
                 }
                 ++count;
             }
 
-            string str = mEncoding.GetString(mDataSegment.AsSpan(Offset, count));
+            string str = count == 0
+                ? string.Empty
+                : mEncoding.GetString(mDataSegment.AsSpan(Offset, count));
 
             mOffset += fieldSize;
 
@@ -173,7 +200,7 @@ namespace SourceSafe.IO
             if (maxLength >= 0 && count > maxLength)
             {
                 throw new InvalidOperationException(
-                    $"Read CString of length {count} exceeds maximum length of {maxLength} at offset {Offset:X8} in {FileName}");
+                    $"Read CString of length {count} exceeds maximum length of {maxLength} at offset {Offset:X8} in {FileNameAndSegment}");
             }
 
             mOffset += (count + 1); // +1 for nil character
@@ -185,10 +212,15 @@ namespace SourceSafe.IO
         {
             CheckRead(bytes);
 
-            string newFileName = FileName;
-            newFileName += $"__chunk[{Offset:X8}, {bytes:X4}]";
+            // In the event there's nested buffer readers, we want to include the current segment description
+            StringBuilder segmentDescription = new(FileSegementDescription);
+            if (segmentDescription.Length > 0)
+            {
+                segmentDescription.Append("__");
+            }
+            segmentDescription.Append($"__chunk[{Offset:X8}, {bytes:X4}]");
 
-            var newBuffer = new VssBufferReader(mEncoding, mDataSegment.Slice(Offset, bytes), newFileName);
+            var newBuffer = new VssBufferReader(mEncoding, mDataSegment.Slice(Offset, bytes), FileName, segmentDescription.ToString());
             mOffset += bytes;
             return newBuffer;
         }
@@ -208,7 +240,7 @@ namespace SourceSafe.IO
             if (Offset + bytes > Size)
             {
                 throw new EndOfBufferException(
-                    $"Attempted read of {bytes} bytes with only {RemainingSize} bytes remaining in buffer for {FileName}");
+                    $"Attempted read of {bytes} bytes with only {RemainingSize} bytes remaining in buffer for {FileNameAndSegment}");
             }
         }
     };

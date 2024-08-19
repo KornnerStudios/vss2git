@@ -12,10 +12,8 @@ namespace SourceSafe.Physical.Files.Names
 
         public int EofOffset { get; private set; }
 
-        public override void Read(IO.VssBufferReader reader, Records.RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
             reader.SkipAssumedToBeAllZeros(16); // reserved; always 0
             EofOffset = reader.ReadInt32();
             reader.SkipAssumedToBeAllZeros(60); // remaining reserved; always 0

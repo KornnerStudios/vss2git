@@ -37,10 +37,8 @@ namespace SourceSafe.Physical.Files.Names
             return name;
         }
 
-        public override void Read(IO.VssBufferReader reader, Records.RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
             int entriesCount = reader.ReadInt16();
             if (entriesCount < 0)
             {

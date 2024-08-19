@@ -14,10 +14,13 @@ namespace SourceSafe.Physical.Records
             get { return mHeader ?? throw new InvalidOperationException($"Tried to access {GetType().Name} header before it was set"); }
         }
 
-        public virtual void Read(IO.VssBufferReader reader, RecordHeader header)
+        public void Read(IO.VssBufferReader reader, RecordHeader header)
         {
             mHeader = header;
+            ReadInternal(reader);
         }
+
+        protected abstract void ReadInternal(IO.VssBufferReader reader);
 
         public abstract void Dump(Analysis.AnalysisTextDumper textDumper);
     };

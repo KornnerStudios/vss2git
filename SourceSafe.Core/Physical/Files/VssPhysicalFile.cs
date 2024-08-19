@@ -15,7 +15,7 @@ namespace SourceSafe.Physical.Files
     /// <summary>
     /// Represents a file containing VSS project/file records.
     /// </summary>
-    internal class VssPhysicalFile : VssRecordFileBase
+    internal sealed class VssPhysicalFile : VssRecordFileBase
     {
         const string FILE_SIGNATUIRE = "SourceSafe@Microsoft";
 

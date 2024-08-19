@@ -31,7 +31,7 @@ namespace SourceSafe.Physical.Files
             reader = new IO.VssBufferReader(encoding, new ArraySegment<byte>(fileBytes), filename);
         }
 
-        public void ReadRecord(Records.VssRecordBase record)
+        internal void ReadRecord(Records.VssRecordBase record)
         {
             try
             {
@@ -73,13 +73,13 @@ namespace SourceSafe.Physical.Files
             }
         }
 
-        public void ReadRecord(Records.VssRecordBase record, int offset)
+        internal void ReadRecord(Records.VssRecordBase record, int offset)
         {
             reader.Offset = offset;
             ReadRecord(record);
         }
 
-        public bool ReadNextRecord(Records.VssRecordBase record)
+        internal bool ReadNextRecord(Records.VssRecordBase record)
         {
             while (reader.RemainingSize > Records.RecordHeader.LENGTH)
             {

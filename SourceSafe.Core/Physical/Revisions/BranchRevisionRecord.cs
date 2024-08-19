@@ -7,15 +7,13 @@ namespace SourceSafe.Physical.Revisions
         public string Physical { get; private set; } = "";
         public string BranchFile { get; private set; } = "";
 
-        public override void Read(
-            IO.VssBufferReader reader,
-            Records.RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
+            base.ReadInternal(reader);
 
             Name = reader.ReadName();
-            Physical = reader.ReadString(10);
-            BranchFile = reader.ReadString(10);
+            Physical = reader.ReadPhysicalNameString10();
+            BranchFile = reader.ReadPhysicalNameString10();
         }
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)

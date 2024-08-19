@@ -21,7 +21,7 @@ namespace SourceSafe.Logical.Items
 
         public DateTime DateTime => mRevision.DateTime;
 
-        public string? User => mRevision.User;
+        public string? UserName => mRevision.UserName;
 
         public string? Label => mRevision.Label;
 

@@ -8,11 +8,9 @@ namespace SourceSafe.Physical.Revisions
         public string ProjectPath { get; private set; } = "";
 
         public static bool ReadCheckForNonZeroUnknown5C { get; set; } = false;
-        public override void Read(
-            IO.VssBufferReader reader,
-            Records.RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
+            base.ReadInternal(reader);
 
             PrevDeltaOffset = reader.ReadInt32();
             Unknown5C = reader.ReadInt32();
@@ -22,7 +20,7 @@ namespace SourceSafe.Physical.Revisions
                 "".ToString(); // place a breakpoint as needed
             }
 #endif // DEBUG
-            ProjectPath = reader.ReadString(260);
+            ProjectPath = reader.ReadFileNameString();
         }
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)

@@ -14,14 +14,10 @@ namespace SourceSafe.Physical.DeltaDiff
         public IEnumerable<DeltaOperation> Operations => operations;
 
         public static bool ReadCheckForMissingStopCommands { get; set; } = false;
-        public override void Read(
-            IO.VssBufferReader reader,
-            Records.RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
-            int dataStartOffset = header.Offset + Records.RecordHeader.LENGTH;
-            int dataEndOffset = dataStartOffset + header.Length;
+            int dataStartOffset = Header.Offset + Records.RecordHeader.LENGTH;
+            int dataEndOffset = dataStartOffset + Header.Length;
 #if DEBUG
             bool encounteredStop = false;
 #endif // DEBUG

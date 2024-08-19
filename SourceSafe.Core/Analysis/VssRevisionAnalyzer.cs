@@ -142,7 +142,7 @@ namespace SourceSafe.Analysis
                     }
 
                     var revision = new VssItemRevision(vssRevision.DateTime,
-                        vssRevision.User!, item.ItemName, vssRevision.Version,
+                        vssRevision.UserName!, item.ItemName, vssRevision.Version,
                         vssRevision.Comment ?? "", vssRevision.Action);
 
                     if (!SortedRevisions.TryGetValue(vssRevision.DateTime, out ICollection<VssItemRevision>? revisionSet))

@@ -1,4 +1,6 @@
 ﻿
+using System.Reflection.PortableExecutable;
+
 namespace SourceSafe.Physical.Revisions
 {
     /// <summary>
@@ -37,7 +39,7 @@ namespace SourceSafe.Physical.Revisions
         /// <summary>
         /// Name of user who performed the operation.
         /// </summary>
-        public string? User { get; private set; }
+        public string UserName { get; private set; } = "";
         /// <summary>
         /// This is only used for VssOpcode_Labeled operations. It will contain
         /// the label assigned to this file.
@@ -113,17 +115,13 @@ namespace SourceSafe.Physical.Revisions
             }
         }
 
-        public override void Read(
-            IO.VssBufferReader reader,
-            Records.RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
             PrevRevOffset = reader.ReadInt32();
             Action = (RevisionAction)reader.ReadInt16();
             Revision = reader.ReadInt16();
             DateTime = reader.ReadDateTime();
-            User = reader.ReadString(32);
+            UserName = reader.ReadString(32);
             Label = reader.ReadString(32);
             CommentOffset = reader.ReadInt32();
             LabelCommentOffset = reader.ReadInt32();
@@ -133,8 +131,10 @@ namespace SourceSafe.Physical.Revisions
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
+            textDumper.CurrentDumpPhysicalFileAdditionalResults?.AddFoundUserName(UserName);
+
             textDumper.WriteLine($"Prev rev offset: {PrevRevOffset:X6}");
-            textDumper.WriteLine($"#{Revision:D3} {Action} by '{User}' at {DateTime}");
+            textDumper.WriteLine($"#{Revision:D3} {Action} by '{UserName}' at {DateTime}");
             if (textDumper.VerboseFilter(!string.IsNullOrEmpty(Label)))
             {
                 textDumper.WriteLine($"Label: {Label}");

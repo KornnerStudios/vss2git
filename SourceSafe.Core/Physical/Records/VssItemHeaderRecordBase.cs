@@ -56,10 +56,8 @@ namespace SourceSafe.Physical.Records
             ItemType = itemType;
         }
 
-        public override void Read(IO.VssBufferReader reader, RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
             ItemType = (VssItemType)reader.ReadInt16();
             Revisions = reader.ReadInt16();
             Name = reader.ReadName();

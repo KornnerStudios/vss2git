@@ -55,7 +55,7 @@ namespace SourceSafe.Physical.Records
             if (Length > reader.RemainingSize)
             {
                 throw new IO.EndOfBufferException(
-                    $"Attempted read of {Length} bytes with only {reader.RemainingSize} bytes remaining in from {reader.FileName}");
+                    $"Attempted read of {Length} bytes with only {reader.RemainingSize} bytes remaining in from {reader.FileNameAndSegment}");
             }
         }
 

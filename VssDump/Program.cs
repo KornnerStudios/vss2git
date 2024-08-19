@@ -313,7 +313,8 @@ namespace Hpdi.VssDump
 
             if (dumpPhysicalFilesAdditionalResults != null)
             {
-                dumpPhysicalFilesAdditionalResults.Dump(analysisTextDumper);
+                dumpPhysicalFilesAdditionalResults.DumpFoundRevisionActions(analysisTextDumper);
+                dumpPhysicalFilesAdditionalResults.DumpFoundUserAndMachineNames(analysisTextDumper);
             }
 
             if (outputWriter != Console.Out)

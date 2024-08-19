@@ -11,10 +11,8 @@ namespace SourceSafe.Physical.Records
         public override string Signature => SIGNATURE;
         public string Comment { get; private set; } = "";
 
-        public override void Read(IO.VssBufferReader reader, RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
             Comment = reader.ReadString(reader.RemainingSize);
         }
 

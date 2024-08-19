@@ -11,21 +11,24 @@ namespace SourceSafe.Physical.Records
         public override string Signature => SIGNATURE;
         public int PrevBranchOffset { get; private set; }
         public string BranchFile { get; private set; } = "";
+        private int mUnknown0C;
 
-        public override void Read(
-            IO.VssBufferReader reader,
-            RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
             PrevBranchOffset = reader.ReadInt32();
-            BranchFile = reader.ReadString(12);
+            BranchFile = reader.ReadPhysicalNameString8();
+            // #REVIEW are these meaningful, or garbage bytes?
+            mUnknown0C = reader.ReadInt32();
         }
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
             textDumper.WriteLine($"Prev branch offset: {PrevBranchOffset:X6}");
             textDumper.WriteLine($"Branch file: {BranchFile}");
+            if (mUnknown0C != 0)
+            {
+                textDumper.WriteLine($"{SIGNATURE} Unknown 0C: {mUnknown0C:X8}");
+            }
         }
     };
 }

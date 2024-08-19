@@ -21,7 +21,7 @@ namespace SourceSafe.Physical.Records
         /// Name of the user who currently holds the check-out on the file, or
         /// performed the last check-in.
         /// </summary>
-        public string User { get; private set; } = "";
+        public string UserName { get; private set; } = "";
         /// <summary>
         /// This is the time at which the file was last checked-out. (Is it
         /// updated when the file is checked in?) This is a 32-bit time_t value.
@@ -34,7 +34,7 @@ namespace SourceSafe.Physical.Records
         /// <summary>
         /// Network name for the machine where the file is checked out.
         /// </summary>
-        public string Machine { get; private set; } = "";
+        public string MachineName { get; private set; } = "";
         /// <summary>
         /// This stores the path to the file within VSS, which can be used to
         /// disambiguate which link is being used when the file is shared between
@@ -77,16 +77,14 @@ namespace SourceSafe.Physical.Records
 
         public bool Exclusive => (Flags & 0x40) != 0;
 
-        public override void Read(IO.VssBufferReader reader, RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
-            User = reader.ReadString(32);
+            UserName = reader.ReadStringAndVerifyValidAscii(32);
             CheckOutDateTime = reader.ReadDateTime();
-            WorkingDir = reader.ReadString(260);
-            Machine = reader.ReadString(32);
-            Project = reader.ReadString(260);
-            Comment = reader.ReadString(64);
+            WorkingDir = reader.ReadFileNameString();
+            MachineName = reader.ReadStringAndVerifyValidAscii(32);
+            Project = reader.ReadFileNameString();
+            Comment = reader.ReadStringAndVerifyValidAscii(64);
             Revision = reader.ReadInt16();
             Flags = reader.ReadInt16();
             PrevCheckoutOffset = reader.ReadInt32();
@@ -97,9 +95,11 @@ namespace SourceSafe.Physical.Records
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            textDumper.WriteLine($"User: {User} @ {CheckOutDateTime}");
+            textDumper.CurrentDumpPhysicalFileAdditionalResults?.AddFoundUserAndMachineNames(UserName, MachineName);
+
+            textDumper.WriteLine($"User: {UserName} @ {CheckOutDateTime}");
             textDumper.WriteLine($"Working: {WorkingDir}");
-            textDumper.WriteLine($"Machine: {Machine}");
+            textDumper.WriteLine($"Machine: {MachineName}");
             textDumper.WriteLine($"Project: {Project}");
             if (!string.IsNullOrEmpty(Comment))
             {

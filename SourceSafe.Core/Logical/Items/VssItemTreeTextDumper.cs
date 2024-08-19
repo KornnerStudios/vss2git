@@ -47,7 +47,7 @@ namespace SourceSafe.Logical.Items
                     foreach (VssFileItemRevision version in file.Revisions)
                     {
                         mWriter.Write(indentStr);
-                        mWriter.WriteLine($"\t\t#{version.Version} {version.User} {version.DateTime}");
+                        mWriter.WriteLine($"\t\t#{version.Version} {version.UserName} {version.DateTime}");
                     }
                 }
             }

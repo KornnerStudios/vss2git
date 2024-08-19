@@ -28,18 +28,16 @@ namespace SourceSafe.Physical.Revisions
         public short PinnedRevision { get; private set; }
         public string Physical { get; private set; } = "";
 
-        public override void Read(
-            IO.VssBufferReader reader,
-            Records.RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
+            base.ReadInternal(reader);
 
-            ProjectPath = reader.ReadString(260);
+            ProjectPath = reader.ReadFileNameString();
             Name = reader.ReadName();
             UnpinnedRevision = reader.ReadInt16();
             PinnedRevision = reader.ReadInt16();
             unkShort = reader.ReadInt16(); // often seems to increment
-            Physical = reader.ReadString(10);
+            Physical = reader.ReadPhysicalNameString10();
         }
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)

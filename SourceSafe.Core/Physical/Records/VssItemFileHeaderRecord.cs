@@ -42,12 +42,12 @@ namespace SourceSafe.Physical.Records
         {
         }
 
-        public override void Read(IO.VssBufferReader reader, RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
+            base.ReadInternal(reader);
 
             Flags = (VssItemFileFlags)reader.ReadInt16();
-            BranchFile = reader.ReadString(8);
+            BranchFile = reader.ReadPhysicalNameString8();
             reader.SkipAssumedToBeAllZeros(2); // reserved; always 0
             // VssTree::AssembleDirectoryLinks: lastBranchOffset
             BranchOffset = reader.ReadInt32();

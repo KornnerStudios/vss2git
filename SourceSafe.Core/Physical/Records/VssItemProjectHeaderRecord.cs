@@ -16,12 +16,12 @@ namespace SourceSafe.Physical.Records
         {
         }
 
-        public override void Read(IO.VssBufferReader reader, RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
+            base.ReadInternal(reader);
 
-            ParentProject = reader.ReadString(260);
-            ParentFile = reader.ReadString(8);
+            ParentProject = reader.ReadFileNameString();
+            ParentFile = reader.ReadPhysicalNameString8();
             reader.SkipAssumedToBeAllZeros(4); // reserved; always 0
             TotalItems = reader.ReadInt16();
             Subprojects = reader.ReadInt16();

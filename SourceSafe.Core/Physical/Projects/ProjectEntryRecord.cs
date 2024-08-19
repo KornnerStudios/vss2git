@@ -23,17 +23,13 @@ namespace SourceSafe.Physical.Projects
         public bool IsFile => ItemType == VssItemType.File;
         public string PhysicalNameAllUpperCase => Physical.ToUpperInvariant();
 
-        public override void Read(
-            IO.VssBufferReader reader,
-            Records.RecordHeader header)
+        protected override void ReadInternal(IO.VssBufferReader reader)
         {
-            base.Read(reader, header);
-
             ItemType = (VssItemType)reader.ReadInt16();
             Flags = (ProjectEntryFlags)reader.ReadInt16();
             Name = reader.ReadName();
             PinnedVersion = reader.ReadInt16();
-            Physical = reader.ReadString(10);
+            Physical = reader.ReadPhysicalNameString10();
         }
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)
