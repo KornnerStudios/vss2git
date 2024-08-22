@@ -7,6 +7,7 @@ namespace SourceSafe.Physical.Revisions
         public int Unknown5C { get; private set; }
         public string ProjectPath { get; private set; } = "";
 
+        // #TODO add JSON flag to control this behavior
         public static bool ReadCheckForNonZeroUnknown5C { get; set; } = false;
         protected override void ReadInternal(IO.VssBufferReader reader)
         {

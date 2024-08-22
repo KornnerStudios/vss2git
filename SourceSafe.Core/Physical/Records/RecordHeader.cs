@@ -9,6 +9,7 @@ namespace SourceSafe.Physical.Records
     {
         public const int LENGTH = 8;
 
+        // #TODO add JSON flag to control this behavior
         public static bool IgnoreCrcErrors { get; set; }
             = false;
 

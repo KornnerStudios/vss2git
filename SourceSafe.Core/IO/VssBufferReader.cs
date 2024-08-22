@@ -8,6 +8,7 @@ namespace SourceSafe.IO
     /// </summary>
     public sealed class VssBufferReader
     {
+        // #TODO add JSON flag to control this behavior
         public static bool ValidateAssumedToBeAllZerosAreAllZerosDefault { get; set; }
             = true;
 

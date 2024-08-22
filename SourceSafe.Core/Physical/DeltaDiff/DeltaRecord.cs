@@ -13,6 +13,7 @@ namespace SourceSafe.Physical.DeltaDiff
         public override string Signature => SIGNATURE;
         public IEnumerable<DeltaOperation> Operations => operations;
 
+        // #TODO add JSON flag to control this behavior
         public static bool ReadCheckForMissingStopCommands { get; set; } = false;
         protected override void ReadInternal(IO.VssBufferReader reader)
         {

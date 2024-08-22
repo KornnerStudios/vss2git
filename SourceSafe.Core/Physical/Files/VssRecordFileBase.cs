@@ -8,6 +8,7 @@ namespace SourceSafe.Physical.Files
     /// </summary>
     public abstract class VssRecordFileBase
     {
+        // #TODO add JSON flag to control this behavior
         public static bool IgnoreInvalidCommentRecords { get; set; }
             = true;
 
@@ -199,6 +200,13 @@ namespace SourceSafe.Physical.Files
         public static Dictionary<string, byte[]> FilesPool { get; } = [];
         public static List<string> FilesMostRecentlyAccessed { get; } = [];
 
+        public static void ClearInMemoryFilePooling()
+        {
+            FilesPool.Clear();
+            FilesMostRecentlyAccessed.Clear();
+            FilesPoolTotalSize = 0;
+        }
+
         private static byte[] ReadFileOrAccessFromPool(string filename)
         {
             if (FilesPool.TryGetValue(filename, out byte[]? data))
@@ -251,7 +259,7 @@ namespace SourceSafe.Physical.Files
             int index = FilesMostRecentlyAccessed.IndexOf(filename);
             if (index < 0)
             {
-                throw new System.InvalidOperationException(filename);
+                throw new InvalidOperationException(filename);
             }
             FilesMostRecentlyAccessed.RemoveAt(index);
             FilesMostRecentlyAccessed.Add(filename);
@@ -298,7 +306,7 @@ namespace SourceSafe.Physical.Files
             }
 #endif
 
-            int fileEntriesToReclaim = 4 + System.Math.Max(0, FilesMostRecentlyAccessed.Count - FilesPoolMaxEntries);
+            int fileEntriesToReclaim = 4 + Math.Max(0, FilesMostRecentlyAccessed.Count - FilesPoolMaxEntries);
             for (int x = 0; x < FilesMostRecentlyAccessed.Count && fileEntriesToReclaim > 0; fileEntriesToReclaim--)
             {
                 string filename = FilesMostRecentlyAccessed[x];

@@ -78,6 +78,7 @@ namespace SourceSafe.Physical.DeltaDiff
             }
         }
 
+        // #TODO add JSON flag to control this behavior
         public static bool IncludeDataBytesInDump { get; set; } = false;
         public void Dump(Analysis.AnalysisTextDumper textDumper)
         {

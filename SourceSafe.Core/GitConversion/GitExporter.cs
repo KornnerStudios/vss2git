@@ -15,6 +15,7 @@ namespace SourceSafe.GitConversion
     /// </summary>
     public sealed partial class GitExporter : QueuedWorkerBase, IGitStatistic
     {
+        // #TODO add JSON flag to control this behavior
         public static bool DryRunOutputTargetWorkDirPathsAsRelative { get; set; }
             = true;
 
