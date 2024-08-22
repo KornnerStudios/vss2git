@@ -315,7 +315,6 @@ namespace Hpdi.VssDump
             }
             #endregion
 
-
             if (dumpPhysicalFilesAdditionalResults != null)
             {
                 dumpPhysicalFilesAdditionalResults.DumpFoundRevisionActions(analysisTextDumper);

@@ -5,6 +5,7 @@ namespace SourceSafe.Physical.DeltaDiff
     /// <summary>
     /// Represents a single delta operation for a file revision.
     /// </summary>
+    [System.Diagnostics.DebuggerDisplay("[{Offset,Xb}, {Length,Xb}] {Command}")]
     public sealed class DeltaOperation
     {
         ArraySegment<byte> data; // WriteLog only
@@ -34,7 +35,7 @@ namespace SourceSafe.Physical.DeltaDiff
             {
                 if (length == 0)
                 {
-                    data = Array.Empty<byte>();
+                    data = [];
                 }
                 else
                 {
@@ -67,11 +68,30 @@ namespace SourceSafe.Physical.DeltaDiff
 
         public void Read(IO.VssBufferReader reader)
         {
+            int operationOffset = reader.Offset;
             Command = (DeltaCommand)reader.ReadInt16();
+
+            if (Command < DeltaCommand.WriteLog || Command > DeltaCommand.Stop)
+            {
+                throw new Records.InvalidRecordDataException(
+                    $"Invalid delta operation command: '{Command}' at {operationOffset:X8} in {reader.FileNameAndSegment}");
+            }
+
             // Note in ApplyDifferenceData: "Next 16 bits is junk.  Ignore it."
             reader.SkipKnownJunk(2);
             Offset = reader.ReadInt32();
+            if (Offset < 0)
+            {
+                throw new Records.InvalidRecordDataException(
+                    $"Invalid delta operation offset: '{Offset}' at {operationOffset:X8} in {reader.FileNameAndSegment}");
+            }
             Length = reader.ReadInt32();
+            if (Length < 0)
+            {
+                throw new Records.InvalidRecordDataException(
+                    $"Invalid delta operation length: '{Length}' at {operationOffset:X8} in {reader.FileNameAndSegment}");
+            }
+
             if (Command == DeltaCommand.WriteLog)
             {
                 data = reader.GetBytes(Length);
