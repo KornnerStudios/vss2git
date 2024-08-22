@@ -31,8 +31,10 @@ namespace SourceSafe.Physical.Records
         }
         public void LogInvalidSignature(string expected, string fileName)
         {
-            System.Diagnostics.Debug.WriteLine(
-                $"Unexpected record signature: expected={expected}, actual={Signature} at {Offset:X8} in {fileName}");
+            string message = $"Unexpected record signature: expected={expected}, actual={Signature} at {Offset:X8} in {fileName}";
+
+            IO.VssBufferReader.GlobalTextDumperHack?.WriteLine(message);
+            System.Diagnostics.Debug.WriteLine(message);
         }
 
         public void CheckCrc(string fileName)
@@ -41,8 +43,10 @@ namespace SourceSafe.Physical.Records
             {
                 if (IgnoreCrcErrors)
                 {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"CRC error in {Signature} record: expected={FileCrc}, actual={ActualCrc} at {Offset:X8} in {fileName}");
+                    string message = $"CRC error in {Signature} record: expected={FileCrc}, actual={ActualCrc} at {Offset:X8} in {fileName}";
+
+                    IO.VssBufferReader.GlobalTextDumperHack?.WriteLine(message);
+                    System.Diagnostics.Debug.WriteLine(message);
                     return;
                 }
 

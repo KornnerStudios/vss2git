@@ -18,13 +18,16 @@ namespace SourceSafe.IO
         private static Cryptography.Crc32ToXor16BitComputer? mCrc16Computer;
         private static Cryptography.Crc32ToXor16BitComputer GetCrc16Computer() => mCrc16Computer ??= new(mCrc32Definition);
 
+        public static Analysis.AnalysisTextDumper? GlobalTextDumperHack { get; set; }
+        public Analysis.AnalysisTextDumper? TextDumperHack => GlobalTextDumperHack;
+
         private readonly Encoding mEncoding;
         private readonly ArraySegment<byte> mDataSegment;
         private int mOffset;
 
         public string FileName { get; private set; }
-        public string FileSegementDescription { get; }
-        public string FileNameAndSegment => $"{FileName}__{FileSegementDescription}";
+        public string FileSegmentDescription { get; }
+        public string FileNameAndSegment => $"{FileName}__{FileSegmentDescription}";
 
         public bool ValidateAssumedToBeAllZerosAreAllZeros { get; set; }
             = ValidateAssumedToBeAllZerosAreAllZerosDefault;
@@ -40,7 +43,7 @@ namespace SourceSafe.IO
             mEncoding = encoding;
 
             FileName = fileName;
-            FileSegementDescription = fileSegmentDescription;
+            FileSegmentDescription = fileSegmentDescription;
         }
 
         public int Offset
@@ -214,7 +217,7 @@ namespace SourceSafe.IO
             CheckRead(bytes);
 
             // In the event there's nested buffer readers, we want to include the current segment description
-            StringBuilder segmentDescription = new(FileSegementDescription);
+            StringBuilder segmentDescription = new(FileSegmentDescription);
             if (segmentDescription.Length > 0)
             {
                 segmentDescription.Append("__");

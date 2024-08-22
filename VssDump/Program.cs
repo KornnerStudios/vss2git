@@ -259,6 +259,8 @@ namespace Hpdi.VssDump
                 dumpFileHierarchyAdditionalResults = null;
             SourceSafe.Analysis.AnalysisTextDumper.DumpPhysicalFileAdditionalResults
                 dumpPhysicalFilesAdditionalResults = new();
+
+            SourceSafe.IO.VssBufferReader.GlobalTextDumperHack = analysisTextDumper;
             #endregion
 
             if (dumpOptions.DumpKnownUserNames)
@@ -325,6 +327,8 @@ namespace Hpdi.VssDump
             {
                 outputWriter.Close();
             }
+
+            SourceSafe.IO.VssBufferReader.GlobalTextDumperHack = null;
         }
 
         private static void WriteException(TextWriter outputWriter, Exception e)

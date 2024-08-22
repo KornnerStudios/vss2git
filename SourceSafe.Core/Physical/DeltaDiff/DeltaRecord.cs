@@ -13,6 +13,8 @@ namespace SourceSafe.Physical.DeltaDiff
         public override string Signature => SIGNATURE;
         public IEnumerable<DeltaOperation> Operations => operations;
 
+        public bool EncounteredInvalidOperation { get; private set; }
+
         // #TODO add JSON flag to control this behavior
         public static bool ReadCheckForMissingStopCommands { get; set; } = false;
         protected override void ReadInternal(IO.VssBufferReader reader)
@@ -26,7 +28,17 @@ namespace SourceSafe.Physical.DeltaDiff
             for (int offset = reader.Offset; offset < dataEndOffset; offset = reader.Offset)
             {
                 DeltaOperation operation = new();
-                operation.Read(reader);
+                try
+                {
+                    operation.Read(reader);
+                }
+                catch (Records.InvalidRecordDataException ex)
+                {
+                    EncounteredInvalidOperation = true;
+                    reader.TextDumperHack?.WriteLine(ex.Message);
+                    break;
+                }
+
                 if (operation.Command == DeltaCommand.Stop)
                 {
 #if DEBUG
@@ -47,6 +59,11 @@ namespace SourceSafe.Physical.DeltaDiff
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
+            if (EncounteredInvalidOperation)
+            {
+                textDumper.WriteLine("ERROR: Encountered invalid delta operation(s)");
+            }
+
             if (textDumper.DumpDeltaRecordOperations)
             {
                 foreach (DeltaOperation operation in operations)
