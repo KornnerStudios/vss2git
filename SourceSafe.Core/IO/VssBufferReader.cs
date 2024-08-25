@@ -8,10 +8,6 @@ namespace SourceSafe.IO
     /// </summary>
     public sealed class VssBufferReader
     {
-        // #TODO add JSON flag to control this behavior
-        public static bool ValidateAssumedToBeAllZerosAreAllZerosDefault { get; set; }
-            = true;
-
         private static readonly Cryptography.Crc32.Definition mCrc32Definition = new(
             initialValue: 0);
         [ThreadStatic]
@@ -21,7 +17,7 @@ namespace SourceSafe.IO
         public static Analysis.AnalysisTextDumper? GlobalTextDumperHack { get; set; }
         public Analysis.AnalysisTextDumper? TextDumperHack => GlobalTextDumperHack;
 
-        private readonly Encoding mEncoding;
+        private readonly Logical.VssDatabase mDatabase;
         private readonly ArraySegment<byte> mDataSegment;
         private int mOffset;
 
@@ -30,17 +26,20 @@ namespace SourceSafe.IO
         public string FileNameAndSegment => $"{FileName}__{FileSegmentDescription}";
 
         public bool ValidateAssumedToBeAllZerosAreAllZeros { get; set; }
-            = ValidateAssumedToBeAllZerosAreAllZerosDefault;
+            = true;
+        public bool ValidateAssumedToBeAllZerosAreAllZerosExceptions { get; set; }
+            = false;
+
+        internal Logical.VssDatabase Database => mDatabase;
 
         public VssBufferReader(
-            Encoding encoding,
+            Logical.VssDatabase vssDatabase,
             ArraySegment<byte> data,
             string fileName,
             string fileSegmentDescription = "")
         {
+            mDatabase = vssDatabase;
             mDataSegment = data;
-
-            mEncoding = encoding;
 
             FileName = fileName;
             FileSegmentDescription = fileSegmentDescription;
@@ -103,8 +102,16 @@ namespace SourceSafe.IO
 
                 if (nonZeroBytesCount > 0)
                 {
-                    throw new InvalidOperationException(
-                        $"Expected {bytes} bytes to be all zeros, but {nonZeroBytesCount} were not at offset {Offset:X8} in {FileNameAndSegment}");
+                    string message = $"Expected {bytes} bytes to be all zeros, but {nonZeroBytesCount} were not at offset {Offset:X8} in {FileNameAndSegment}";
+
+                    if (ValidateAssumedToBeAllZerosAreAllZerosExceptions)
+                    {
+                        throw new Physical.Records.InvalidRecordDataException(message);
+                    }
+                    else
+                    {
+                        GlobalTextDumperHack?.ErrorWriteLine(message);
+                    }
                 }
             }
             mOffset += bytes;
@@ -179,7 +186,7 @@ namespace SourceSafe.IO
 
             string str = count == 0
                 ? string.Empty
-                : mEncoding.GetString(mDataSegment.AsSpan(Offset, count));
+                : mDatabase.Encoding.GetString(mDataSegment.AsSpan(Offset, count));
 
             mOffset += fieldSize;
 
@@ -199,7 +206,7 @@ namespace SourceSafe.IO
                 ++count;
             }
 
-            string str = mEncoding.GetString(mDataSegment.AsSpan(Offset, count));
+            string str = mDatabase.Encoding.GetString(mDataSegment.AsSpan(Offset, count));
 
             if (maxLength >= 0 && count > maxLength)
             {
@@ -224,7 +231,7 @@ namespace SourceSafe.IO
             }
             segmentDescription.Append($"__chunk[{Offset:X8}, {bytes:X4}]");
 
-            var newBuffer = new VssBufferReader(mEncoding, mDataSegment.Slice(Offset, bytes), FileName, segmentDescription.ToString());
+            var newBuffer = new VssBufferReader(mDatabase, mDataSegment.Slice(Offset, bytes), FileName, segmentDescription.ToString());
             mOffset += bytes;
             return newBuffer;
         }

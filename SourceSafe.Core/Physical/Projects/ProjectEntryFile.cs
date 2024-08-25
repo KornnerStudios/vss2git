@@ -6,14 +6,16 @@ namespace SourceSafe.Physical.Projects
     /// </summary>
     public sealed class ProjectEntryFile : Files.VssRecordFileBase
     {
-        public ProjectEntryFile(string filename, System.Text.Encoding encoding)
-            : base(filename, encoding)
+        public ProjectEntryFile(
+            Logical.VssDatabase vssDatabase,
+            string fileName)
+            : base(vssDatabase, fileName)
         {
         }
 
         public ProjectEntryRecord? GetFirstEntry()
         {
-            reader.Offset = 0;
+            mReader.Offset = 0;
             return GetNextEntry();
         }
 

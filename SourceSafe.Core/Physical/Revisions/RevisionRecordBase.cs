@@ -139,11 +139,11 @@ namespace SourceSafe.Physical.Revisions
             {
                 textDumper.WriteLine($"Label: {Label}");
             }
-            if (textDumper.VerboseFilter(CommentLength > 0))
+            if (textDumper.VerboseFilter(CommentLength > 1)) // length includes nil character
             {
                 textDumper.WriteLine($"Comment: length {CommentLength}, offset {CommentOffset:X6}");
             }
-            if (textDumper.VerboseFilter(LabelCommentLength > 0))
+            if (textDumper.VerboseFilter(LabelCommentLength > 1)) // length includes nil character
             {
                 textDumper.WriteLine($"Label comment: length {LabelCommentLength}, offset {LabelCommentOffset:X6}");
             }

@@ -90,7 +90,10 @@ namespace Hpdi.Vss2Git
                 logger.WriteLine("Dry run: {0}",
                     Settings.DryRun ? "enabled" : "disabled");
 
-                SourceSafe.Logical.VssDatabase db = new(Settings.VssDirectory, encoding);
+                var dbConfig = new SourceSafe.Logical.VssDatabaseConfig();// #TODO
+                SourceSafe.Logical.VssDatabase db = new(dbConfig, encoding, Settings.VssDirectory)
+                {
+                };
 
                 string path = Settings.VssProject;
                 VssItemBase item;
@@ -184,7 +187,7 @@ namespace Hpdi.Vss2Git
         {
             string message = SourceSafe.Exceptions.ExceptionFormatter.Format(e.Exception);
 
-            logger.WriteLine($"ERROR: {message}");
+            logger.ErrorWriteLine(message);
             logger.WriteLine(e.Exception);
         }
 

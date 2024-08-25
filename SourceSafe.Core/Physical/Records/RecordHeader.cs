@@ -9,10 +9,6 @@ namespace SourceSafe.Physical.Records
     {
         public const int LENGTH = 8;
 
-        // #TODO add JSON flag to control this behavior
-        public static bool IgnoreCrcErrors { get; set; }
-            = false;
-
         public int Length { get; private set; }
         public string? Signature { get; private set; }
         public ushort FileCrc { get; private set; }
@@ -37,15 +33,17 @@ namespace SourceSafe.Physical.Records
             System.Diagnostics.Debug.WriteLine(message);
         }
 
-        public void CheckCrc(string fileName)
+        internal void CheckCrc(
+            string fileName,
+            bool enforceRecordHeaderCrc)
         {
             if (!IsCrcValid)
             {
-                if (IgnoreCrcErrors)
+                if (!enforceRecordHeaderCrc)
                 {
                     string message = $"CRC error in {Signature} record: expected={FileCrc}, actual={ActualCrc} at {Offset:X8} in {fileName}";
 
-                    IO.VssBufferReader.GlobalTextDumperHack?.WriteLine(message);
+                    IO.VssBufferReader.GlobalTextDumperHack?.ErrorWriteLine(message);
                     System.Diagnostics.Debug.WriteLine(message);
                     return;
                 }

@@ -27,7 +27,7 @@ namespace SourceSafe.Logical.Items
                     {
                         int branchRevId = branchRev.Revision;
                         string itemPath = Item.Database.GetDataPath(branchRev.BranchFile);
-                        itemPhysicalFile = new(itemPath, Item.Database.Encoding);
+                        itemPhysicalFile = new(Item.Database, itemPath);
                         lastRev = itemPhysicalFile.GetLastRevision();
                         while (lastRev != null && lastRev.Revision >= branchRevId)
                         {

@@ -70,7 +70,7 @@ namespace SourceSafe.Logical.Items
             {
                 if (mPhysicalFile == null)
                 {
-                    mPhysicalFile = new(PhysicalPath, Database.Encoding);
+                    mPhysicalFile = new(Database, PhysicalPath);
                 }
                 return mPhysicalFile;
             }

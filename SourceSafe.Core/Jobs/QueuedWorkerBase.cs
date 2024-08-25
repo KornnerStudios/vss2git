@@ -31,7 +31,7 @@ namespace SourceSafe.Jobs
 
         protected void LogException(Exception exception, string message)
         {
-            mLogger.WriteLine($"ERROR: {message}");
+            mLogger.ErrorWriteLine(message);
             mLogger.WriteLine(exception);
         }
 

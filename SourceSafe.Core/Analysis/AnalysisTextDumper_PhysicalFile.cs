@@ -1,7 +1,5 @@
-﻿
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Text;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace SourceSafe.Analysis
 {
@@ -116,16 +114,17 @@ namespace SourceSafe.Analysis
         internal DumpPhysicalFileAdditionalResults? CurrentDumpPhysicalFileAdditionalResults { get; private set; }
 
         public void DumpPhysicalFile(
+            Logical.VssDatabase vssDatabase,
             string physicalFilePath,
             DumpPhysicalFileAdditionalResults? additionalResults = null)
         {
             CurrentDumpPhysicalFileAdditionalResults = additionalResults;
 
             var physicalFile = new Physical.Files.VssPhysicalFile(
-                physicalFilePath,
-                Encoding.Default);
+                vssDatabase,
+                physicalFilePath);
 
-            if (DumpRecordHeaders)
+            if (Config.DumpRecordHeaders)
             {
                 physicalFile.Header.Header.Dump(this);
             }
@@ -167,7 +166,7 @@ namespace SourceSafe.Analysis
             Physical.Files.VssPhysicalFile physicalFile,
             Physical.Records.VssRecordBase record)
         {
-            if (DumpRecordHeaders)
+            if (Config.DumpRecordHeaders)
             {
                 record.Header.Dump(this);
             }

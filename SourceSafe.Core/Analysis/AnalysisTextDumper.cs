@@ -1,5 +1,4 @@
-﻿using System.Text;
-
+﻿
 namespace SourceSafe.Analysis
 {
     public sealed partial class AnalysisTextDumper
@@ -9,20 +8,18 @@ namespace SourceSafe.Analysis
         public string Separator { get; set; }
             = DefaultSeparator;
 
-        public bool DumpRecordHeaders { get; set; }
-            = true;
-        public bool DumpDeltaRecordOperations { get; set; }
-            = true;
-
-        public bool DumpVerboseData { get; set; }
-            = false;
+        public Logical.VssDatabase Database { get; }
+        public required AnalysisTextDumperConfig Config { get; init; }
 
         public Action<TextWriter, Exception>? WriteExceptionCallback { get; init; } = null;
 
         readonly TextWriter mWriter;
 
-        public AnalysisTextDumper(TextWriter writer)
+        public AnalysisTextDumper(
+            Logical.VssDatabase vssDatabase,
+            TextWriter writer)
         {
+            Database = vssDatabase;
             mWriter = writer;
         }
 
@@ -64,9 +61,12 @@ namespace SourceSafe.Analysis
             mWriter.WriteLine(line);
         }
 
+        public void WarningWriteLine(string line) => WriteLine($"WARNING: {line}");
+        public void ErrorWriteLine(string line) => WriteLine($"ERROR: {line}");
+
         public bool VerboseFilter(bool verboseCondition)
         {
-            if (DumpVerboseData)
+            if (Config.DumpVerboseData)
             {
                 return true;
             }
@@ -75,14 +75,14 @@ namespace SourceSafe.Analysis
         }
 
         public void DumpAllPossiblePhysicalFiles(
-            string repositoryDataPath,
+            Logical.VssDatabase vssDatabase,
             HashSet<string>? knownPhysicalNames = null,
             DumpPhysicalFileAdditionalResults? additionalResults = null)
         {
             for (char c = 'a'; c <= 'z'; ++c)
             {
                 string[] dataPaths = Directory.GetFiles(
-                    Path.Combine(repositoryDataPath, c.ToString()), "*.");
+                    Path.Combine(vssDatabase.DataPath, c.ToString()), "*.");
 
                 foreach (string dataPath in dataPaths)
                 {
@@ -105,14 +105,14 @@ namespace SourceSafe.Analysis
                     }
 
                     IncreaseIndent();
-                    DumpPhysicalFile(dataPath, additionalResults);
+                    DumpPhysicalFile(vssDatabase, dataPath, additionalResults);
                     DecreaseIndent();
                 }
             }
         }
 
         public void DumpSelectPhysicalFiles(
-            string repositoryDataPath,
+            Logical.VssDatabase vssDatabase,
             IEnumerable<string> physicalNames,
             DumpPhysicalFileAdditionalResults? additionalResults = null)
         {
@@ -123,28 +123,25 @@ namespace SourceSafe.Analysis
                     continue;
                 }
 
-                string dataPath = Path.Combine(repositoryDataPath, specificDataFile[0].ToString(), specificDataFile);
-                if (!File.Exists(dataPath))
+                string physicalFilePath = Path.Combine(vssDatabase.DataPath, specificDataFile[0].ToString(), specificDataFile);
+                if (!File.Exists(physicalFilePath))
                 {
-                    mWriter.WriteLine($"{nameof(DumpSelectPhysicalFiles)} select physical file not found: {dataPath}");
+                    mWriter.WriteLine($"{nameof(DumpSelectPhysicalFiles)} select physical file not found: {physicalFilePath}");
                     continue;
                 }
 
                 WriteSeparator();
-                mWriter.WriteLine(dataPath);
+                mWriter.WriteLine(physicalFilePath);
+                IncreaseIndent();
                 try
                 {
-                    IncreaseIndent();
-                    DumpPhysicalFile(dataPath, additionalResults);
-                    DecreaseIndent();
+                    DumpPhysicalFile(vssDatabase, physicalFilePath, additionalResults);
                 }
                 catch (Exception e)
                 {
-                    if (WriteExceptionCallback != null)
-                    {
-                        WriteExceptionCallback(mWriter, e);
-                    }
+                    WriteExceptionCallback?.Invoke(mWriter, e);
                 }
+                DecreaseIndent();
             }
         }
 
@@ -169,14 +166,15 @@ namespace SourceSafe.Analysis
         }
 
         public void DumpNamesDatFile(
+            Logical.VssDatabase vssDatabase,
             string namesDatFilePath)
         {
             var namesDatFile = new Physical.Files.Names.VssNamesDatFile(
-                namesDatFilePath,
-                Encoding.Default);
+                vssDatabase,
+                namesDatFilePath);
             namesDatFile.ReadHeaderAndNames();
 
-            if (DumpRecordHeaders)
+            if (Config.DumpRecordHeaders)
             {
                 namesDatFile.Header.Header.Dump(this);
             }
@@ -185,7 +183,7 @@ namespace SourceSafe.Analysis
             IncreaseIndent();
             foreach (Physical.Files.Names.NamesRecord record in namesDatFile.GetRecords())
             {
-                if (DumpRecordHeaders)
+                if (Config.DumpRecordHeaders)
                 {
                     record.Header.Dump(this);
                 }

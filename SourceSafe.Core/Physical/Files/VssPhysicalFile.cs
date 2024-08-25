@@ -21,25 +21,27 @@ namespace SourceSafe.Physical.Files
 
         public Records.VssItemHeaderRecordBase Header { get; }
 
-        public VssPhysicalFile(string filename, System.Text.Encoding encoding)
-            : base(filename, encoding)
+        public VssPhysicalFile(
+            Logical.VssDatabase vssDatabase,
+            string fileName)
+            : base(vssDatabase, fileName)
         {
             try
             {
-                string fileSig = reader.ReadString(0x20);
+                string fileSig = mReader.ReadString(0x20);
                 if (fileSig != FILE_SIGNATUIRE)
                 {
                     throw new Records.BadHeaderException("Incorrect file signature");
                 }
 
-                var fileType = (VssItemType)reader.ReadInt16();
-                short fileVersion = reader.ReadInt16();
+                var fileType = (VssItemType)mReader.ReadInt16();
+                short fileVersion = mReader.ReadInt16();
                 if (fileVersion != 6)
                 {
                     throw new Records.BadHeaderException($"Incorrect file version: {fileVersion}");
                 }
 
-                reader.SkipAssumedToBeAllZeros(16); // reserved; always 0
+                mReader.SkipAssumedToBeAllZeros(16); // reserved; always 0
 
                 if (fileType == VssItemType.Project)
                 {
@@ -71,14 +73,14 @@ namespace SourceSafe.Physical.Files
         public Records.VssRecordBase? GetNextRecord(bool skipUnknown)
         {
 #if EOF_OFFSET_CHECK_ENABLED
-            if (reader.Offset == Header.EofOffset)
+            if (mReader.Offset == Header.EofOffset)
             {
                 return null;
             }
 #endif // EOF_OFFSET_CHECK_ENABLED
 
 #if LAST_REVISION_OFFSET_CHECK_ENABLED
-            if (reader.Offset > Header.LastRevOffset)
+            if (mReader.Offset > Header.LastRevOffset)
             {
                 return null;
             }
@@ -99,20 +101,20 @@ namespace SourceSafe.Physical.Files
         public RevisionRecordBase? GetNextRevision(RevisionRecordBase revision)
         {
 #if EOF_OFFSET_CHECK_ENABLED
-            if (reader.Offset == Header.EofOffset)
+            if (mReader.Offset == Header.EofOffset)
             {
                 return null;
             }
 #endif // EOF_OFFSET_CHECK_ENABLED
 
 #if LAST_REVISION_OFFSET_CHECK_ENABLED
-            if (reader.Offset > Header.LastRevOffset)
+            if (mReader.Offset > Header.LastRevOffset)
             {
                 return null;
             }
 #endif // LAST_REVISION_OFFSET_CHECK_ENABLED
 
-            reader.Offset = revision.Header.Offset + revision.Header.Length + Records.RecordHeader.LENGTH;
+            mReader.Offset = revision.Header.Offset + revision.Header.Length + Records.RecordHeader.LENGTH;
             return GetNextRecord(CreateRevisionRecord, true);
         }
 

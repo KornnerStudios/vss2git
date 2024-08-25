@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using System.Text;
 using SourceSafe.Physical.Files;
 using SourceSafe.Physical.Records;
 
@@ -10,18 +9,19 @@ namespace SourceSafe.Logical
         private readonly Physical.Files.Names.VssNamesDatFile mNameFile;
         private readonly HashSet<string> mKnownUserNames = [];
 
-        public string BasePath { get; init; }
+        public VssDatabaseConfig Config { get; }
+        public Encoding Encoding { get; }
 
-        public string IniPath { get; init; }
-        public string UsersIniPath { get; init; }
+        public string BasePath { get; }
 
-        public string DataPath { get; init; }
+        public string IniPath { get; }
+        public string UsersIniPath { get; }
+
+        public string DataPath { get; }
 
         public IReadOnlySet<string> KnownUserNames => mKnownUserNames;
 
-        public Items.VssProjectItem RootProject { get; init; }
-
-        public Encoding Encoding { get; init; }
+        public Items.VssProjectItem RootProject { get; }
 
         public Items.VssItemBase GetItem(string logicalPath)
         {
@@ -69,7 +69,7 @@ namespace SourceSafe.Logical
             }
 
             string physicalPath = GetDataPath(physicalName);
-            VssPhysicalFile physicalFile = new(physicalPath, Encoding);
+            VssPhysicalFile physicalFile = new(this, physicalPath);
             bool isProject = physicalFile.Header.IsProject;
             string logicalName = GetFullName(physicalFile.Header.Name);
             VssItemName itemName = new(logicalName, physicalName, isProject);
@@ -96,10 +96,22 @@ namespace SourceSafe.Logical
             return File.Exists(physicalPath);
         }
 
-        public VssDatabase(string repositoryPath, Encoding encoding)
+        public VssDatabase(
+            VssDatabaseConfig config,
+            Encoding encoding,
+            string repositoryPath)
         {
-            BasePath = repositoryPath;
+            Config = config;
             Encoding = encoding;
+
+            Config.ForcePathCollectionsToExpectedFormat();
+
+            // GetFullPath will also normalize the path (namely, use backslashes)
+            BasePath = Path.GetFullPath(repositoryPath);
+            if (!Path.EndsInDirectorySeparator(BasePath))
+            {
+                Path.Combine(BasePath, Path.DirectorySeparatorChar.ToString());
+            }
 
             #region Read srcsafe.ini
             {
@@ -114,8 +126,8 @@ namespace SourceSafe.Logical
 
             #region Read names.dat
             {
-                string namesPath = Path.Combine(DataPath, "names.dat");
-                mNameFile = new Physical.Files.Names.VssNamesDatFile(namesPath, encoding);
+                string namesPath = Path.Combine(DataPath, SourceSafeConstants.NamesDatFile);
+                mNameFile = new(this, namesPath);
                 mNameFile.ReadHeaderAndNames();
             }
             #endregion
@@ -133,7 +145,7 @@ namespace SourceSafe.Logical
                 // old user name's folder and ss.ini. I've seen this in at least one repository.
                 if (usersIni.Entries.Count > 0)
                 {
-                    List<string> usersFromIni = usersIni.Entries.Keys.ToList();
+                    List<string> usersFromIni = [..usersIni.Entries.Keys];
                     usersFromIni.Sort();
                     mKnownUserNames = new(usersFromIni);
                 }
@@ -179,6 +191,34 @@ namespace SourceSafe.Logical
             string physicalRootFolder = Path.Combine(DataPath, physicalNameFirstLetter);
             string physicalFilePath = Path.Combine(physicalRootFolder, physicalName);
             return physicalFilePath;
+        }
+
+        internal string GetDatabaseRelativePath(
+            string fullPathInDatabase)
+        {
+            // Chop off the repository path
+            string relativePath = Path.GetRelativePath(BasePath, fullPathInDatabase);
+            return relativePath;
+        }
+
+        internal string GetActualFullFilePath(
+            string fullDesiredPath)
+        {
+            string actualFullPath = fullDesiredPath;
+            if (Config.FileRemapping?.Count > 0)
+            {
+                // Chop off the repository path and make ALL UPPERCASE
+                string desiredRelativePath = GetDatabaseRelativePath(fullDesiredPath);
+                desiredRelativePath = desiredRelativePath.ToUpperInvariant();
+
+                // Find an ALL UPPERCASE path to override with a new path
+                if (Config.FileRemapping.TryGetValue(desiredRelativePath, out string? remappedRelativePath))
+                {
+                    actualFullPath = Path.Combine(BasePath, remappedRelativePath);
+                    actualFullPath = Path.GetFullPath(actualFullPath);
+                }
+            }
+            return actualFullPath;
         }
 
         internal string GetFullName(Physical.VssName name)

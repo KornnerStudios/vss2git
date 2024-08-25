@@ -47,7 +47,7 @@ namespace SourceSafe.GitConversion.GitActions
             {
                 // log an error for missing data files or versions, but keep processing
                 string message = Exceptions.ExceptionFormatter.Format(e);
-                logger.WriteLine($"ERROR: {message}");
+                logger.ErrorWriteLine(message);
                 logger.WriteLine(e);
                 return false;
             }
@@ -91,7 +91,7 @@ namespace SourceSafe.GitConversion.GitActions
             {
                 // log an error for missing data files or versions, but keep processing
                 string message = Exceptions.ExceptionFormatter.Format(e);
-                logger.WriteLine($"ERROR: {message}");
+                logger.ErrorWriteLine(message);
                 logger.WriteLine(e);
                 return false;
             }

@@ -98,15 +98,14 @@ namespace SourceSafe.Physical.DeltaDiff
             }
         }
 
-        // #TODO add JSON flag to control this behavior
-        public static bool IncludeDataBytesInDump { get; set; } = false;
         public void Dump(Analysis.AnalysisTextDumper textDumper)
         {
             const int MAX_DATA_DUMP = 40;
 
             textDumper.WriteIndent();
             textDumper.Write($"Offset={Offset:X8}, Length={Length:X4}, {Command}");
-            if (IncludeDataBytesInDump && data.Array != null)
+            if (textDumper.Config.DumpDeltaOperationDataBytes &&
+                data.Array != null)
             {
                 int dumpLength = data.Count;
                 bool truncated = false;

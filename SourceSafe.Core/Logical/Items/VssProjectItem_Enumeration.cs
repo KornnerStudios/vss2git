@@ -51,7 +51,7 @@ namespace SourceSafe.Logical.Items
             {
                 mProject = project;
                 mItemTypeFlags = itemTypes;
-                mEntryFile = new(entryFilePath, project.Database.Encoding);
+                mEntryFile = new(project.Database, entryFilePath);
             }
 
             public void Dispose()

@@ -31,10 +31,10 @@ namespace Hpdi.VssDump
         public string EncodingNameOrCodePage { get; set; }
             = null;
 
-        public bool DumpRecordHeaders { get; set; }
-            = true;
-        public bool DumpDeltaRecordOperations { get; set; }
-            = true;
+        public SourceSafe.Logical.VssDatabaseConfig ConfigDatabase { get; init; }
+            = new();
+        public SourceSafe.Analysis.AnalysisTextDumperConfig ConfigAnalysisTextDumper { get; init; }
+            = new();
 
         public bool DumpKnownUserNames { get; set; }
             = false;
@@ -215,7 +215,6 @@ namespace Hpdi.VssDump
                 RepositoryPath = @"",
                 OutputFileName = @"",
                 EncodingNameOrCodePage = null,
-                DumpRecordHeaders = true,
                 DumpKnownUserNames = false,
                 DumpFileHierarchy = false,
                 DumpNameFileContents = false,
@@ -246,13 +245,15 @@ namespace Hpdi.VssDump
             #endregion
 
             // GetFullPath will also normalize the path (namely, use backslashes)
-            SourceSafe.Logical.VssDatabase db = new(System.IO.Path.GetFullPath(dumpOptions.RepositoryPath), Encoding.Default);
+            SourceSafe.Logical.VssDatabase db = new(dumpOptions.ConfigDatabase, Encoding.Default,
+                Path.GetFullPath(dumpOptions.RepositoryPath))
+            {
+            };
 
             #region Setup AnalysisTextDumper
-            SourceSafe.Analysis.AnalysisTextDumper analysisTextDumper = new(outputWriter)
+            SourceSafe.Analysis.AnalysisTextDumper analysisTextDumper = new(db, outputWriter)
             {
-                DumpRecordHeaders = dumpOptions.DumpRecordHeaders,
-                DumpDeltaRecordOperations = dumpOptions.DumpDeltaRecordOperations,
+                Config = dumpOptions.ConfigAnalysisTextDumper,
                 WriteExceptionCallback = WriteException,
             };
             SourceSafe.Analysis.AnalysisTextDumper.DumpFileHierarchyAdditionalResults
@@ -283,14 +284,14 @@ namespace Hpdi.VssDump
             if (dumpOptions.LimitPhysicalFilesList.Count == 0)
             {
                 analysisTextDumper.DumpAllPossiblePhysicalFiles(
-                    db.DataPath,
+                    db,
                     dumpFileHierarchyAdditionalResults?.OutEnumeratedPhysicalNames,
                     dumpPhysicalFilesAdditionalResults);
             }
             else
             {
                 analysisTextDumper.DumpSelectPhysicalFiles(
-                    db.DataPath,
+                    db,
                     dumpOptions.LimitPhysicalFilesList,
                     dumpPhysicalFilesAdditionalResults);
             }
@@ -302,11 +303,11 @@ namespace Hpdi.VssDump
             {
                 outputWriter.WriteLine("Name file contents:");
                 analysisTextDumper.WriteSeparator();
-                string namePath = Path.Combine(db.DataPath, "names.dat");
+                string namePath = Path.Combine(db.DataPath, SourceSafe.SourceSafeConstants.NamesDatFile);
 
                 try
                 {
-                    analysisTextDumper.DumpNamesDatFile(namePath);
+                    analysisTextDumper.DumpNamesDatFile(db, namePath);
                 }
                 catch (Exception e)
                 {

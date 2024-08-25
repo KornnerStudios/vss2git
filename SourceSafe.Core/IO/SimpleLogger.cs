@@ -370,5 +370,10 @@ namespace SourceSafe.IO
             byte[] bytes = mEncoding.GetBytes(buffer, index, count);
             mBaseStream!.Write(bytes, 0, bytes.Length);
         }
+
+        public void ErrorWriteLine(string line)
+        {
+            WriteLine($"ERROR: {line}");
+        }
     };
 }

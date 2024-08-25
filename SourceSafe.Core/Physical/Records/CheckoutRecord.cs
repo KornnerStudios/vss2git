@@ -95,21 +95,47 @@ namespace SourceSafe.Physical.Records
 
         public override void Dump(Analysis.AnalysisTextDumper textDumper)
         {
-            textDumper.CurrentDumpPhysicalFileAdditionalResults?.AddFoundUserAndMachineNames(UserName, MachineName);
-
-            textDumper.WriteLine($"User: {UserName} @ {CheckOutDateTime}");
-            textDumper.WriteLine($"Working: {WorkingDir}");
-            textDumper.WriteLine($"Machine: {MachineName}");
-            textDumper.WriteLine($"Project: {Project}");
-            if (!string.IsNullOrEmpty(Comment))
+            bool assumeChunkHasBadData = false;
+            #region PhysicalFileNamesWithBadCheckoutRecordData
+            Logical.VssDatabaseConfig.RecordsConfig recordsConfig =
+                textDumper.Database.Config.ConfigRecords;
+            if (recordsConfig.HasAnyPhysicalFileNamesWithBadCheckoutRecordData)
             {
-                textDumper.WriteLine($"Comment: {Comment}");
+                string? sourcePhysicalFileName = TryAndGetSourcePhysicalFileName();
+
+                if (sourcePhysicalFileName != null &&
+                    recordsConfig.PhysicalFileHasBadCheckoutRecordData(sourcePhysicalFileName))
+                {
+                    assumeChunkHasBadData = true;
+                }
             }
-            textDumper.WriteLine($"Revision: #{Revision:D3}");
-            textDumper.WriteLine($"Flags: {Flags:X4}{(Exclusive ? " (exclusive)" : "")}");
-            textDumper.WriteLine($"Prev checkout offset: {PrevCheckoutOffset:X6}");
-            textDumper.WriteLine($"This checkout offset: {ThisCheckoutOffset:X6}");
-            textDumper.WriteLine($"Checkouts: {Checkouts}");
+            #endregion
+
+            if (!assumeChunkHasBadData)
+            {
+                textDumper.CurrentDumpPhysicalFileAdditionalResults?.AddFoundUserAndMachineNames(UserName, MachineName);
+            }
+
+            if (textDumper.VerboseFilter(!assumeChunkHasBadData))
+            {
+                textDumper.WriteLine($"User: {UserName} @ {CheckOutDateTime}");
+                textDumper.WriteLine($"Working: {WorkingDir}");
+                textDumper.WriteLine($"Machine: {MachineName}");
+                textDumper.WriteLine($"Project: {Project}");
+                if (!string.IsNullOrEmpty(Comment))
+                {
+                    textDumper.WriteLine($"Comment: {Comment}");
+                }
+                textDumper.WriteLine($"Revision: #{Revision:D3}");
+                textDumper.WriteLine($"Flags: {Flags:X4}{(Exclusive ? " (exclusive)" : "")}");
+                textDumper.WriteLine($"Prev checkout offset: {PrevCheckoutOffset:X6}");
+                textDumper.WriteLine($"This checkout offset: {ThisCheckoutOffset:X6}");
+                textDumper.WriteLine($"Checkouts: {Checkouts}");
+            }
+            else
+            {
+                textDumper.WarningWriteLine($"Source physical file marked as having bad {nameof(CheckoutRecord)} data, strings were omitted");
+            }
         }
     };
 }

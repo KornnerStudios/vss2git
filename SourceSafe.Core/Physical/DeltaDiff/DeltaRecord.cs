@@ -8,20 +8,20 @@ namespace SourceSafe.Physical.DeltaDiff
     {
         public const string SIGNATURE = "FD";
 
-        private readonly List<DeltaOperation> operations = [];
+        private readonly List<DeltaOperation> mOperations = [];
 
         public override string Signature => SIGNATURE;
-        public IEnumerable<DeltaOperation> Operations => operations;
+        public IEnumerable<DeltaOperation> Operations => mOperations;
 
         public bool EncounteredInvalidOperation { get; private set; }
 
-        // #TODO add JSON flag to control this behavior
-        public static bool ReadCheckForMissingStopCommands { get; set; } = false;
         protected override void ReadInternal(IO.VssBufferReader reader)
         {
             int dataStartOffset = Header.Offset + Records.RecordHeader.LENGTH;
             int dataEndOffset = dataStartOffset + Header.Length;
 #if DEBUG
+            bool checkForMissingStopCommands =
+                reader.Database.Config.ConfigRecords.DeltaRecordsReadCheckForMissingStopCommands;
             bool encounteredStop = false;
 #endif // DEBUG
 
@@ -35,7 +35,7 @@ namespace SourceSafe.Physical.DeltaDiff
                 catch (Records.InvalidRecordDataException ex)
                 {
                     EncounteredInvalidOperation = true;
-                    reader.TextDumperHack?.WriteLine(ex.Message);
+                    reader.TextDumperHack?.ErrorWriteLine(ex.Message);
                     break;
                 }
 
@@ -46,11 +46,11 @@ namespace SourceSafe.Physical.DeltaDiff
 #endif // DEBUG
                     break;
                 }
-                operations.Add(operation);
+                mOperations.Add(operation);
             }
 
 #if DEBUG
-            if (ReadCheckForMissingStopCommands && !encounteredStop)
+            if (checkForMissingStopCommands && !encounteredStop)
             {
                 "".ToString(); // place a breakpoint as needed
             }
@@ -61,12 +61,13 @@ namespace SourceSafe.Physical.DeltaDiff
         {
             if (EncounteredInvalidOperation)
             {
-                textDumper.WriteLine("ERROR: Encountered invalid delta operation(s)");
+                textDumper.ErrorWriteLine("Encountered invalid delta operation(s)");
+                textDumper.WriteLine($"Valid Operations #{mOperations.Count}");
             }
 
-            if (textDumper.DumpDeltaRecordOperations)
+            if (textDumper.Config.DumpDeltaRecordOperations)
             {
-                foreach (DeltaOperation operation in operations)
+                foreach (DeltaOperation operation in mOperations)
                 {
                     operation.Dump(textDumper);
                 }

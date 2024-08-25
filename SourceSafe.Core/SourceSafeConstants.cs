@@ -11,6 +11,7 @@ namespace SourceSafe
         public const string ProjectSpecPrefix = RootProjectName + ProjectSeparator;
 
         public const string IniFile = "srcsafe.ini";
+        public const string NamesDatFile = "names.dat";
         public const string UsersIniFile = "users.txt";
 
         public static readonly DateTime UnixLocalTimeEpoch =

@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Text;
 
 namespace SourceSafe.Physical.Files
 {
@@ -8,10 +7,6 @@ namespace SourceSafe.Physical.Files
     /// </summary>
     public abstract class VssRecordFileBase
     {
-        // #TODO add JSON flag to control this behavior
-        public static bool IgnoreInvalidCommentRecords { get; set; }
-            = true;
-
 #if DEBUG
         public static bool DebugInMemoryFilePooling { get; set; }
             = false;
@@ -19,17 +14,46 @@ namespace SourceSafe.Physical.Files
         public static bool UseInMemoryFilePooling { get; set; }
             = true;
 
-        protected readonly IO.VssBufferReader reader;
+        protected readonly IO.VssBufferReader mReader;
+        private readonly bool mValidateCommentRecord;
+        private readonly bool mValidateRecordHeaderCrc;
 
-        public string Filename { get; }
+        /// <summary>
+        /// The file path, before any path remapping
+        /// </summary>
+        public string FileName { get; }
+        public string RelativeFileName { get; }
+        /// <summary>
+        /// The actual file on we're reading from, after any path remapping
+        /// </summary>
+        public string ActualFileName { get; }
 
-        public VssRecordFileBase(string filename, Encoding encoding)
+        public VssRecordFileBase(
+            Logical.VssDatabase vssDatabase,
+            string fileName)
         {
-            Filename = filename;
+            Logical.VssDatabaseConfig.FilesConfig filesConfig = vssDatabase.Config.ConfigFiles;
+
+            FileName = fileName;
+            RelativeFileName = vssDatabase.GetDatabaseRelativePath(fileName);
+            ActualFileName = vssDatabase.GetActualFullFilePath(fileName);
+
+            mValidateCommentRecord =
+                !filesConfig.IsExcludedFromValidateCommentRecord(RelativeFileName);
+            mValidateRecordHeaderCrc =
+                !filesConfig.IsExcludedFromRecordHeaderCrcCheck(RelativeFileName);
+
             byte[] fileBytes = UseInMemoryFilePooling
-                ? ReadFileOrAccessFromPool(filename)
-                : ReadFile(filename);
-            reader = new IO.VssBufferReader(encoding, new ArraySegment<byte>(fileBytes), filename);
+                ? ReadFileOrAccessFromPool(ActualFileName)
+                : ReadFile(ActualFileName);
+            mReader = new IO.VssBufferReader(
+                vssDatabase,
+                new ArraySegment<byte>(fileBytes),
+                ActualFileName)
+            {
+                ValidateAssumedToBeAllZerosAreAllZeros =
+                    !filesConfig.IsExcludedFromValidateAssumedToBeAllZerosAreAllZeros(RelativeFileName),
+            };
         }
 
         internal void ReadRecord(Records.VssRecordBase record)
@@ -37,30 +61,30 @@ namespace SourceSafe.Physical.Files
             try
             {
                 Records.RecordHeader recordHeader = new();
-                recordHeader.Read(reader);
+                recordHeader.Read(mReader);
 
-                if (IgnoreInvalidCommentRecords &&
+                if (!mValidateCommentRecord &&
                     record.Signature == Records.CommentRecord.SIGNATURE &&
                     // recordHeader.Length is likely bunk if the signature is wrong
                     recordHeader.Signature != Records.CommentRecord.SIGNATURE)
                 {
-                    recordHeader.LogInvalidSignature(record.Signature, Filename);
+                    recordHeader.LogInvalidSignature(record.Signature, ActualFileName);
 
                     // leave the CommentRecord as-is (empty)
                 }
                 else if (recordHeader.Length < 0)
                 {
                     throw new Records.RecordTruncatedException(
-                        $"Record length is negative: {recordHeader.Length} at {recordHeader.Offset:X8} in {Filename}");
+                        $"Record length is negative: {recordHeader.Length} at {recordHeader.Offset:X8} in {ActualFileName}");
                 }
                 else
                 {
-                    IO.VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+                    IO.VssBufferReader recordReader = mReader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
                     // comment records always seem to have a zero CRC
                     if (recordHeader.Signature != Records.CommentRecord.SIGNATURE)
                     {
-                        recordHeader.CheckCrc(Filename);
+                        recordHeader.CheckCrc(ActualFileName, mValidateRecordHeaderCrc);
                     }
 
                     recordHeader.CheckSignature(record.Signature);
@@ -76,25 +100,25 @@ namespace SourceSafe.Physical.Files
 
         internal void ReadRecord(Records.VssRecordBase record, int offset)
         {
-            reader.Offset = offset;
+            mReader.Offset = offset;
             ReadRecord(record);
         }
 
         internal bool ReadNextRecord(Records.VssRecordBase record)
         {
-            while (reader.RemainingSize > Records.RecordHeader.LENGTH)
+            while (mReader.RemainingSize > Records.RecordHeader.LENGTH)
             {
                 try
                 {
                     Records.RecordHeader recordHeader = new();
-                    recordHeader.Read(reader);
+                    recordHeader.Read(mReader);
 
-                    IO.VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+                    IO.VssBufferReader recordReader = mReader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
                     // comment records always seem to have a zero CRC
                     if (recordHeader.Signature != Records.CommentRecord.SIGNATURE)
                     {
-                        recordHeader.CheckCrc(Filename);
+                        recordHeader.CheckCrc(ActualFileName, mValidateRecordHeaderCrc);
                     }
 
                     if (recordHeader.Signature == record.Signature)
@@ -121,14 +145,14 @@ namespace SourceSafe.Physical.Files
             where T : Records.VssRecordBase
         {
             Records.RecordHeader recordHeader = new();
-            recordHeader.Read(reader);
+            recordHeader.Read(mReader);
 
-            IO.VssBufferReader recordReader = reader.ReadBytesIntoNewBufferReader(recordHeader.Length);
+            IO.VssBufferReader recordReader = mReader.ReadBytesIntoNewBufferReader(recordHeader.Length);
 
             // comment records always seem to have a zero CRC
             if (recordHeader.Signature != Records.CommentRecord.SIGNATURE)
             {
-                recordHeader.CheckCrc(Filename);
+                recordHeader.CheckCrc(ActualFileName, mValidateRecordHeaderCrc);
             }
 
             T? record = creationCallback(recordHeader, recordReader);
@@ -152,7 +176,7 @@ namespace SourceSafe.Physical.Files
             int offset)
             where T : Records.VssRecordBase
         {
-            reader.Offset = offset;
+            mReader.Offset = offset;
             return GetRecord<T>(creationCallback, ignoreUnknown);
         }
 
@@ -161,13 +185,13 @@ namespace SourceSafe.Physical.Files
             bool skipUnknown)
             where T : Records.VssRecordBase
         {
-            int startingOffset = reader.Offset;
-            int startingRemaining = reader.RemainingSize;
+            int startingOffset = mReader.Offset;
+            int startingRemaining = mReader.RemainingSize;
             int iterationCount = 0;
 
-            while (reader.RemainingSize > Records.RecordHeader.LENGTH)
+            while (mReader.RemainingSize > Records.RecordHeader.LENGTH)
             {
-                int recordOffset = reader.Offset;
+                int recordOffset = mReader.Offset;
                 T? record = GetRecord(creationCallback, skipUnknown);
                 if (record != null)
                 {

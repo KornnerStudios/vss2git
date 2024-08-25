@@ -6,8 +6,10 @@ namespace SourceSafe.Physical.Files.Names
         public NamesHeaderRecord Header { get; } = new();
         private readonly Dictionary<int, NamesRecord> mRecordsByFileOffset = [];
 
-        public VssNamesDatFile(string filename, System.Text.Encoding encoding)
-            : base(filename, encoding)
+        public VssNamesDatFile(
+            Logical.VssDatabase vssDatabase,
+            string fileName)
+            : base(vssDatabase, fileName)
         {
         }
 
@@ -15,9 +17,9 @@ namespace SourceSafe.Physical.Files.Names
         {
             ReadRecord(Header);
 
-            while (reader.Offset < Header.EofOffset)
+            while (mReader.Offset < Header.EofOffset)
             {
-                int recordOffset = reader.Offset;
+                int recordOffset = mReader.Offset;
                 NamesRecord record = new();
                 ReadRecord(record);
                 mRecordsByFileOffset[recordOffset] = record;

@@ -55,5 +55,70 @@ namespace SourceSafe
             }
             return buf.ToString();
         }
+
+        public static HashSet<string>? ConvertToUpper(
+            HashSet<string>? input)
+        {
+            HashSet<string>? output = null;
+
+            if (input != null)
+            {
+                output = new(input.Count);
+                foreach (string previousValue in input)
+                {
+                    string newValue = previousValue
+                        .ToUpperInvariant();
+                    output.Add(newValue);
+                }
+            }
+
+            return output;
+        }
+
+        public static HashSet<string>? ConvertForwardSlashesToBackSlashAndToUpper(
+            HashSet<string>? input)
+        {
+            HashSet<string>? output = null;
+
+            if (input != null)
+            {
+                output = new(input.Count);
+                foreach (string previousValue in input)
+                {
+                    string newValue = previousValue
+                        .Replace('/', '\\')
+                        .ToUpperInvariant();
+                    output.Add(newValue);
+                }
+            }
+
+            return output;
+        }
+
+        public static Dictionary<string, string>? ConvertForwardSlashesToBackSlashAndToUpper(
+            Dictionary<string, string>? input,
+            bool alsoConvertValues = true)
+        {
+            Dictionary<string, string>? output = null;
+
+            if (input != null)
+            {
+                output = new(input.Count);
+                foreach (KeyValuePair<string, string> previousKvp in input)
+                {
+                    string newKey = previousKvp.Key
+                        .Replace('/', '\\')
+                        .ToUpperInvariant();
+                    string newValue = alsoConvertValues
+                        ? previousKvp.Value
+                            .Replace('/', '\\')
+                            .ToUpperInvariant()
+                        : previousKvp.Value;
+                    output.Add(newKey, newValue);
+                }
+            }
+
+            return output;
+        }
     };
 }
