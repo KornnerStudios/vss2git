@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Hpdi.Vss2Git
 {
-    public class MainSettings
+    public partial class MainSettings
     {
         public string VssDirectory { get; set; } = string.Empty;
         public string VssProject { get; set; } = string.Empty;
@@ -60,9 +60,9 @@ namespace Hpdi.Vss2Git
         /// <returns>List of tuples where Item 1 is error type, and Item 2 is offending data</returns>
         public List<Tuple<string, string>> ParseSettingsFile(string filePath)
         {
-            List<Tuple<string, string>> resultList = new List<Tuple<string, string>>();
+            var resultList = new List<Tuple<string, string>>();
             System.Reflection.PropertyInfo[] classFields = typeof(MainSettings).GetProperties();
-            List<string> foundProps = new List<string>();
+            var foundProps = new List<string>();
 
             using (var reader = new StreamReader(filePath))
             {
@@ -73,8 +73,8 @@ namespace Hpdi.Vss2Git
                     string[] parts = line.Split('=');
                     string value = parts[1].Trim();
 
-                    string importField = Regex.Replace(parts[0].Trim().ToLower(), "_([a-z])", match => match.Groups[1].Value.ToUpper());
-                    importField = importField.Substring(0, 1).ToUpper() + importField.Substring(1);
+                    string importField = GetImportFieldRegex().Replace(parts[0].Trim().ToLower(), match => match.Groups[1].Value.ToUpper());
+                    importField = string.Concat(importField[..1].ToUpper(), importField.AsSpan(1));
 
                     foreach (System.Reflection.PropertyInfo classField in classFields)
                     {
@@ -121,5 +121,8 @@ namespace Hpdi.Vss2Git
             }
             return resultList;
         }
+
+        [GeneratedRegex("_([a-z])")]
+        private static partial Regex GetImportFieldRegex();
     };
 }
