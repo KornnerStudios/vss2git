@@ -26,13 +26,13 @@ namespace SourceSafe.Analysis
         public HashSet<DeletedFileData> DestroyedFiles { get; } = [];
 
         private int mProjectCount;
-        public int ProjectCount => Thread.VolatileRead(ref mProjectCount);
+        public int ProjectCount => Volatile.Read(ref mProjectCount);
 
         private int mFileCount;
-        public int FileCount => Thread.VolatileRead(ref mFileCount);
+        public int FileCount => Volatile.Read(ref mFileCount);
 
         private int mRevisionCount;
-        public int RevisionCount => Thread.VolatileRead(ref mRevisionCount);
+        public int RevisionCount => Volatile.Read(ref mRevisionCount);
 
         public VssRevisionAnalyzer(
             TrackedWorkQueue workQueue,
